@@ -1,0 +1,114 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.146'
+    id 'idea'
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+neoForge {
+    version = neo_version
+
+    parchment {
+        mappingsVersion = parchment_mappings_version
+        minecraftVersion = parchment_minecraft_version
+    }
+
+    runs {
+        client {
+            client()
+            ideName = 'Shamanic Mounts Client'
+        }
+        server {
+            server()
+            programArgument '--nogui'
+            ideName = 'Shamanic Mounts Server'
+        }
+        // Live harness. Its own world and ports, so it does not share Tribal Power's showcase server.
+        // tools/system_harness.py drives RCON on 25586 and the client command file.
+        harnessServer {
+            server()
+            programArgument '--nogui'
+            programArgument '--port'
+            programArgument '25576'
+            jvmArgument '-Xmx1500m'
+            ideName = 'Shamanic Mounts Harness Server'
+        }
+        harnessClient {
+            client()
+            jvmArgument '-Xmx2G'
+            jvmArgument '-Dshamanicmounts.harness=true'
+            programArguments.addAll '--username', 'ShamanQA', '--width', '1280', '--height', '800', '--quickPlayMultiplayer', '127.0.0.1:25576'
+            ideName = 'Shamanic Mounts Harness Client'
+        }
+        configureEach { run ->
+            run.systemProperty 'forge.logging.markers', 'REGISTRIES'
+            run.logLevel = org.slf4j.event.Level.INFO
+            def folder = 'run'
+            if (run.name == 'harnessServer') folder = 'build/harness-server'
+            else if (run.name == 'harnessClient') folder = 'build/harness-client'
+            run.gameDirectory = project.file(folder)
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.11.4'
+}
+
+tasks.named('compileTestJava', JavaCompile).configure {
+    classpath += sourceSets.main.compileClasspath
+}
+
+tasks.named('test', Test).configure {
+    useJUnitPlatform()
+    classpath += sourceSets.main.runtimeClasspath
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+    }
+}
+
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}

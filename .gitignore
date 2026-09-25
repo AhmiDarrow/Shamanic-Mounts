@@ -1,0 +1,61 @@
+# Gradle
+.gradle/
+build/
+out/
+run/
+runs/
+**/run/
+**/runs/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+bin/
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# NeoForge / Minecraft
+logs/
+**/logs/
+**/crash-reports/
+**/saves/
+**/options.txt
+**/usercache.json
+**/usernamecache.json
+src/generated/resources/.cache/
+
+# Python
+__pycache__/
+*.pyc
+
+# Retired Blender studies of the first cubes: local only
+art/*.blend
+art/*.blend1
+art/*.blend2
+art/previews/
+tools/build_block_mounts.py
+tools/build_spirit_mount.py
+
+# Store-cover previews (tools/store_cover.py --preview)
+art/branding/cover-preview.png
+art/branding/cover-mask-preview.png
+
+# Local notes and scratch: never commit
+INTERNAL/
+docs/*_INTERNAL.md
+.grok/
+Claude outputs/
+
+# Publishing credentials
+tools/secrets/
+.env
