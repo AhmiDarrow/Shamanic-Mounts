@@ -1,7 +1,7 @@
 """Upload a Shamanic Mounts jar to its CurseForge project (see docs/curseforge.md).
 
-    python tools/upload_curseforge.py --jar build/libs/shamanicmounts-0.1.0.jar \
-        --display-name "Shamanic Mounts 0.1.0 - The Spirit Herd" --changelog-file docs/RELEASE_0.1.0.md
+    python tools/upload_curseforge.py --jar build/libs/shamanicmounts-<version>.jar \
+        --display-name "Shamanic Mounts <version> - <subtitle>" --changelog-file docs/RELEASE_<version>.md
 
 The author token is read from tools/secrets/.env, or from the Ninjacat Skies checkout beside this
 one, under the key CF_AUTHOR_TOKEN. Both files are git-ignored. Run python tools/gates/sanitize.py

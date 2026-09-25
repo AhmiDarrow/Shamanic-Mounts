@@ -40,6 +40,8 @@ final class SolidDraw {
 	/** Render statistics for the live harness: plan rebuilds and quads emitted since the last read. */
 	static long replans;
 	static long quads;
+	/** Set by the live harness; a player's game never counts or times. */
+	static boolean stats;
 	static long flushNanos;
 	static long signNanos;
 	static long boxesAdded;
@@ -84,7 +86,9 @@ final class SolidDraw {
 			boxes[count] = box;
 		}
 		box.set(x, y, z, x + w, y + h, z + d, coat, eyeFace, eye, group, count, poses - 1);
-		boxesAdded++;
+		if (stats) {
+			boxesAdded++;
+		}
 		count++;
 	}
 
@@ -93,9 +97,11 @@ final class SolidDraw {
 	 * With a {@code glow} supplier the eye faces are drawn again, full bright, for eyes that shine at night.
 	 */
 	Plan flush(VertexConsumer consumer, int light, int overlay, Plan cached, boolean blink, Supplier<VertexConsumer> glow) {
-		long start = System.nanoTime();
+		long start = stats ? System.nanoTime() : 0L;
 		long sig = signature();
-		signNanos += System.nanoTime() - start;
+		if (stats) {
+			signNanos += System.nanoTime() - start;
+		}
 		Plan plan = cached != null && cached.signature == sig ? cached : plan();
 		for (Face face : plan.faces) {
 			emit(face, face.eye && blink ? face.shut : face.uv, consumer, light, overlay);
@@ -111,7 +117,9 @@ final class SolidDraw {
 		}
 		count = 0;
 		poses = 0;
-		flushNanos += System.nanoTime() - start;
+		if (stats) {
+			flushNanos += System.nanoTime() - start;
+		}
 		return plan;
 	}
 
@@ -135,7 +143,9 @@ final class SolidDraw {
 			// One call per vertex: the buffer's fast path for the entity format writes it all at once.
 			consumer.addVertex(at.x, at.y, at.z, WHITE, uv[i * 2], uv[i * 2 + 1], overlay, light, nx, ny, nz);
 		}
-		quads += corners / 4;
+		if (stats) {
+			quads += corners / 4;
+		}
 	}
 
 	private Plan plan() {

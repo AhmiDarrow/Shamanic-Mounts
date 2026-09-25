@@ -12,7 +12,13 @@ public final class ShamanicMountsClient {
 	public ShamanicMountsClient(IEventBus modBus) {
 		MountClient.install(modBus);
 		if (Boolean.getBoolean("shamanicmounts.harness")) {
-			HarnessVerification.install();
+			// The harness driver is not in the released jar; it exists only in a development run.
+			try {
+				Class.forName("tk.darrow.shamanicmounts.client.HarnessVerification").getMethod("install").invoke(null);
+				SolidDraw.stats = true;
+			} catch (ReflectiveOperationException missing) {
+				ShamanicMounts.LOGGER.warn("Harness requested but its driver is not in this build");
+			}
 		}
 	}
 }

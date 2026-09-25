@@ -54,6 +54,8 @@ def main() -> int:
         if rel.startswith(SELF):
             continue
         path = ROOT / rel
+        if not path.is_file():
+            continue  # tracked but deleted in the working tree: it will not be pushed
         if re.search(r"(^|/)(\.env|.*\.key|credentials.*)$", rel) or rel.startswith("tools/secrets/"):
             fails.append(f"{rel}: secret-like file would be pushed")
             continue

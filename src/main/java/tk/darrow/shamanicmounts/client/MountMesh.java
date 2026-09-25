@@ -43,11 +43,13 @@ final class MountMesh {
 	/** {@code armor} is the horse armor tier: 0 none, 1 leather, 2 iron, 3 gold, 4 diamond. {@code pelt} is 0 to 2. */
 	static void draw(Phenotype phenotype, boolean saddled, boolean bags, int armor, int pelt, PoseStack pose,
 			VertexConsumer consumer, Supplier<VertexConsumer> glow, int light, int overlay, MountPose anim) {
-		long start = System.nanoTime();
+		long start = SolidDraw.stats ? System.nanoTime() : 0L;
 		drawWithPlans(phenotype, saddled, bags, armor, pelt, pose, consumer, glow, light, overlay, anim,
 				PLANS.computeIfAbsent(phenotype, key -> new SolidDraw.Plan[60]));
-		drawNanos += System.nanoTime() - start;
-		draws++;
+		if (SolidDraw.stats) {
+			drawNanos += System.nanoTime() - start;
+			draws++;
+		}
 	}
 
 	static void drawWithPlans(Phenotype phenotype, boolean saddled, boolean bags, int armor, int pelt, PoseStack pose,

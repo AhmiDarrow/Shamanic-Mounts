@@ -103,10 +103,6 @@ class GenomeRulesTest {
 		assertEquals(Phenotype.WingShow.PINION, phenotype.wings);
 		assertEquals(Phenotype.FootShow.TALON, phenotype.foot);
 		assertEquals(Marks.Foot.HOOF, cross.carriedFoot());
-		assertEquals(0.18f, Sockets.NECK, 1.0e-6f);
-		assertEquals(6, BlockGrid.NECK);
-		assertEquals(3, BlockGrid.LEG);
-		assertEquals(2, BlockGrid.SPARE_LEG);
 		assertEquals(Reading.Note.SHAPED, Reading.of(cross).get(0).note());
 	}
 

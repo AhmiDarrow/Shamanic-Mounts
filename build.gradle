@@ -112,3 +112,8 @@ tasks.withType(AbstractArchiveTask).configureEach {
     preserveFileTimestamps = false
     reproducibleFileOrder = true
 }
+
+// The released jar carries only what the game runs: the live harness driver stays in development builds.
+tasks.named('jar', Jar) {
+    exclude 'tk/darrow/shamanicmounts/client/HarnessVerification*'
+}
