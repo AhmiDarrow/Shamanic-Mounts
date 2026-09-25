@@ -1,0 +1,45 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "#shamanicmounts:spawns/eightfold",
+      "required": false
+    },
+    {
+      "id": "#shamanicmounts:spawns/drum_hart",
+      "required": false
+    },
+    {
+      "id": "#shamanicmounts:spawns/elk",
+      "required": false
+    },
+    {
+      "id": "#shamanicmounts:spawns/crane",
+      "required": false
+    },
+    {
+      "id": "#shamanicmounts:spawns/nagual",
+      "required": false
+    },
+    {
+      "id": "#shamanicmounts:spawns/barghest",
+      "required": false
+    },
+    {
+      "id": "#shamanicmounts:spawns/roc",
+      "required": false
+    },
+    {
+      "id": "#shamanicmounts:spawns/shade",
+      "required": false
+    },
+    {
+      "id": "#shamanicmounts:spawns/bear",
+      "required": false
+    },
+    {
+      "id": "#shamanicmounts:spawns/serpent",
+      "required": false
+    }
+  ]
+}

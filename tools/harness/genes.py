@@ -62,6 +62,29 @@ def main():
     check("size scales the base health: XS 22, XL 30", healths.get("steed_xs") == 22.0 and healths.get("steed_xl") == 30.0,
           str(healths))
     run("kill @e[type=shamanicmounts:mount]")
+
+    # Wild spawns follow the biome: the line lives there, and its pelt is the one at home there.
+    for biome, allowed, bear_pelt in (("snowy_plains", {"hart", "bear"}, "c"), ("forest", {"hart", "bear"}, "a")):
+        run(f"fillbiome {int(PAD[0]) - 8} 90 {int(PAD[2]) - 8} {int(PAD[0]) + 8} 120 {int(PAD[2]) + 8} minecraft:{biome}")
+        lines, bears = [], []
+        for _ in range(30):
+            run(f"summon shamanicmounts:mount {PAD[0]} {PAD[1]} {PAD[2]}")
+            torso = run(f"data get entity @e[type=shamanicmounts:mount,limit=1,sort=nearest] Genome.Maternal.TORSO") or ""
+            pelts = [run(f"data get entity @e[type=shamanicmounts:mount,limit=1,sort=nearest] Genome.{side}.PELT") or ""
+                     for side in ("Maternal", "Paternal")]
+            found = re.search(r'"([a-z]+)"', torso.split("data:", 1)[-1])
+            line = found.group(1) if found else "?"
+            lines.append(line)
+            if line == "bear":
+                copies = [re.search(r'"([a-c])"', p.split("data:", 1)[-1]) for p in pelts]
+                bears.append("".join(c.group(1) if c else "?" for c in copies))
+            run("kill @e[type=shamanicmounts:mount]")
+        check(f"wild mounts in {biome} are only lines that live there", set(lines) <= allowed and len(lines) == 30,
+              f"{sorted(set(lines))}")
+        shown = [pair for pair in bears if (bear_pelt == "c" and pair == "cc") or (bear_pelt == "a" and "a" in pair)]
+        check(f"bears in {biome} mostly wear the pelt at home there", bears and len(shown) * 2 >= len(bears),
+              f"{bears}")
+    run(f"fillbiome {int(PAD[0]) - 8} 90 {int(PAD[2]) - 8} {int(PAD[0]) + 8} 120 {int(PAD[2]) + 8} minecraft:plains")
     client("hud on")
     run("gamerule showDeathMessages true")
     run(f"tp {PLAYER} 8.5 102 8.5")

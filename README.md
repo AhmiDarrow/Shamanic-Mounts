@@ -33,6 +33,19 @@ Everyone stands at least as tall as a horse. Every line comes in three pelts and
 
 Sneak and right-click a tame mount, or press your inventory key while riding, for the classic mount screen: the tack slots and the mount on the left, its bags on the right, and three choices under them. **Saddle Bags** are their own item, four leather around a chest, and strap on under the saddle for two rows of five slots. Taking them off tips out whatever they held. Vanilla horse armor, leather to diamond, buckles into the third slot with its usual protection and is worn over the whole barrel. **Follow** keeps up with you. **Stay** lies down where it was left. **Wander** roams nearby. A barghest stays on its own when you step off.
 
+## Where they live
+
+Each line spawns in its own biomes, and each biome favours one of its pelts: polar bears on snow and ice, grizzlies in taiga and mountains, black bears in forests; snow leopards on snowy slopes and panthers in bamboo jungle; red rocs and barghests in badlands. Cold biomes lean a size larger and hot ones a size smaller, and spawn eggs roll the same way.
+
+Everything is a tag, built on the common `c:` biome tags so modded biomes pick the mounts up:
+
+- `data/shamanicmounts/tags/worldgen/biome/spawns/<line>.json`: where a line spawns.
+- `data/shamanicmounts/tags/worldgen/biome/pelts/<line>/<a|b|c>.json`: where each pelt is at home.
+- `data/shamanicmounts/tags/worldgen/biome/size/larger.json` and `smaller.json`: the climate's size lean.
+- `data/shamanicmounts/tags/block/spawnable_on.json`: the ground a wild mount spawns on.
+
+`python tools/write_spawn_tags.py` regenerates them from one table.
+
 ## Tack and taming
 
 Every mount needs a **Shamanic Saddle**. A vanilla saddle does not fit. Food does not tame.

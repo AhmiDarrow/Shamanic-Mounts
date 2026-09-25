@@ -214,23 +214,6 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		return phenotype.pelt;
 	}
 
-	/**
-	 * A wild mount's own size and pelt: each copy rolled on its own. Sizes lean to the middle, and
-	 * the first pelt is the common one, so a third pelt needs two rare copies.
-	 */
-	private Genome rollWild(Genome founder) {
-		return new Genome(rollStrand(founder.maternal), rollStrand(founder.paternal), founder.headFromMaternal,
-				founder.footFromMaternal, founder.tailFromMaternal, founder.chimera);
-	}
-
-	private tk.darrow.shamanicmounts.genome.Strand rollStrand(tk.darrow.shamanicmounts.genome.Strand strand) {
-		int sizeRoll = this.random.nextInt(100);
-		Marks.Size size = sizeRoll < 10 ? Marks.Size.XS : sizeRoll < 30 ? Marks.Size.S : sizeRoll < 70 ? Marks.Size.M
-				: sizeRoll < 90 ? Marks.Size.L : Marks.Size.XL;
-		int peltRoll = this.random.nextInt(100);
-		Marks.Pelt pelt = peltRoll < 40 ? Marks.Pelt.A : peltRoll < 70 ? Marks.Pelt.B : Marks.Pelt.C;
-		return strand.with(size).with(pelt);
-	}
 
 	public SimpleContainer tack() {
 		return tack;
@@ -420,9 +403,10 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, net.minecraft.world.DifficultyInstance difficulty,
 			MobSpawnType reason, SpawnGroupData data) {
 		if (!genomeLocked) {
-			Genome[] founders = { Founders.eightfold(), Founders.drumHart(), Founders.elk(), Founders.crane(),
-					Founders.nagual(), Founders.barghest(), Founders.roc(), Founders.shade(), Founders.bear(), Founders.serpent() };
-			setGenome(rollWild(founders[this.random.nextInt(founders.length)]), false);
+			// A line that lives in this biome, in the pelt at home here, and a size the climate leans toward.
+			var biome = level.getBiome(this.blockPosition());
+			var line = tk.darrow.shamanicmounts.world.MountBiomes.pick(biome, this.random);
+			setGenome(tk.darrow.shamanicmounts.world.MountBiomes.wild(line.founder(), line, biome, this.random), false);
 			this.male = this.random.nextBoolean();
 		}
 		return super.finalizeSpawn(level, difficulty, reason, data);

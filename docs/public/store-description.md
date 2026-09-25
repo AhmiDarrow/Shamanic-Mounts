@@ -2,7 +2,7 @@
 
 **CurseForge summary (one line):** Ten spirit mounts, from eight-legged steeds and drum harts to rocs, bears and a frilled serpent. Tame with a braced saddle, breed any two, and chase the chimera.
 
-Spirit mounts for Minecraft 1.21.1, NeoForge 21.1.249, and Java 21. Ten founder lines roam the Overworld, each with a body, a gait and something it does when ridden. Brace a wild one to tame it, then breed any line with any other. The foal is one animal built from two copies of every gene: body, head, legs, tail, size, pelt, wings and ridden gifts, all tracked in a herd book that writes them the way a breeder would.
+Spirit mounts for Minecraft 1.21.1, NeoForge 21.1.249, and Java 21. Ten founder lines roam the Overworld, each in its own biomes and in the pelt at home there, each with a body, a gait and something it does when ridden. Brace a wild one to tame it, then breed any line with any other. The foal is one animal built from two copies of every gene: body, head, legs, tail, size, pelt, wings and ridden gifts, all tracked in a herd book that writes them the way a breeder would.
 
 https://github.com/AhmiDarrow/Shamanic-Mounts
 
@@ -33,6 +33,27 @@ Every line comes in three pelts and five sizes, each set by its own gene.
 **Shade.** Hold sneak while riding and mobs stop targeting you and the cat, until you hit something or break a block. Sneak and use blinks 6 blocks forward into open air, on a 3 second cooldown. Under light level 7 it has Speed I. Dusk, silver and ink.
 
 On a mount that hides, blinks or dives, a held sneak keeps you in the saddle and a tap steps you off. A mount that inherited more than one of the drum, the send-away and the blink uses them in that order. Everyone stands at least as tall as a horse; the elk and the roc are the big ones.
+
+## Where they live
+
+Each line spawns in its own biomes, and each biome favours one of its pelts.
+
+| Line | Lives in | Pelts and where they are at home |
+|---|---|---|
+| Eightfold | plains, meadows, savanna | bay on the plains, black where it is windswept or cold, palomino in savanna |
+| Drum hart | forests, cherry groves, snowy plains | tan in forests, red among flowers, white in the snow |
+| Elk | taiga, groves, snowy plains | dark in taiga, brown in old growth, grey in the snow |
+| Crane | swamps, rivers, beaches | white on swamps and rivers, grey on beaches and shores, black in the cold |
+| Nagual | jungles, snowy slopes | gold in jungle, black panther in bamboo jungle, snow leopard on snowy slopes |
+| Barghest | dark forests, windswept hills, badlands | black in dark woods, grey on windswept hills, red in badlands |
+| Roc | mountains, hills, badlands | bone on mountains, storm on windswept hills, red in badlands |
+| Shade | dark forests, mushroom fields, snowy taiga | dusk in dark woods, silver in the snow, ink on mushroom fields |
+| Bear | forests, taiga, snow and ice | black bear in forests, grizzly in taiga and mountains, polar bear on snow and ice |
+| Serpent | swamps, jungles, rivers, deserts | river on rivers and swamps, jungle in jungles, bone in deserts |
+
+Cold biomes lean a size larger and hot ones a size smaller. Spawn eggs hatch the pelt and size the biome they are used in would give.
+
+Every one of these is a biome tag built on the common `c:` tags, so modded biomes tagged as forest, taiga, snowy, jungle and the rest get the right mounts on their own, and a datapack can add any biome to `shamanicmounts:spawns/<line>` or `shamanicmounts:pelts/<line>/<a|b|c>`.
 
 ## Brace to tame
 
@@ -74,7 +95,7 @@ A readable book of the mounts you own, loaded or not. Each tame's page has its p
 
 ## Start your ride
 
-Find a wild mount anywhere in the Overworld. Craft a Shamanic Saddle and brace it to tame. Sneak and right-click it to strap on bags, then open the herd book. Everything the mod adds sits in its own creative tab.
+Find a wild mount in its home biomes: bears in the woods and the snow, cranes on the rivers, rocs in the mountains. Craft a Shamanic Saddle and brace it to tame. Sneak and right-click it to strap on bags, then open the herd book. Everything the mod adds sits in its own creative tab.
 
 ## Requirements
 

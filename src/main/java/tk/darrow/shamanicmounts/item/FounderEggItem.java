@@ -80,7 +80,9 @@ public class FounderEggItem extends DeferredSpawnEggItem {
 			return null;
 		}
 		mount.moveTo(x, y, z, yaw, 0.0f);
-		mount.setGenome(genome, true);
+		// An egg hatches its line in the pelt and size the biome here would give a wild one.
+		mount.setGenome(tk.darrow.shamanicmounts.world.MountBiomes.wild(genome, tk.darrow.shamanicmounts.world.MountBiomes.lineOf(genome),
+				level.getBiome(BlockPos.containing(x, y, z)), level.getRandom()), true);
 		mount.rollSex();
 		mount.finalizeSpawn(level, level.getCurrentDifficultyAt(BlockPos.containing(x, y, z)), MobSpawnType.SPAWN_EGG,
 				null);

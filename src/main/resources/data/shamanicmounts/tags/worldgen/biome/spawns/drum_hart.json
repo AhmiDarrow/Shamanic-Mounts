@@ -1,0 +1,28 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "#c:is_forest",
+      "required": false
+    },
+    {
+      "id": "#minecraft:is_forest",
+      "required": false
+    },
+    {
+      "id": "#c:is_birch_forest",
+      "required": false
+    },
+    {
+      "id": "#c:is_flower_forest",
+      "required": false
+    },
+    {
+      "id": "#c:is_snowy_plains",
+      "required": false
+    },
+    "minecraft:meadow",
+    "minecraft:cherry_grove",
+    "minecraft:snowy_taiga"
+  ]
+}

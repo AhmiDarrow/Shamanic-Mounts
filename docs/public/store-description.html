@@ -1,6 +1,6 @@
 <p><strong>Shamanic Mounts — The Spirit Herd</strong></p>
 <p><strong>CurseForge summary (one line):</strong> Ten spirit mounts, from eight-legged steeds and drum harts to rocs, bears and a frilled serpent. Tame with a braced saddle, breed any two, and chase the chimera.</p>
-<p>Spirit mounts for Minecraft 1.21.1, NeoForge 21.1.249, and Java 21. Ten founder lines roam the Overworld, each with a body, a gait and something it does when ridden. Brace a wild one to tame it, then breed any line with any other. The foal is one animal built from two copies of every gene: body, head, legs, tail, size, pelt, wings and ridden gifts, all tracked in a herd book that writes them the way a breeder would.</p>
+<p>Spirit mounts for Minecraft 1.21.1, NeoForge 21.1.249, and Java 21. Ten founder lines roam the Overworld, each in its own biomes and in the pelt at home there, each with a body, a gait and something it does when ridden. Brace a wild one to tame it, then breed any line with any other. The foal is one animal built from two copies of every gene: body, head, legs, tail, size, pelt, wings and ridden gifts, all tracked in a herd book that writes them the way a breeder would.</p>
 <p>https://github.com/AhmiDarrow/Shamanic-Mounts</p>
 <p><img src="shamanic-mounts-founders.png" alt="The founders"></p>
 
@@ -17,6 +17,24 @@
 <p><strong>Serpent.</strong> No legs: an anaconda's body and a snake's head ringed by a frilled lizard's collar. It swims fast and dives. Hold jump to rise, hold sneak to sink, tap sneak to step off. The attack control coils the nearest foe in front, holding and poisoning it for 3 seconds, on a 5 second cooldown. From both parents you breathe under water while riding. River, jungle and bone.</p>
 <p><strong>Shade.</strong> Hold sneak while riding and mobs stop targeting you and the cat, until you hit something or break a block. Sneak and use blinks 6 blocks forward into open air, on a 3 second cooldown. Under light level 7 it has Speed I. Dusk, silver and ink.</p>
 <p>On a mount that hides, blinks or dives, a held sneak keeps you in the saddle and a tap steps you off. A mount that inherited more than one of the drum, the send-away and the blink uses them in that order. Everyone stands at least as tall as a horse; the elk and the roc are the big ones.</p>
+
+<h2>Where they live</h2>
+<p>Each line spawns in its own biomes, and each biome favours one of its pelts.</p>
+<table>
+<tr><td>Line</td><td>Lives in</td><td>Pelts and where they are at home</td></tr>
+<tr><td>Eightfold</td><td>plains, meadows, savanna</td><td>bay on the plains, black where it is windswept or cold, palomino in savanna</td></tr>
+<tr><td>Drum hart</td><td>forests, cherry groves, snowy plains</td><td>tan in forests, red among flowers, white in the snow</td></tr>
+<tr><td>Elk</td><td>taiga, groves, snowy plains</td><td>dark in taiga, brown in old growth, grey in the snow</td></tr>
+<tr><td>Crane</td><td>swamps, rivers, beaches</td><td>white on swamps and rivers, grey on beaches and shores, black in the cold</td></tr>
+<tr><td>Nagual</td><td>jungles, snowy slopes</td><td>gold in jungle, black panther in bamboo jungle, snow leopard on snowy slopes</td></tr>
+<tr><td>Barghest</td><td>dark forests, windswept hills, badlands</td><td>black in dark woods, grey on windswept hills, red in badlands</td></tr>
+<tr><td>Roc</td><td>mountains, hills, badlands</td><td>bone on mountains, storm on windswept hills, red in badlands</td></tr>
+<tr><td>Shade</td><td>dark forests, mushroom fields, snowy taiga</td><td>dusk in dark woods, silver in the snow, ink on mushroom fields</td></tr>
+<tr><td>Bear</td><td>forests, taiga, snow and ice</td><td>black bear in forests, grizzly in taiga and mountains, polar bear on snow and ice</td></tr>
+<tr><td>Serpent</td><td>swamps, jungles, rivers, deserts</td><td>river on rivers and swamps, jungle in jungles, bone in deserts</td></tr>
+</table>
+<p>Cold biomes lean a size larger and hot ones a size smaller. Spawn eggs hatch the pelt and size the biome they are used in would give.</p>
+<p>Every one of these is a biome tag built on the common `c:` tags, so modded biomes tagged as forest, taiga, snowy, jungle and the rest get the right mounts on their own, and a datapack can add any biome to `shamanicmounts:spawns/&lt;line&gt;` or `shamanicmounts:pelts/&lt;line&gt;/&lt;a|b|c&gt;`.</p>
 
 <h2>Brace to tame</h2>
 <p>Food does not tame a spirit mount. Craft a Shamanic Saddle, a gold ingot over leather, a saddle and leather, and right-click a wild adult with it. The saddle goes on and the mount stands still. Four jolts follow. Each winds up for three quarters of a second, and you must be holding jump as it ends. Four held jumps and it is yours. Miss, get off or hit the mount and the try fails; you keep the saddle, and that mount refuses another try for 10 seconds. A vanilla saddle does not fit.</p>
@@ -51,7 +69,7 @@
 <p>A readable book of the mounts you own, loaded or not. Each tame's page has its portrait, a summary of its body, pelt, size and sex, links to its dam, sire and foals, and every gene grouped by body, size, coat, wings, nature and gifts, with the dam's and sire's copies side by side. Genes are written in breeder's notation, a capital for the copy that shows and lowercase for the one it hides, and hovering a gene explains how it passes down. The Lines page opens each founder onto its three pelts and its genes, and the Key page lists every gene with its rule. Rename a tame or release it from its page. The breeding chapter hides behind a spoiler switch that stays the way you left it.</p>
 
 <h2>Start your ride</h2>
-<p>Find a wild mount anywhere in the Overworld. Craft a Shamanic Saddle and brace it to tame. Sneak and right-click it to strap on bags, then open the herd book. Everything the mod adds sits in its own creative tab.</p>
+<p>Find a wild mount in its home biomes: bears in the woods and the snow, cranes on the rivers, rocs in the mountains. Craft a Shamanic Saddle and brace it to tame. Sneak and right-click it to strap on bags, then open the herd book. Everything the mod adds sits in its own creative tab.</p>
 
 <h2>Requirements</h2>
 <table>

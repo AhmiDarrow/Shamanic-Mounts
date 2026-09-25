@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "#c:is_swamp",
+      "required": false
+    },
+    {
+      "id": "#c:is_river",
+      "required": false
+    },
+    {
+      "id": "#minecraft:is_river",
+      "required": false
+    }
+  ]
+}

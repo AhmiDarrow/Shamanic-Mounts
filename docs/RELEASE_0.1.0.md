@@ -7,7 +7,7 @@ First release. Minecraft 1.21.1, NeoForge 21.1.249.
 - Breeding with the Diamond Apple. Head, feet, wings, and tail are separate genes; every ridden ability is its own gene and they stack on the body of the cross.
 - The chimera: breed two mounts that both carry every ability and the foal has an even chance of being the furry scaled dragon with all of them.
 - The Herd Book: every tame you own with its genes, parents, and children, rename and release, and a breeding chapter behind a spoiler switch.
-- A Shamanic Mounts creative tab with the saddle, the book, the apple, and founder spawn eggs for all ten lines. Wild spawns in the overworld.
+- A Shamanic Mounts creative tab with the saddle, the book, the apple, and founder spawn eggs for all ten lines. Wild spawns by biome, through tags built on the common `c:` biome tags so modded biomes join in, with each line's pelt at home in its own biomes (polar bears in the snow, black bears in forests) and the climate nudging size.
 - Foals are born wild, keep near the grown mounts, and wear no tack until grown; tame them with the saddle like any adult.
 - Stay lays the mount down with its legs folded under it.
 - The mount screen: tack slots for the saddle, the new Saddle Bags, and vanilla horse armor, the mount's portrait, and a follow, stay, or wander choice. The elk's bags hold a third row.

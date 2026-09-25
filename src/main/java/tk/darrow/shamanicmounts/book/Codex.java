@@ -35,7 +35,8 @@ public final class Codex {
 	public static List<Section> basics() {
 		return List.of(
 				new Section("The herd", List.of(
-						"Ten lines of spirit mount roam the Overworld, one at a time. Each stands at least as tall as a horse, and the serpent as long as two.",
+						"Ten lines of spirit mount roam the Overworld, one at a time, each in its own biomes: bears in the woods and the snow, cranes on the rivers, rocs in the mountains. Each stands at least as tall as a horse, and the serpent as long as two.",
+						"Where a mount is born decides its pelt: a polar bear on the snow, a black bear in the forest, a snow leopard on the slopes. The cold grows them a little larger.",
 						"Every mount is built from genes. Its body, head, legs, tail, pelt, size, and what it does when ridden are each passed down on their own.")),
 				new Section("Taming", List.of(
 						"Food does not tame a spirit mount. Craft a Shamanic Saddle; a vanilla saddle does not fit.",
