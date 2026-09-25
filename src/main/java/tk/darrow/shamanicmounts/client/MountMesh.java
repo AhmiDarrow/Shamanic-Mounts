@@ -28,6 +28,9 @@ final class MountMesh {
 
 	/** Cut plans per phenotype, bare and saddled. The layout does not change with the pose. */
 	private static final Map<Phenotype, SolidDraw.Plan[]> PLANS = new WeakHashMap<>();
+	/** Time spent building mounts' geometry, for the live harness. */
+	static long drawNanos;
+	static long draws;
 	/** Mounts are drawn one at a time on the render thread, so they share one cube buffer. */
 	private static final SolidDraw DRAW = new SolidDraw();
 	/** How far a lying mount sinks, in pixels: most of its shortest leg, learned from the last draw. */
@@ -40,8 +43,11 @@ final class MountMesh {
 	/** {@code armor} is the horse armor tier: 0 none, 1 leather, 2 iron, 3 gold, 4 diamond. {@code pelt} is 0 to 2. */
 	static void draw(Phenotype phenotype, boolean saddled, boolean bags, int armor, int pelt, PoseStack pose,
 			VertexConsumer consumer, Supplier<VertexConsumer> glow, int light, int overlay, MountPose anim) {
+		long start = System.nanoTime();
 		drawWithPlans(phenotype, saddled, bags, armor, pelt, pose, consumer, glow, light, overlay, anim,
 				PLANS.computeIfAbsent(phenotype, key -> new SolidDraw.Plan[60]));
+		drawNanos += System.nanoTime() - start;
+		draws++;
 	}
 
 	static void drawWithPlans(Phenotype phenotype, boolean saddled, boolean bags, int armor, int pelt, PoseStack pose,

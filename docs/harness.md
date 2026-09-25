@@ -63,5 +63,6 @@ The client polls `build/harness-client/showcase-command.txt` twice a second and 
 - `pick <n>`: in the herd book, open tame n, line n, or on a tame's page relative n (0 dam, 1 sire, then foals).
 - `bookscroll end|top`: scroll the open book page to its end or back to the top.
 - `bookenter`: press Enter in the open tame's name box.
+- `renderstats`: mount draws since the last read, average microseconds per draw (total, flush, and layout signature), cubes per draw, plan rebuilds, and quads. Plan rebuilds should stay at 0 in steady state.
 - `dump`: write every quad the nearest mount draws, with its atlas cell, to `showcase-dump.txt`. Use it
   when a face looks wrong: a black patch seen head-on is usually the nose pad, not a hole.

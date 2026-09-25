@@ -77,7 +77,9 @@ public class MountRenderer extends EntityRenderer<ShamanicMount> {
 				Mth.lerp(partialTick, mount.xRotO, mount.getXRot()), forcedWing > 0 ? 1.0f : mount.wingOpen(partialTick),
 				forcedWing > 0 ? forcedWing : mount.wingPose(), sit, air,
 				(float) mount.getDeltaMovement().y, mount.isInWater(), mount.isBaby(), mount.getId(), glow);
-		var consumer = buffers.getBuffer(RenderType.entityCutoutNoCull(COAT));
+		// Every face is wound outward, so a mount in the world skips its back faces on the GPU. A book
+		// portrait is drawn with the depth axis flipped, which reverses the winding, so it keeps both sides.
+		var consumer = buffers.getBuffer(mount.isAddedToLevel() ? RenderType.entityCutout(COAT) : RenderType.entityCutoutNoCull(COAT));
 		java.util.function.Supplier<com.mojang.blaze3d.vertex.VertexConsumer> eyes = glow ? () -> buffers.getBuffer(RenderType.eyes(COAT)) : null;
 		MountMesh.draw(phenotype, mount.saddled(), mount.hasBags(), mount.armorTier(), mount.pelt(), pose, consumer, eyes, light,
 				OverlayTexture.NO_OVERLAY, anim);

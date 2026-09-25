@@ -415,6 +415,18 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		}
 	}
 
+	/**
+	 * The box the camera tests before drawing: the hitbox grown by the neck, the tail, and the spread
+	 * wings, so a vast-winged roc or a long-necked crane never pops in at the edge of the screen.
+	 */
+	@Override
+	public net.minecraft.world.phys.AABB getBoundingBoxForCulling() {
+		float scale = phenotype.uniformScale;
+		boolean winged = phenotype.chimera || phenotype.wings != Phenotype.WingShow.NONE;
+		double side = (winged ? 1.4 * Math.max(1.0f, phenotype.wingScale) : 0.6) * scale;
+		return this.getBoundingBox().inflate(side + 1.0 * scale, 1.2 * scale, side + 1.0 * scale);
+	}
+
 	@Override
 	protected EntityDimensions getDefaultDimensions(Pose pose) {
 		return EntityDimensions.scalable(MountSize.width(phenotype), MountSize.height(phenotype));

@@ -579,6 +579,23 @@ public final class HarnessVerification {
 						mc.player.level().enabledFeatures(), false));
 				return "ok " + tab.getDisplayName().getString() + " [" + names + "]";
 			}
+			case "renderstats" -> {
+				// renderstats: mount draws, average microseconds each, plan rebuilds, and quads since the last read.
+				long draws = MountMesh.draws;
+				String out = String.format(java.util.Locale.ROOT, "ok draws=%d us=%.1f flushUs=%.1f signUs=%.1f boxes=%d replans=%d quads=%d", draws,
+						draws == 0 ? 0.0 : MountMesh.drawNanos / 1000.0 / draws,
+						draws == 0 ? 0.0 : SolidDraw.flushNanos / 1000.0 / draws,
+						draws == 0 ? 0.0 : SolidDraw.signNanos / 1000.0 / draws,
+						draws == 0 ? 0 : SolidDraw.boxesAdded / draws, SolidDraw.replans, SolidDraw.quads);
+				SolidDraw.flushNanos = 0;
+				SolidDraw.signNanos = 0;
+				SolidDraw.boxesAdded = 0;
+				MountMesh.draws = 0;
+				MountMesh.drawNanos = 0;
+				SolidDraw.replans = 0;
+				SolidDraw.quads = 0;
+				return out;
+			}
 			case "fps" -> {
 				return "ok " + mc.getFps();
 			}
