@@ -99,6 +99,7 @@ public final class HerdBookScreen extends Screen {
 	}
 
 	private void open(Codex.Page chapter) {
+		nameBox = null;
 		page = chapter;
 		selected = null;
 		selectedLine = null;
@@ -108,6 +109,7 @@ public final class HerdBookScreen extends Screen {
 	}
 
 	private void openTame(@Nullable UUID id) {
+		nameBox = null;
 		page = Codex.Page.TAMES;
 		selected = id;
 		selectedLine = null;
@@ -121,6 +123,15 @@ public final class HerdBookScreen extends Screen {
 		if (page == Codex.Page.BREEDING && !spoiled()) {
 			page = Codex.Page.BASICS;
 		}
+		// A spoiler line does not stay open once spoilers are off.
+		if (selectedLine != null && !spoiled()) {
+			Codex.Line open = line(selectedLine);
+			if (open == null || open.spoiler()) {
+				selectedLine = null;
+			}
+		}
+		// Keep whatever was typed in the name box across a rebuild.
+		String typed = nameBox != null && selectedEntry() != null ? nameBox.getValue() : null;
 		int y = 28;
 		int chapters = Codex.open(spoiled()).size();
 		for (Codex.Page chapter : Codex.open(spoiled())) {
@@ -155,12 +166,14 @@ public final class HerdBookScreen extends Screen {
 			int boxW = Math.max(60, Math.min(140, room - 66 - 60));
 			nameBox = new EditBox(this.font, TEXT_X + 66, 29, boxW, 18, Component.translatable("book.shamanicmounts.rename"));
 			nameBox.setMaxLength(24);
-			nameBox.setValue(tame.name());
+			nameBox.setValue(typed != null ? typed : tame.name());
 			addRenderableWidget(nameBox);
 			addRenderableWidget(Button.builder(Component.translatable("book.shamanicmounts.rename"), button -> {
 				if (book.rename(player, selected, nameBox.getValue())) {
 					confirmRelease = false;
 					ClientBook.tellServer(0, selected, book.get(selected).name());
+					nameBox = null;
+					rebuildWidgets();
 				}
 			}).bounds(TEXT_X + 70 + boxW, 29, 56, 18).build());
 			addRenderableWidget(Button.builder(Component.translatable(confirmRelease
@@ -506,11 +519,13 @@ public final class HerdBookScreen extends Screen {
 	 */
 	private int geneTable(GuiGraphics graphics, Genome genome, int mouseX, int mouseY, int y, int width) {
 		boolean showNotes = spoiled();
-		int colShown = 64;
-		int colDam = colShown + Math.max(70, width / 5);
-		int colSire = colDam + Math.max(56, width / 7);
-		int colNote = colSire + Math.max(56, width / 7);
-		boolean noteFits = colNote + 50 <= width;
+		// Columns share the page's width, so a narrow window keeps every column on the page.
+		int colShown = Math.min(64, width / 4);
+		int room = Math.max(60, width - colShown);
+		boolean noteFits = room >= 300;
+		int colDam = colShown + room * (noteFits ? 30 : 38) / 100;
+		int colSire = colDam + room * (noteFits ? 22 : 31) / 100;
+		int colNote = colSire + room * 22 / 100;
 		graphics.drawString(this.font, "gene", TEXT_X, y, PALE, false);
 		graphics.drawString(this.font, "shows", TEXT_X + colShown, y, PALE, false);
 		graphics.drawString(this.font, "dam", TEXT_X + colDam, y, PALE, false);

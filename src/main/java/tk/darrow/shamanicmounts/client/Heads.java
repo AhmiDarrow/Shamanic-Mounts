@@ -347,10 +347,10 @@ final class Heads {
 		pen.box(-2.4f, y - 12.6f, z - 0.2f, 4.8f, 4f, 0.8f, skin.pale());
 		pen.pair(-2.6f, y - 12.8f, z + 2.6f, 0.8f, 0.6f, 0.8f, Mat.NOSE);
 		float flick = pen.anim.ear;
-		pen.hinge(0f, y - 12.5f, z + 1.2f, 0f, 0f, -flick * 20f, () -> {
-			pen.box(-0.3f, y - 17f + flick * 1.5f, z + 1f, 0.6f, 4.5f, 0.5f, Mat.FRILL);
-			pen.pair(-1f, y - 17.5f + flick * 1.5f, z + 1f, 0.8f, 1.2f, 0.5f, Mat.FRILL);
-		});
+		pen.hinge(0f, y - 12.5f, z + 1.2f, 0f, 0f, -flick * 20f, () -> pen.shift(0f, flick * 1.5f, 0f, () -> {
+			pen.box(-0.3f, y - 17f, z + 1f, 0.6f, 4.5f, 0.5f, Mat.FRILL);
+			pen.pair(-1f, y - 17.5f, z + 1f, 0.8f, 1.2f, 0.5f, Mat.FRILL);
+		}));
 		eyes(pen, 4f, y - 8.5f, z + 2.4f, 3f, 1.6f, skin);
 		// The frill: a ring of ribs around the back of the skull with skin between them.
 		// Eleven ribs over two thirds of a circle, from below one jaw over the crown to below the other,

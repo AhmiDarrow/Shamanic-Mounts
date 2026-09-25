@@ -70,7 +70,8 @@ public final class SpoilerPref {
 			Files.createDirectories(file.getParent());
 			Files.writeString(file, text.toString(), StandardCharsets.UTF_8);
 		} catch (IOException failure) {
-			throw new IllegalStateException("could not save spoiler preference", failure);
+			// The choice still holds for this session; it just is not remembered.
+			tk.darrow.shamanicmounts.ShamanicMounts.LOGGER.warn("Could not save the herd book spoiler choice: {}", failure.toString());
 		}
 	}
 }

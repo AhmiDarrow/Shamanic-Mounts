@@ -40,7 +40,7 @@ Each line spawns in its own biomes, and each biome favours one of its pelts.
 
 | Line | Lives in | Pelts and where they are at home |
 |---|---|---|
-| Eightfold | plains, meadows, savanna | bay on the plains, black where it is windswept or cold, palomino in savanna |
+| Eightfold | plains, meadows, savanna, windswept hills | bay on the plains, black on windswept hills, palomino in savanna |
 | Drum hart | forests, cherry groves, snowy plains | tan in forests, red among flowers, white in the snow |
 | Elk | taiga, groves, snowy plains | dark in taiga, brown in old growth, grey in the snow |
 | Crane | swamps, rivers, beaches | white on swamps and rivers, grey on beaches and shores, black in the cold |
@@ -82,7 +82,7 @@ Every mount carries two copies of every gene, one from each parent, and the herd
 - **Body** shows by rank: bear over steed over hart over hound over cat over bird over serpent. The hidden body still pulls the neck, head, tail and girth halfway toward its own shape, so a steed carrying serpent grows a longer neck and tail.
 - **Head, feet and tail** each show one copy, picked at birth, so a bird's head can stand on hooves. The other copy is carried and can come back in a foal.
 - **Legs** meet in the middle: eight with four shows the spare pair. No legs is recessive.
-- **Size** runs XS, S, M, L, XL within every line, and the two copies average. Build is the line's frame on top of it, which is why the elk and the roc stand tallest. Bigger mounts have a little more health.
+- **Size** runs XS, S, M, L, XL within every line, and the two copies average. Build is the line's frame on top of it, which is why the elk, the roc and the bear stand tallest. Bigger mounts have a little more health.
 - **Pelt** is A over B over C. The third pelt of every line, palomino, white, snow leopard, polar and the rest, needs two copies.
 - **Wingspan** runs from small to vast and the two copies average. A roc carries a vast copy, so bred fliers can grow wings two or three times a crane's.
 - **Ridden gifts** are each their own gene and stack on whatever body the cross made. The shade's hide and blink and the nagual's send-away need both copies; one dream copy flies only at night; the rest show from one.

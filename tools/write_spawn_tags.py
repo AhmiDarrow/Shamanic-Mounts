@@ -24,10 +24,10 @@ DATA = ROOT / "src" / "main" / "resources" / "data" / "shamanicmounts" / "tags"
 LINES = {
     "eightfold": (
         ["#c:is_plains", "#c:is_savanna", "#minecraft:is_savanna", "minecraft:plains", "minecraft:sunflower_plains",
-         "minecraft:meadow"],
+         "minecraft:meadow", "minecraft:windswept_hills", "minecraft:windswept_gravelly_hills"],
         {"a": ["#c:is_plains", "minecraft:meadow"],                      # bay
-         "b": ["#c:is_windswept", "#c:is_cold/overworld"],               # black
-         "c": ["#c:is_savanna", "#minecraft:is_savanna", "#c:is_dry/overworld"]}),  # palomino
+         "b": ["minecraft:windswept_hills", "minecraft:windswept_gravelly_hills"],  # black
+         "c": ["#c:is_savanna", "#minecraft:is_savanna"]}),              # palomino
     "drum_hart": (
         ["#c:is_forest", "#minecraft:is_forest", "#c:is_birch_forest", "#c:is_flower_forest", "#c:is_snowy_plains",
          "minecraft:meadow", "minecraft:cherry_grove", "minecraft:snowy_taiga"],
@@ -46,10 +46,10 @@ LINES = {
          "b": ["#c:is_beach", "#minecraft:is_beach", "#c:is_stony_shores"],  # grey
          "c": ["#c:is_cold/overworld", "#c:is_snowy"]}),                 # black
     "nagual": (
-        ["#c:is_jungle", "#minecraft:is_jungle", "#c:is_mountain/slope", "minecraft:snowy_slopes", "minecraft:grove"],
+        ["#c:is_jungle", "#minecraft:is_jungle", "minecraft:snowy_slopes", "minecraft:grove"],
         {"a": ["#c:is_jungle", "#minecraft:is_jungle"],                  # gold
          "b": ["minecraft:bamboo_jungle"],                               # panther
-         "c": ["#c:is_mountain/slope", "#c:is_snowy", "minecraft:grove"]}),  # snow leopard
+         "c": ["#c:is_snowy", "minecraft:snowy_slopes", "minecraft:grove"]}),  # snow leopard
     "barghest": (
         ["#c:is_spooky", "#c:is_windswept", "#c:is_badlands", "#minecraft:is_badlands", "minecraft:dark_forest"],
         {"a": ["#c:is_spooky", "minecraft:dark_forest"],                 # black

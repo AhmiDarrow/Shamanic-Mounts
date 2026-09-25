@@ -28,6 +28,8 @@ final class MountMesh {
 
 	/** Cut plans per phenotype, bare and saddled. The layout does not change with the pose. */
 	private static final Map<Phenotype, SolidDraw.Plan[]> PLANS = new WeakHashMap<>();
+	/** Mounts are drawn one at a time on the render thread, so they share one cube buffer. */
+	private static final SolidDraw DRAW = new SolidDraw();
 	/** How far a lying mount sinks, in pixels: most of its shortest leg, learned from the last draw. */
 	private static final Map<Phenotype, Float> LIE_DROP = new WeakHashMap<>();
 
@@ -44,7 +46,7 @@ final class MountMesh {
 
 	static void drawWithPlans(Phenotype phenotype, boolean saddled, boolean bags, int armor, int pelt, PoseStack pose,
 			VertexConsumer consumer, Supplier<VertexConsumer> glow, int light, int overlay, MountPose anim, SolidDraw.Plan[] plans) {
-		Pen pen = new Pen(pose, anim);
+		Pen pen = new Pen(pose, anim, DRAW);
 		Shell shell = shell(phenotype);
 		Skin skin = Skin.of(shell, pelt, phenotype);
 		int slot = (saddled ? 1 : 0) + (bags ? 2 : 0) + Math.max(0, Math.min(4, armor)) * 4 + Math.floorMod(pelt, 3) * 20;

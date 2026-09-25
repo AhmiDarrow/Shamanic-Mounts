@@ -249,12 +249,12 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		this.goalSelector.addGoal(3, new FollowOwnerGoal(this, 1.1, 8.0f, 2.0f) {
 			@Override
 			public boolean canUse() {
-				return mode() == MountMode.FOLLOW && super.canUse();
+				return mode() == MountMode.FOLLOW && !tended() && super.canUse();
 			}
 
 			@Override
 			public boolean canContinueToUse() {
-				return mode() == MountMode.FOLLOW && super.canContinueToUse();
+				return mode() == MountMode.FOLLOW && !tended() && super.canContinueToUse();
 			}
 		});
 		this.goalSelector.addGoal(4, new PanicGoal(this, 1.3));
@@ -263,13 +263,34 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0) {
 			@Override
 			public boolean canUse() {
-				return (!isTame() || mode() == MountMode.WANDER) && super.canUse();
+				return (!isTame() || mode() == MountMode.WANDER) && !tended() && super.canUse();
+			}
+
+			@Override
+			public boolean canContinueToUse() {
+				return !tended() && super.canContinueToUse();
 			}
 		});
 		this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 8.0f));
 		this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
 		this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
 		this.targetSelector.addGoal(2, new HurtByTargetGoal(this));
+	}
+
+	/** How many players have this mount's screen open. While any do, it stands still for them. */
+	private int tending;
+
+	public void startTending() {
+		tending++;
+		this.getNavigation().stop();
+	}
+
+	public void stopTending() {
+		tending = Math.max(0, tending - 1);
+	}
+
+	public boolean tended() {
+		return tending > 0;
 	}
 
 	public Genome genome() {
@@ -597,6 +618,10 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			jumpHeld = false;
 			return;
 		}
+		// A wild mount under a brace trial gives nothing: no drum, no sight, no strike.
+		if (!this.isTame() || this.trial != null) {
+			return;
+		}
 		if (holdsSneak()) {
 			if (riderSneak) {
 				sneakHeld++;
@@ -733,7 +758,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	 * so a complete mount can still reach the blink without waiting out the drum.
 	 */
 	public void used(Player player) {
-		if (this.level().isClientSide() || player != this.getControllingPassenger()) {
+		if (this.level().isClientSide() || player != this.getControllingPassenger() || !this.isTame() || this.trial != null) {
 			return;
 		}
 		boolean sneak = riderSneak || player.isShiftKeyDown();
@@ -836,8 +861,10 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		// Level unless the rider is looking well up; then the blink rises with the gaze.
 		Vec3 dir = look.y > 0.5 ? look.normalize() : flat;
 		Vec3 dest = this.position().add(dir.scale(GiftRules.BLINK_BLOCKS));
-		BlockPos feet = BlockPos.containing(dest);
-		if (!this.level().getBlockState(feet).isAir() || !this.level().getBlockState(feet.above()).isAir()) {
+		// The whole mount, and its rider above it, must fit at the far end.
+		net.minecraft.world.phys.AABB there = this.getBoundingBox().move(dest.subtract(this.position()))
+				.expandTowards(0.0, player.getBbHeight(), 0.0);
+		if (!this.level().noCollision(this, there) || this.level().containsAnyLiquid(there)) {
 			return false;
 		}
 		MountEffects.blink(this, false);
@@ -925,7 +952,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	public InteractionResult mobInteract(Player player, InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 		boolean saddle = stack.is(MountItems.SHAMANIC_SADDLE.get());
-		if (SaddleRules.canOffer(!this.isTame() && !this.isBaby(), saddle, refuseTicks)) {
+		if (SaddleRules.canOffer(!this.isTame() && !this.isBaby(), saddle, refuseTicks) && this.trial == null
+				&& !this.isVehicle()) {
 			if (!this.level().isClientSide()) {
 				beginTrial(player, stack);
 			}
@@ -947,7 +975,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			openCustomInventoryScreen(player);
 			return InteractionResult.sidedSuccess(this.level().isClientSide());
 		}
-		if (canBeRiddenNow() && !player.isShiftKeyDown() && this.getPassengers().size() < seatCount()) {
+		if (canBeRiddenNow() && !player.isShiftKeyDown() && this.getPassengers().size() < seatCount()
+				&& (this.isOwnedBy(player) || this.getControllingPassenger() != null)) {
 			if (!this.level().isClientSide()) {
 				player.startRiding(this);
 			}
@@ -975,12 +1004,14 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		}
 		this.trial = null;
 		this.refuseTicks = BraceTrial.REFUSE_TICKS;
+		// A dead mount already dropped its tack, saddle included; a live one hands back the saddle it wore.
+		ItemStack worn = this.isAlive() ? tack.removeItemNoUpdate(MountChestMenu.SADDLE_SLOT) : ItemStack.EMPTY;
 		this.setSaddled(false);
 		this.ejectPassengers();
-		if (this.trialTookSaddle) {
-			this.trialTookSaddle = false;
-			this.spawnAtLocation(new ItemStack(MountItems.SHAMANIC_SADDLE.get()));
+		if (this.trialTookSaddle && !worn.isEmpty()) {
+			this.spawnAtLocation(worn);
 		}
+		this.trialTookSaddle = false;
 		this.playSound(SoundEvents.HORSE_ANGRY, 0.8f, 0.9f);
 	}
 
@@ -1042,7 +1073,10 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		if (!(this.level() instanceof ServerLevel server)) {
 			return;
 		}
-		Genome child = Meiosis.child(this.genome, other.genome, new java.util.Random(this.random.nextLong()));
+		// The female of a mixed pair is the dam; a same-sex pair keeps the order they were fed in.
+		ShamanicMount damMount = this.male && !other.male ? other : this;
+		ShamanicMount sireMount = damMount == this ? other : this;
+		Genome child = Meiosis.child(damMount.genome, sireMount.genome, new java.util.Random(this.random.nextLong()));
 		ShamanicMount foal = MountEntities.MOUNT.get().create(server);
 		if (foal == null) {
 			return;
@@ -1053,8 +1087,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		foal.setAge(-24000);
 		// A foal is born wild. Once grown it takes the saddle trial like any mount, and its lineage
 		// goes into the herd book when it is tamed.
-		foal.dam = this.getUUID();
-		foal.sire = other.getUUID();
+		foal.dam = damMount.getUUID();
+		foal.sire = sireMount.getUUID();
 		foal.setPersistenceRequired();
 		server.addFreshEntity(foal);
 		this.hearts();
@@ -1086,6 +1120,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	public void releaseIntoWorld(Player player) {
 		this.setTame(false, false);
 		this.setOwnerUUID(null);
+		this.setMode(MountMode.WANDER);
 		this.setOrderedToSit(false);
 		this.setCustomName(null);
 		this.setCustomNameVisible(false);
@@ -1152,9 +1187,16 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		move.accept(passenger, this.getX() + dx - sit.x, this.getY() + seat[1] - sit.y, this.getZ() + dz - sit.z);
 	}
 
+	/** The rider who steers: the owner in the front seat, or the rider of a brace trial. A friend behind never steers. */
 	@Override
 	public LivingEntity getControllingPassenger() {
-		return this.getFirstPassenger() instanceof LivingEntity living ? living : null;
+		if (!(this.getFirstPassenger() instanceof LivingEntity living)) {
+			return null;
+		}
+		if (this.trial != null || !this.isTame() || this.isOwnedBy(living)) {
+			return living;
+		}
+		return null;
 	}
 
 	@Override
@@ -1331,10 +1373,15 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	}
 
 	@Override
-	protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean recentlyHit) {
-		super.dropCustomDeathLoot(level, source, recentlyHit);
-		Containers.dropContents(level, this, this.chest);
-		Containers.dropContents(level, this, this.tack);
+	protected void dropEquipment() {
+		super.dropEquipment();
+		if (this.trial != null && !this.trialTookSaddle) {
+			tack.removeItemNoUpdate(MountChestMenu.SADDLE_SLOT);
+		}
+		Containers.dropContents(this.level(), this, this.chest);
+		Containers.dropContents(this.level(), this, this.tack);
+		this.chest.clearContent();
+		this.tack.clearContent();
 	}
 
 	@Override
@@ -1368,11 +1415,22 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		tag.putString("Mode", mode().name());
 		tag.putByte("RiderKeys", (byte) ((riderSneak ? 1 : 0) | (jumpHeld ? 2 : 0)));
 		tag.putInt("SneakHeld", sneakHeld);
-		tag.put("Chest", this.chest.createTag(this.registryAccess()));
+		net.minecraft.nbt.ListTag chestList = new net.minecraft.nbt.ListTag();
+		for (int slot = 0; slot < this.chest.getContainerSize(); slot++) {
+			ItemStack piece = this.chest.getItem(slot);
+			if (!piece.isEmpty()) {
+				CompoundTag one = new CompoundTag();
+				one.putByte("Slot", (byte) slot);
+				chestList.add(piece.save(this.registryAccess(), one));
+			}
+		}
+		tag.put("Chest", chestList);
 		net.minecraft.nbt.ListTag tackList = new net.minecraft.nbt.ListTag();
 		for (int slot = 0; slot < this.tack.getContainerSize(); slot++) {
 			ItemStack piece = this.tack.getItem(slot);
-			if (!piece.isEmpty()) {
+			// The saddle of a brace trial belongs to the rider until the trial ends; it is not saved on the mount.
+			boolean trialSaddle = slot == MountChestMenu.SADDLE_SLOT && this.trial != null;
+			if (!piece.isEmpty() && !trialSaddle) {
 				CompoundTag one = new CompoundTag();
 				one.putByte("Slot", (byte) slot);
 				tackList.add(piece.save(this.registryAccess(), one));
@@ -1422,7 +1480,14 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		} else if (this.isOrderedToSit()) {
 			setMode(MountMode.STAY);
 		}
-		this.chest.fromTag(tag.getList("Chest", net.minecraft.nbt.Tag.TAG_COMPOUND), this.registryAccess());
+		this.chest.clearContent();
+		for (net.minecraft.nbt.Tag raw : tag.getList("Chest", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+			CompoundTag one = (CompoundTag) raw;
+			int slot = one.getByte("Slot") & 255;
+			if (slot < this.chest.getContainerSize()) {
+				this.chest.setItem(slot, ItemStack.parse(this.registryAccess(), one).orElse(ItemStack.EMPTY));
+			}
+		}
 		if (tag.contains("Tack")) {
 			this.tack.clearContent();
 			for (net.minecraft.nbt.Tag raw : tag.getList("Tack", net.minecraft.nbt.Tag.TAG_COMPOUND)) {

@@ -53,6 +53,10 @@ public class MountChestMenu extends AbstractContainerMenu {
 		checkContainerSize(tack, 3);
 		checkContainerSize(chest, GiftRules.CHEST_SLOTS);
 		chest.startOpen(playerInventory.player);
+		// A mount whose screen is open stands still, so it never wanders out of reach and shuts it.
+		if (mount != null && !playerInventory.player.level().isClientSide()) {
+			mount.startTending();
+		}
 		this.addSlot(new TackSlot(tack, SADDLE_SLOT, TACK_X, TACK_Y, grown(stack -> stack.is(MountItems.SHAMANIC_SADDLE.get()))));
 		this.addSlot(new TackSlot(tack, BAGS_SLOT, TACK_X, TACK_Y + 18, grown(stack -> stack.is(MountItems.SADDLE_BAGS.get()))));
 		this.addSlot(new TackSlot(tack, ARMOR_SLOT, TACK_X, TACK_Y + 36, grown(MountChestMenu::isHorseArmor)));
@@ -120,7 +124,7 @@ public class MountChestMenu extends AbstractContainerMenu {
 		if (mount == null) {
 			return true;
 		}
-		return mount.isAlive() && player.distanceToSqr(mount) < 64.0;
+		return mount.isAlive() && mount.isTame() && mount.isOwnedBy(player) && player.distanceToSqr(mount) < 64.0;
 	}
 
 	@Override
@@ -164,5 +168,8 @@ public class MountChestMenu extends AbstractContainerMenu {
 	public void removed(Player player) {
 		super.removed(player);
 		this.chest.stopOpen(player);
+		if (mount != null && !player.level().isClientSide()) {
+			mount.stopTending();
+		}
 	}
 }

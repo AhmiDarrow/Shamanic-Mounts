@@ -1,8 +1,14 @@
 # CurseForge publishing
 
-The CurseForge project has not been created. Do not infer an id from search results. When the project exists, record the id and the slug here before any upload.
+CurseForge project **1711650**, confirmed by the owner on 2026-09-25. Upload only when asked.
 
-Do not upload until asked. The store page describes the mod as it will ship. The jar spawns the mount, the ten founder eggs, the brace tame, breeding, and the ridden abilities. There is still no CurseForge project id.
+Release order: gates green (unit tests, the harness sections the change touches, `python tools/gates/sanitize.py`), build, commit, tag `v<version>`, push `main` and the tag, `gh release create`, then:
+
+```
+python tools/upload_curseforge.py --jar build/libs/shamanicmounts-<version>.jar --display-name "Shamanic Mounts <version> - <subtitle>" --changelog-file docs/RELEASE_<version>.md
+```
+
+The token is read from `tools/secrets/.env` or the Ninjacat Skies checkout beside this one. Record the returned file id below and commit it as `Mark <version> on CurseForge (file <id>)`. Uploads sit in moderation for a while before the public file list shows them.
 
 ## What to upload
 

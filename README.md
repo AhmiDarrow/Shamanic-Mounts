@@ -8,7 +8,7 @@ Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Ten founder lines. A
 
 Source: https://github.com/AhmiDarrow/Shamanic-Mounts. The sanitize gate `python tools/gates/sanitize.py` runs before every push and upload.
 
-The CurseForge page for the first send is [docs/public/store-description.md](docs/public/store-description.md). Upload notes are in [docs/curseforge.md](docs/curseforge.md). The project does not have a CurseForge id yet. The release gate is the live harness in [docs/harness.md](docs/harness.md): a real server and client that photograph every line, ride each one, fire every ability, and breed a chimera from the ten wild lines.
+The CurseForge page for the first send is [docs/public/store-description.md](docs/public/store-description.md). Upload notes are in [docs/curseforge.md](docs/curseforge.md). The CurseForge project id is 1711650. The release gate is the live harness in [docs/harness.md](docs/harness.md): a real server and client that photograph every line, ride each one, fire every ability, and breed a chimera from the ten wild lines.
 
 <p align="center">
   <img src="docs/public/shamanic-mounts-founders.png" alt="Eightfold, Drum hart, Elk, Crane, Nagual, Barghest, Roc, Shade, Chimera, Bear, and Serpent">

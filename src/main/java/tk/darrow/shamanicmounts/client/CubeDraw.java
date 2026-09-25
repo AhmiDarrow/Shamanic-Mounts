@@ -59,6 +59,10 @@ final class CubeDraw {
 			float[] xs, float[] ys, float[] zs, float[] us, float[] vs, float nx, float ny, float nz, Vector3f scratch) {
 		int tone = Math.min(255, Math.round(shade * 255f));
 		Vector3f transformed = normal.transform(scratch.set(nx, ny, nz));
+		float length = transformed.length();
+		if (length > 1.0e-6f) {
+			transformed.div(length);
+		}
 		for (int i = 0; i < 4; i++) {
 			consumer.addVertex(model, xs[i], ys[i], zs[i]).setColor(tone, tone, tone, 255).setUv(us[i], vs[i])
 					.setOverlay(overlay).setLight(light).setNormal(transformed.x, transformed.y, transformed.z);

@@ -11,8 +11,9 @@ import tk.darrow.shamanicmounts.genome.Marks;
 /**
  * Genealogy notation for the book. Each gene has a two-letter symbol and each allele a letter.
  * An allele that is showing is written in upper case and one that is only carried in lower case,
- * dam's copy first, so a mount with eight legs over four reads {@code Lg Ef}. Two capitals mean both
- * copies show at once or average. Size prints its classes whole with a slash: {@code Sz XS/L}. A
+ * dam's copy first, so a hoof over a paw reads {@code Ft Hp}. Two capitals mean both copies show at
+ * once or average, as eight legs with four do: {@code Lg EF}. Size prints its classes whole with a
+ * slash: {@code Sz XS/L}. A
  * gift locus writes its empty copy as a dash: {@code Ro R-} is the road from one parent.
  */
 public final class Genotype {
@@ -161,7 +162,7 @@ public final class Genotype {
 		Locus locus = line.locus();
 		String maternal = letter(locus, line.maternal());
 		String paternal = letter(locus, line.paternal());
-		if (maternal.length() > 1 || paternal.length() > 1) {
+		if (locus == Locus.SIZE) {
 			return maternal + "/" + paternal;
 		}
 		boolean bothShow = line.note() == Reading.Note.BLENDED || line.note() == Reading.Note.CODOMINANT

@@ -65,7 +65,7 @@ public final class Codex {
 						"The hidden body still counts. It pulls the neck, head, tail, and girth halfway toward its own shape, so a steed carrying serpent has a longer neck and tail.",
 						"The head, the feet, and the tail each show one copy, picked at birth. The other is carried and can come back in a foal.")),
 				new Section("Size and coat", List.of(
-						"Build is the line's frame; the elk and the roc carry giant. Size within the line runs XS to XL, and the two copies average.",
+						"Build is the line's frame; the elk, the roc, and the bear carry giant. Size within the line runs XS to XL, and the two copies average.",
 						"Pelt: A shows over B, and B over C. The third pelt of every line needs two copies. Its name follows the body that shows.",
 						"Wingspan averages its two copies. A roc carries a vast copy, so bred fliers can have wings three times a crane's.")),
 				new Section("Ridden gifts", List.of(

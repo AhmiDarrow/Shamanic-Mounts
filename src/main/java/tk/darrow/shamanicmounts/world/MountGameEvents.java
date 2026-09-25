@@ -37,8 +37,11 @@ public final class MountGameEvents {
 		if (player.getPersistentData().hasUUID("shamanicmounts_away") && player.level() instanceof ServerLevel level) {
 			UUID id = player.getPersistentData().getUUID("shamanicmounts_away");
 			ShamanicMount mount = ShamanicMount.loaded(level.getServer(), id);
-			if (mount != null) {
+			if (mount != null && mount.isAway()) {
 				mount.returnNow();
+			} else if (mount != null) {
+				// A stale mark from a send-away that already ended: drop it so it never pulls the mount later.
+				player.getPersistentData().remove("shamanicmounts_away");
 			}
 		}
 		if (player.getVehicle() instanceof ShamanicMount mount) {
@@ -84,5 +87,7 @@ public final class MountGameEvents {
 	@SubscribeEvent
 	public static void loggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
 		event.getEntity().getPersistentData().remove("shamanicmounts_skin");
+		// A send-away ends while its owner is gone; its mark must not outlive the session.
+		event.getEntity().getPersistentData().remove("shamanicmounts_away");
 	}
 }

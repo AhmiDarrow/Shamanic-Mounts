@@ -17,7 +17,7 @@ final class Pen {
 
 	final PoseStack pose;
 	final MountPose anim;
-	private final SolidDraw draw = new SolidDraw();
+	private final SolidDraw draw;
 	private int group;
 	private int groupSeq;
 	/** How many parts deep the pen is. Each level grows its cubes a hair, see {@link #NEST}. */
@@ -30,8 +30,14 @@ final class Pen {
 	private static final float NEST = 0.0012f;
 
 	Pen(PoseStack pose, MountPose anim) {
+		this(pose, anim, new SolidDraw());
+	}
+
+	/** A pen over a shared draw buffer. The buffer is emptied by every flush. */
+	Pen(PoseStack pose, MountPose anim, SolidDraw draw) {
 		this.pose = pose;
 		this.anim = anim;
+		this.draw = draw;
 	}
 
 	void box(float x, float y, float z, float dx, float dy, float dz, Mat mat) {

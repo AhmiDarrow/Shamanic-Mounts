@@ -291,7 +291,12 @@ public final class Marks {
 		public static Size nearest(float factor) {
 			Size best = M;
 			for (Size size : values()) {
-				if (Math.abs(size.factor - factor) < Math.abs(best.factor - factor) - 1.0e-4f) {
+				float gap = Math.abs(size.factor - factor);
+				float bestGap = Math.abs(best.factor - factor);
+				boolean nearer = gap < bestGap - 1.0e-4f;
+				boolean tieTowardM = Math.abs(gap - bestGap) <= 1.0e-4f
+						&& Math.abs(size.ordinal() - 2) < Math.abs(best.ordinal() - 2);
+				if (nearer || tieTowardM) {
 					best = size;
 				}
 			}

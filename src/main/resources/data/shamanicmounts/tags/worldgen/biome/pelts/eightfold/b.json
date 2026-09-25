@@ -1,13 +1,7 @@
 {
   "replace": false,
   "values": [
-    {
-      "id": "#c:is_windswept",
-      "required": false
-    },
-    {
-      "id": "#c:is_cold/overworld",
-      "required": false
-    }
+    "minecraft:windswept_hills",
+    "minecraft:windswept_gravelly_hills"
   ]
 }

@@ -90,8 +90,11 @@ public final class Reading {
 		String tail = lower(phenotype.tail.name());
 		lines.add(line(Group.BODY, genome, Locus.TAIL, tail, tailNote, tail));
 		String rack = lower(phenotype.rack.name());
+		Marks.Rack rackM = (Marks.Rack) genome.maternal(Locus.RACK);
+		Marks.Rack rackP = (Marks.Rack) genome.paternal(Locus.RACK);
 		Note rackNote = phenotype.crownHeavy ? Note.HEAVY
-				: genome.maternal(Locus.RACK) != genome.paternal(Locus.RACK) ? Note.INCOMPLETE : Note.PLAIN;
+				: rackM == rackP ? Note.PLAIN
+				: rackM == Marks.Rack.NONE || rackP == Marks.Rack.NONE ? Note.INCOMPLETE : Note.CARRIED;
 		lines.add(line(Group.BODY, genome, Locus.RACK, rack, rackNote, rack));
 
 		// Size: the line's build, then size within it.

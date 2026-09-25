@@ -41,6 +41,7 @@ public final class HerdIO {
 		HerdBook book = new HerdBook();
 		for (Tag raw : list) {
 			CompoundTag tag = (CompoundTag) raw;
+			try {
 			UUID owner = tag.hasUUID("Owner") ? tag.getUUID("Owner") : null;
 			UUID dam = tag.hasUUID("Dam") ? tag.getUUID("Dam") : null;
 			UUID sire = tag.hasUUID("Sire") ? tag.getUUID("Sire") : null;
@@ -48,6 +49,9 @@ public final class HerdIO {
 					tag.getBoolean("Male"), tag.getBoolean("Tame"), GenomeIO.read(tag.getCompound("Genome")), dam, sire,
 					tag.getInt("Pelt"));
 			book.load(entry);
+			} catch (RuntimeException unreadable) {
+				tk.darrow.shamanicmounts.ShamanicMounts.LOGGER.warn("Skipping an unreadable herd book entry: {}", unreadable.toString());
+			}
 		}
 		return book;
 	}
@@ -58,6 +62,9 @@ public final class HerdIO {
 		for (HerdBook.Entry entry : world.entries()) {
 			if (player.equals(entry.owner())) {
 				book.load(entry);
+				for (HerdBook.Entry forebear : world.forebears(entry.id())) {
+					book.load(forebear);
+				}
 			}
 		}
 		return book;

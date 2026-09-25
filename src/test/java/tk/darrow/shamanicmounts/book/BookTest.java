@@ -163,6 +163,31 @@ class BookTest {
 		assertTrue(TamePage.summary(Founders.eightfold(), false).startsWith("Eightfold body, Bay, size M, female"));
 	}
 
+	@Test
+	void mixedAntlersAreCarriedAndSizeTiesLeanToTheMiddle() {
+		assertEquals("Rk Cf", "Rk " + row(Founders.drumHart(), "antlers").notation(), "the crown shows, the full rack is carried");
+		assertEquals("carried", row(Founders.drumHart(), "antlers").note());
+		assertEquals(Marks.Size.S, Marks.Size.nearest((Marks.Size.XS.factor + Marks.Size.S.factor) / 2f));
+		assertEquals(Marks.Size.L, Marks.Size.nearest((Marks.Size.L.factor + Marks.Size.XL.factor) / 2f));
+		Strand steed = Strand.wild(Marks.Torso.STEED, Marks.Head.STEED);
+		assertEquals("S/L", row(new Genome(steed.with(Marks.Size.S), steed.with(Marks.Size.L), true, true, true), "size").notation());
+	}
+
+	@Test
+	void anUnreadableHerdEntryIsSkippedNotTheWholeBook() {
+		HerdBook book = new HerdBook();
+		UUID keeper = UUID.randomUUID();
+		book.keep(keeper, "Brook", true, Founders.eightfold(), null, null);
+		net.minecraft.nbt.ListTag saved = HerdIO.write(book);
+		net.minecraft.nbt.CompoundTag broken = saved.getCompound(0).copy();
+		broken.putUUID("Id", UUID.randomUUID());
+		broken.getCompound("Genome").getCompound("Maternal").remove("TORSO");
+		saved.add(broken);
+		HerdBook read = HerdIO.read(saved);
+		assertEquals(1, read.tames(keeper).size());
+		assertEquals("Brook", read.tames(keeper).get(0).name());
+	}
+
 	private static String text(java.util.List<Codex.Section> sections) {
 		StringBuilder out = new StringBuilder();
 		for (Codex.Section section : sections) {

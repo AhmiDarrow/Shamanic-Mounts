@@ -69,7 +69,8 @@ public class MountRenderer extends EntityRenderer<ShamanicMount> {
 		float age = mount.tickCount + partialTick;
 		Phenotype phenotype = mount.phenotype();
 		// Eye shine is a two-pixel detail; past thirty blocks it is not worth a second buffer.
-		boolean near = this.entityRenderDispatcher.camera.getPosition().distanceToSqr(mount.position()) < 30.0 * 30.0;
+		boolean near = !mount.isAddedToLevel()
+				|| this.entityRenderDispatcher.camera.getPosition().distanceToSqr(mount.position()) < 30.0 * 30.0;
 		boolean glow = near && (phenotype.chimera || phenotype.sense == Phenotype.SenseShow.SCENT
 				|| phenotype.phase != Phenotype.PhaseShow.SOLID);
 		MountPose anim = new MountPose(swing, amount, age, Mth.wrapDegrees(head - body),

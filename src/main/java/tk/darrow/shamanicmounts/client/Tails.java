@@ -71,7 +71,8 @@ final class Tails {
 	/** A short fan of tail feathers with dark tips. */
 	static void fan(Pen pen, float y, float z, Skin skin, float length, Mat tip) {
 		MountPose anim = pen.anim;
-		float spread = anim.air * 1.0f;
+		// The fan opens in quarter steps: its feather boxes change size only a few times per take-off.
+		float spread = Math.round(anim.air * 4f) / 4f;
 		pen.hinge(0f, y, z, wag(anim, 0) * 0.3f, 0f, 10f + anim.air * 20f, () -> {
 			pen.box(-2.5f, y - 1f, z - 1f, 5f, 3f, 2.5f, skin.base());
 			float[] xs = { -2.6f, -1.3f, 0f, 1.3f, 2.6f };

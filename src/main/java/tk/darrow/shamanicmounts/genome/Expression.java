@@ -184,7 +184,7 @@ public final class Expression {
 		return Phenotype.ScaleShow.NORMAL;
 	}
 
-	/** 1 is a horse. Slight is that floor. Greater is the elk and the roc. */
+	/** 1 is a horse. Slight is that floor. Greater is the elk, the roc, and the bear. */
 	static float uniform(Phenotype.ScaleShow scale) {
 		return switch (scale) {
 			case SLIGHT -> 1.0f;
