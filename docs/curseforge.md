@@ -23,3 +23,7 @@ The token is read from `tools/secrets/.env` or the Ninjacat Skies checkout besid
 The cover is rebuilt with `python tools/store_cover.py` after the store section; regenerate icon sizes with `python tools/brand_icons.py`.
 
 Before any push or upload, run the sanitize gate: `python tools/gates/sanitize.py`.
+
+## 0.1.0
+
+Shamanic Mounts 0.1.0 - The Spirit Herd, CurseForge file **8975876** (uploaded 2026-09-25, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.0
