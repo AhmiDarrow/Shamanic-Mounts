@@ -31,3 +31,7 @@ Shamanic Mounts 0.1.0 - The Spirit Herd, CurseForge file **8975876** (uploaded 2
 ## 0.1.1
 
 Shamanic Mounts 0.1.1 - Lean Herd, CurseForge file **8976027** (uploaded 2026-09-25, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.1
+
+## 0.1.2
+
+Shamanic Mounts 0.1.2 - Into the March, CurseForge file **8976434** (uploaded 2026-09-25, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.2
