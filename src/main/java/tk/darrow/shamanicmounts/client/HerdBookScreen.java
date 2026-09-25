@@ -76,6 +76,13 @@ public final class HerdBookScreen extends Screen {
 	private boolean confirmRelease;
 	@Nullable private EditBox nameBox;
 	@Nullable private List<FormattedCharSequence> tooltip;
+	/** Work the page would otherwise redo every frame: wrapped lines, tame summaries, gene rows, line bodies. */
+	private final Map<String, List<String>> wraps = new HashMap<>();
+	private final Map<UUID, String> summaries = new HashMap<>();
+	private final Map<Genome, List<TamePage.Row>> geneRows = new java.util.IdentityHashMap<>();
+	private final Map<String, MountSize.Form> lineForms = new HashMap<>();
+	/** On a very narrow window Rename moves to the left column with Release. */
+	private boolean renameLeft;
 
 	public HerdBookScreen(UUID player, HerdBook book, SpoilerPref spoilers) {
 		super(Component.translatable("item.shamanicmounts.herd_book"));
@@ -118,8 +125,24 @@ public final class HerdBookScreen extends Screen {
 		rebuildWidgets();
 	}
 
+	private void clearCaches() {
+		wraps.clear();
+		summaries.clear();
+		geneRows.clear();
+		lineForms.clear();
+	}
+
+	private String summary(HerdBook.Entry entry) {
+		return summaries.computeIfAbsent(entry.id(), id -> TamePage.summary(entry.genome(), entry.male()));
+	}
+
+	private List<TamePage.Row> rows(Genome genome) {
+		return geneRows.computeIfAbsent(genome, key -> TamePage.genes(key, spoiled()));
+	}
+
 	@Override
 	protected void init() {
+		clearCaches();
 		if (page == Codex.Page.BREEDING && !spoiled()) {
 			page = Codex.Page.BASICS;
 		}
@@ -163,19 +186,16 @@ public final class HerdBookScreen extends Screen {
 			HerdBook.Entry tame = selectedEntry();
 			// Back, the name, and Rename share the top row; Release waits in the left column, away from Rename.
 			int room = this.width - RIGHT - 8 - TEXT_X;
-			int boxW = Math.max(60, Math.min(140, room - 66 - 60));
+			renameLeft = room - 66 - 60 < 60;
+			int boxW = renameLeft ? Math.max(40, Math.min(140, room - 66)) : Math.min(140, room - 66 - 60);
 			nameBox = new EditBox(this.font, TEXT_X + 66, 29, boxW, 18, Component.translatable("book.shamanicmounts.rename"));
 			nameBox.setMaxLength(24);
 			nameBox.setValue(typed != null ? typed : tame.name());
 			addRenderableWidget(nameBox);
 			addRenderableWidget(Button.builder(Component.translatable("book.shamanicmounts.rename"), button -> {
-				if (book.rename(player, selected, nameBox.getValue())) {
-					confirmRelease = false;
-					ClientBook.tellServer(0, selected, book.get(selected).name());
-					nameBox = null;
-					rebuildWidgets();
-				}
-			}).bounds(TEXT_X + 70 + boxW, 29, 56, 18).build());
+				rename();
+			}).bounds(renameLeft ? LEFT : TEXT_X + 70 + boxW, renameLeft ? 28 + chapters * 22 + 34 : 29, renameLeft ? LEFT_W : 56,
+					renameLeft ? 20 : 18).build());
 			addRenderableWidget(Button.builder(Component.translatable(confirmRelease
 					? "book.shamanicmounts.release_sure" : "book.shamanicmounts.release"), button -> {
 						if (!confirmRelease) {
@@ -188,6 +208,26 @@ public final class HerdBookScreen extends Screen {
 						ClientBook.tellServer(1, released, "");
 						openTame(null);
 					}).bounds(LEFT, 28 + chapters * 22 + 10, LEFT_W, 20).build());
+		}
+	}
+
+	/** Enter in the name box renames the tame, the same as the Rename button. */
+	@Override
+	public boolean keyPressed(int key, int scan, int modifiers) {
+		if (nameBox != null && nameBox.isFocused()
+				&& (key == org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER || key == org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ENTER)) {
+			rename();
+			return true;
+		}
+		return super.keyPressed(key, scan, modifiers);
+	}
+
+	private void rename() {
+		if (nameBox != null && selected != null && book.rename(player, selected, nameBox.getValue())) {
+			confirmRelease = false;
+			ClientBook.tellServer(0, selected, book.get(selected).name());
+			nameBox = null;
+			rebuildWidgets();
 		}
 	}
 
@@ -382,7 +422,7 @@ public final class HerdBookScreen extends Screen {
 		}
 		y = heading(graphics, entry.name(), y);
 		y = paragraph(graphics, List.of(entry.blurb()), y, width) + 2;
-		MountSize.Form form = MountSize.form(Expression.express(entry.genome()));
+		MountSize.Form form = lineForms.computeIfAbsent(entry.name(), name -> MountSize.form(Expression.express(entry.genome())));
 		List<String> pelts = TamePage.pelts(form);
 		y = subheading(graphics, "Pelts: A over B over C", y);
 		int wellW = Math.max(60, Math.min(120, (width - 16) / 3));
@@ -423,7 +463,7 @@ public final class HerdBookScreen extends Screen {
 				graphics.fill(TEXT_X - 4, y - 2, TEXT_X + width, y + ROW - 2, HOVER);
 			}
 			graphics.drawString(this.font, this.font.plainSubstrByWidth(entry.name(), nameW - 6), TEXT_X, y, GOLD, false);
-			String summary = TamePage.summary(entry.genome(), entry.male());
+			String summary = summary(entry);
 			graphics.drawString(this.font, this.font.plainSubstrByWidth(summary, width - nameW), TEXT_X + nameW, y, PALE, false);
 			UUID id = entry.id();
 			hits.add(new Hit(TEXT_X - 4, y - 2, TEXT_X + width, y + ROW - 2, () -> openTame(id)));
@@ -451,7 +491,7 @@ public final class HerdBookScreen extends Screen {
 			}
 		}
 		y = heading(graphics, entry.name(), y);
-		for (String wrapped : wrap(TamePage.summary(entry.genome(), entry.male()), textW)) {
+		for (String wrapped : wrap(summary(entry), textW)) {
 			graphics.drawString(this.font, wrapped, TEXT_X, y, INK, false);
 			y += LINE;
 		}
@@ -535,7 +575,7 @@ public final class HerdBookScreen extends Screen {
 		}
 		y += LINE + 2;
 		Reading.Group group = null;
-		for (TamePage.Row row : TamePage.genes(genome, showNotes)) {
+		for (TamePage.Row row : rows(genome)) {
 			if (row.group() != group) {
 				group = row.group();
 				graphics.drawString(this.font, group.title, TEXT_X, y + 2, GOLD, false);
@@ -592,6 +632,7 @@ public final class HerdBookScreen extends Screen {
 	@Override
 	public void removed() {
 		super.removed();
+		clearCaches();
 		previews.clear();
 		linePreviews.clear();
 	}
@@ -760,6 +801,17 @@ public final class HerdBookScreen extends Screen {
 		scroll = end ? maxScroll : 0;
 	}
 
+	/** The harness presses Enter in the name box, as a player would after typing. */
+	String harnessEnter() {
+		if (nameBox == null) {
+			return "error no name box";
+		}
+		setFocused(nameBox);
+		nameBox.setFocused(true);
+		keyPressed(org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER, 0, 0);
+		return "ok";
+	}
+
 	/** The harness types a new name into the open tame's box. */
 	String harnessType(String text) {
 		if (nameBox == null) {
@@ -792,6 +844,10 @@ public final class HerdBookScreen extends Screen {
 	}
 
 	private List<String> wrap(String text, int width) {
+		return wraps.computeIfAbsent(width + "|" + text, key -> wrapNow(text, width));
+	}
+
+	private List<String> wrapNow(String text, int width) {
 		ArrayList<String> lines = new ArrayList<>();
 		StringBuilder current = new StringBuilder();
 		for (String word : text.split(" ")) {

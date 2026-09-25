@@ -388,6 +388,13 @@ public final class HarnessVerification {
 				boolean hit = book.harnessPick(index);
 				return (hit ? "ok " : "error miss ") + book.harnessReport();
 			}
+			case "bookenter" -> {
+				// bookenter: press Enter in the open tame's name box.
+				if (!(mc.screen instanceof HerdBookScreen book)) {
+					return "error no book";
+				}
+				return book.harnessEnter() + " " + book.harnessReport();
+			}
 			case "bookscroll" -> {
 				// bookscroll end|top: move the open book page to its end or back to the top.
 				if (!(mc.screen instanceof HerdBookScreen book)) {
