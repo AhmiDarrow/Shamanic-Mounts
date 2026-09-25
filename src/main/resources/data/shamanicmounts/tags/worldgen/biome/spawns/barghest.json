@@ -17,6 +17,14 @@
       "id": "#minecraft:is_badlands",
       "required": false
     },
-    "minecraft:dark_forest"
+    "minecraft:dark_forest",
+    {
+      "id": "tribalpower:march_highlands",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_ember_wastes",
+      "required": false
+    }
   ]
 }

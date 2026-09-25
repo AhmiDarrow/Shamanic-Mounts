@@ -29,6 +29,18 @@
       "id": "#minecraft:is_badlands",
       "required": false
     },
-    "minecraft:windswept_savanna"
+    "minecraft:windswept_savanna",
+    {
+      "id": "tribalpower:march_highlands",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_glimmer_ridge",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_ember_wastes",
+      "required": false
+    }
   ]
 }

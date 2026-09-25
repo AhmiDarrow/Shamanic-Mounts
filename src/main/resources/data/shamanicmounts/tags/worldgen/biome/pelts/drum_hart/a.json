@@ -8,6 +8,10 @@
     {
       "id": "#minecraft:is_forest",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_steppe",
+      "required": false
     }
   ]
 }

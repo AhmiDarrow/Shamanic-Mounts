@@ -15,6 +15,14 @@
       "required": false
     },
     "minecraft:snowy_taiga",
-    "minecraft:old_growth_spruce_taiga"
+    "minecraft:old_growth_spruce_taiga",
+    {
+      "id": "tribalpower:march_crystal_fields",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_glimmer_ridge",
+      "required": false
+    }
   ]
 }

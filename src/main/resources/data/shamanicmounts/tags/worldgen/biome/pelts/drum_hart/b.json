@@ -9,6 +9,10 @@
       "id": "#c:is_flower_forest",
       "required": false
     },
-    "minecraft:cherry_grove"
+    "minecraft:cherry_grove",
+    {
+      "id": "tribalpower:march_crystal_fields",
+      "required": false
+    }
   ]
 }

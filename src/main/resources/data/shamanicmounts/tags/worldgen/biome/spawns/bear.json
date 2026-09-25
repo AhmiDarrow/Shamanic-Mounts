@@ -28,6 +28,14 @@
     {
       "id": "#c:is_mountain/slope",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_highlands",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_snow_fields",
+      "required": false
     }
   ]
 }

@@ -29,6 +29,18 @@
       "id": "#c:is_desert",
       "required": false
     },
-    "minecraft:mangrove_swamp"
+    "minecraft:mangrove_swamp",
+    {
+      "id": "tribalpower:march_reed_fen",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_shallows",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_ember_wastes",
+      "required": false
+    }
   ]
 }

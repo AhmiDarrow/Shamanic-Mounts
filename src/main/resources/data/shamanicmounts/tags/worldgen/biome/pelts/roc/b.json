@@ -12,6 +12,10 @@
     {
       "id": "#minecraft:is_hill",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_highlands",
+      "required": false
     }
   ]
 }

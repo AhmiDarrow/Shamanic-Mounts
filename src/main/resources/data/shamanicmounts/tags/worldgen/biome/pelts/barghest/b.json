@@ -4,6 +4,10 @@
     {
       "id": "#c:is_windswept",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_highlands",
+      "required": false
     }
   ]
 }

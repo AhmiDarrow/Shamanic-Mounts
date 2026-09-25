@@ -8,6 +8,10 @@
     {
       "id": "#c:is_old_growth",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_glimmer_ridge",
+      "required": false
     }
   ]
 }

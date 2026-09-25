@@ -10,6 +10,14 @@
       "required": false
     },
     "minecraft:snowy_slopes",
-    "minecraft:grove"
+    "minecraft:grove",
+    {
+      "id": "tribalpower:march_glimmer_ridge",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_reed_fen",
+      "required": false
+    }
   ]
 }

@@ -8,6 +8,10 @@
     {
       "id": "#c:is_magical",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_crystal_fields",
+      "required": false
     }
   ]
 }

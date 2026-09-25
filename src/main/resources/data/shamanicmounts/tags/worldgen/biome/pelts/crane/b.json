@@ -12,6 +12,10 @@
     {
       "id": "#c:is_stony_shores",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_shallows",
+      "required": false
     }
   ]
 }

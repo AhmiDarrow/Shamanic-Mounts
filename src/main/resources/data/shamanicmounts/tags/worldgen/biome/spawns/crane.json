@@ -25,6 +25,14 @@
       "id": "#c:is_stony_shores",
       "required": false
     },
-    "minecraft:mangrove_swamp"
+    "minecraft:mangrove_swamp",
+    {
+      "id": "tribalpower:march_reed_fen",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_shallows",
+      "required": false
+    }
   ]
 }

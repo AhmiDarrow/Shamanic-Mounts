@@ -81,6 +81,29 @@ LINES = {
          "c": ["#c:is_desert", "#c:is_sandy", "#c:is_dry/overworld"]}),  # bone
 }
 
+# Tribal Power's March. Its biomes also carry the common c: tags, which already bring some lines in; these make
+# every March biome a home for a few lines and give each its own pelt. Optional ids, so no dependency.
+M = "tribalpower:march_"
+MARCH = {
+    # line: [(biome, pelt at home there or None)]
+    "eightfold": [("steppe", "a"), ("crystal_fields", None)],
+    "drum_hart": [("steppe", "a"), ("crystal_fields", "b"), ("snow_fields", "c")],
+    "elk": [("highlands", "b"), ("snow_fields", "c")],
+    "crane": [("reed_fen", "a"), ("shallows", "b")],
+    "nagual": [("glimmer_ridge", "c"), ("reed_fen", None)],
+    "barghest": [("highlands", "b"), ("ember_wastes", "c")],
+    "roc": [("highlands", "b"), ("glimmer_ridge", "a"), ("ember_wastes", "c")],
+    "shade": [("crystal_fields", "c"), ("glimmer_ridge", "b")],
+    "bear": [("highlands", "b"), ("snow_fields", "c")],
+    "serpent": [("reed_fen", "a"), ("shallows", "a"), ("ember_wastes", "c")],
+}
+for _line, _homes in MARCH.items():
+    _spawns, _pelts = LINES[_line]
+    for _biome, _pelt in _homes:
+        _spawns.append(M + _biome)
+        if _pelt:
+            _pelts[_pelt].append(M + _biome)
+
 SIZE = {
     "larger": ["#c:is_cold/overworld", "#c:is_snowy", "#c:is_icy"],
     "smaller": ["#c:is_hot/overworld", "#c:is_desert"],
@@ -89,7 +112,10 @@ SIZE = {
 SPAWNABLE_ON = ["#minecraft:animals_spawnable_on", "#minecraft:dirt", "#minecraft:sand", "#minecraft:terracotta",
                 "minecraft:snow_block", "minecraft:ice", "minecraft:packed_ice",
                 "minecraft:stone", "minecraft:gravel", "minecraft:mycelium", "minecraft:podzol", "minecraft:mud",
-                "minecraft:moss_block", "minecraft:red_sandstone", "minecraft:sandstone", "minecraft:calcite"]
+                "minecraft:moss_block", "minecraft:red_sandstone", "minecraft:sandstone", "minecraft:calcite",
+                "minecraft:smooth_basalt", "minecraft:basalt", "minecraft:clay",
+                # Tribal Power's March ground: its grass, soil and moss are already tagged dirt; its rock is not.
+                "tribalpower:march_stone", "tribalpower:march_cobble", "tribalpower:moonstone", "tribalpower:moss_agate"]
 
 
 def entry(value):

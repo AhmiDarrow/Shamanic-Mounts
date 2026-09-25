@@ -16,6 +16,10 @@
     {
       "id": "#c:is_mountain",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_highlands",
+      "required": false
     }
   ]
 }

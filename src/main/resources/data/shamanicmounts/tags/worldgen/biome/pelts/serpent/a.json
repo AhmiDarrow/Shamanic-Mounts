@@ -12,6 +12,14 @@
     {
       "id": "#c:is_swamp",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_reed_fen",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_shallows",
+      "required": false
     }
   ]
 }

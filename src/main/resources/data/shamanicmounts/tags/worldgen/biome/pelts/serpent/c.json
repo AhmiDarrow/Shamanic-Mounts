@@ -12,6 +12,10 @@
     {
       "id": "#c:is_dry/overworld",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_ember_wastes",
+      "required": false
     }
   ]
 }

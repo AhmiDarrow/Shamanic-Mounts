@@ -23,6 +23,18 @@
     },
     "minecraft:meadow",
     "minecraft:cherry_grove",
-    "minecraft:snowy_taiga"
+    "minecraft:snowy_taiga",
+    {
+      "id": "tribalpower:march_steppe",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_crystal_fields",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_snow_fields",
+      "required": false
+    }
   ]
 }

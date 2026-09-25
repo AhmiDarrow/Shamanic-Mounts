@@ -8,6 +8,10 @@
     {
       "id": "#minecraft:is_badlands",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_ember_wastes",
+      "required": false
     }
   ]
 }

@@ -17,6 +17,14 @@
     "minecraft:sunflower_plains",
     "minecraft:meadow",
     "minecraft:windswept_hills",
-    "minecraft:windswept_gravelly_hills"
+    "minecraft:windswept_gravelly_hills",
+    {
+      "id": "tribalpower:march_steppe",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_crystal_fields",
+      "required": false
+    }
   ]
 }

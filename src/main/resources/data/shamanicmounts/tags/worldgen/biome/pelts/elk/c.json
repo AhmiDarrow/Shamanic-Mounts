@@ -8,6 +8,10 @@
     {
       "id": "#c:is_icy",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_snow_fields",
+      "required": false
     }
   ]
 }

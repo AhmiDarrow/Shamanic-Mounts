@@ -12,6 +12,10 @@
     {
       "id": "#c:is_plateau",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_glimmer_ridge",
+      "required": false
     }
   ]
 }

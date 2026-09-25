@@ -12,6 +12,10 @@
     {
       "id": "#minecraft:is_river",
       "required": false
+    },
+    {
+      "id": "tribalpower:march_reed_fen",
+      "required": false
     }
   ]
 }

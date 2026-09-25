@@ -28,6 +28,25 @@
     "minecraft:moss_block",
     "minecraft:red_sandstone",
     "minecraft:sandstone",
-    "minecraft:calcite"
+    "minecraft:calcite",
+    "minecraft:smooth_basalt",
+    "minecraft:basalt",
+    "minecraft:clay",
+    {
+      "id": "tribalpower:march_stone",
+      "required": false
+    },
+    {
+      "id": "tribalpower:march_cobble",
+      "required": false
+    },
+    {
+      "id": "tribalpower:moonstone",
+      "required": false
+    },
+    {
+      "id": "tribalpower:moss_agate",
+      "required": false
+    }
   ]
 }
