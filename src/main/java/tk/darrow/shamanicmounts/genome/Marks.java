@@ -35,14 +35,20 @@ public final class Marks {
 		}
 	}
 
+	/**
+	 * The body. Two different copies: the higher rank shows (bear over steed over hart over hound
+	 * over cat over bird over serpent), and the hidden copy still pulls the shape toward its own.
+	 */
 	public enum Torso implements Allele {
-		STEED(Species.STEED), HART(Species.HART), CAT(Species.CAT), BIRD(Species.BIRD), HOUND(Species.HOUND),
-		BEAR(Species.BEAR), SERPENT(Species.SERPENT);
+		STEED(Species.STEED, 5), HART(Species.HART, 4), CAT(Species.CAT, 2), BIRD(Species.BIRD, 1), HOUND(Species.HOUND, 3),
+		BEAR(Species.BEAR, 6), SERPENT(Species.SERPENT, 0);
 
 		public final Species species;
+		private final int dominance;
 
-		Torso(Species species) {
+		Torso(Species species, int dominance) {
 			this.species = species;
+			this.dominance = dominance;
 		}
 
 		@Override
@@ -57,7 +63,7 @@ public final class Marks {
 
 		@Override
 		public int rank() {
-			return 0;
+			return dominance;
 		}
 	}
 
@@ -253,6 +259,67 @@ public final class Marks {
 		@Override
 		public int rank() {
 			return 0;
+		}
+	}
+
+	/** Size within the line. The two copies average: XS and XL make an M. */
+	public enum Size implements Allele {
+		XS(0.86f), S(0.93f), M(1.0f), L(1.07f), XL(1.14f);
+
+		public final float factor;
+
+		Size(float factor) {
+			this.factor = factor;
+		}
+
+		@Override
+		public Locus locus() {
+			return Locus.SIZE;
+		}
+
+		@Override
+		public String code() {
+			return name().toLowerCase();
+		}
+
+		@Override
+		public int rank() {
+			return ordinal();
+		}
+
+		/** The class nearest a factor, for the book. A tie goes to the middle. */
+		public static Size nearest(float factor) {
+			Size best = M;
+			for (Size size : values()) {
+				if (Math.abs(size.factor - factor) < Math.abs(best.factor - factor) - 1.0e-4f) {
+					best = size;
+				}
+			}
+			return best;
+		}
+	}
+
+	/**
+	 * Which of the line's three pelts. A shows over B, and B over C, so the third pelt of every line
+	 * (palomino, white, snow, polar, and the rest) needs two copies.
+	 */
+	public enum Pelt implements Allele {
+		A, B, C;
+
+		@Override
+		public Locus locus() {
+			return Locus.PELT;
+		}
+
+		@Override
+		public String code() {
+			return name().toLowerCase();
+		}
+
+		/** Higher shows: A is 2, C is 0. */
+		@Override
+		public int rank() {
+			return 2 - ordinal();
 		}
 	}
 

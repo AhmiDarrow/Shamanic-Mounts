@@ -51,7 +51,7 @@ public final class MountSize {
 		if (phenotype.chimera) {
 			return Form.CHIMERA;
 		}
-		Marks.Torso torso = phenotype.torsoMaternal;
+		Marks.Torso torso = phenotype.torso;
 		if (torso == Marks.Torso.HART && phenotype.crownHeavy) {
 			return Form.ELK;
 		}

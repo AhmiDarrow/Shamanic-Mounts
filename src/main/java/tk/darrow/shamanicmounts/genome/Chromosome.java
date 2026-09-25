@@ -3,11 +3,11 @@ package tk.darrow.shamanicmounts.genome;
 /**
  * Loci that travel together. Wings ride with their span; the tail has its own chromosome.
  * The gifts share one chromosome, in their own slots, so a foal can collect them.
- * Feet sit with the legs. The head stays with scale and coat.
+ * Feet sit with the legs. The head stays with build, size, coat, and pelt.
  */
 public enum Chromosome {
 	FRAME(Locus.TORSO, Locus.LEGS, Locus.FOOT, Locus.RACK, Locus.GAIT),
-	HIDE(Locus.HEAD, Locus.SCALE, Locus.COAT),
+	HIDE(Locus.HEAD, Locus.SCALE, Locus.SIZE, Locus.COAT, Locus.PELT),
 	WING(Locus.WINGS, Locus.WINGSPAN),
 	TAIL(Locus.TAIL),
 	JOURNEY(Locus.REALM, Locus.PHASE, Locus.SENSE),

@@ -4,20 +4,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import tk.darrow.shamanicmounts.genome.Expression;
 import tk.darrow.shamanicmounts.genome.Genome;
 import tk.darrow.shamanicmounts.genome.MountSize;
 import tk.darrow.shamanicmounts.genome.Phenotype;
 
-/** One tame, as the book prints it. Gene notes stay hidden while spoilers are off. */
+/** One tame, as the book prints it: a summary, its family, and every gene with both copies. */
 public final class TamePage {
-	/** One gene row: the locus symbol, its genealogy notation, and the plain word for what shows. */
-	public record Row(String locus, String symbol, String notation, String shown, String maternal, String paternal,
-			String note) {
+	/**
+	 * One gene row: its group, symbol, genealogy notation, what shows, each parent's copy in words,
+	 * the note on how they combine, and the rule for how the gene passes down.
+	 */
+	public record Row(Reading.Group group, String locus, String symbol, String notation, String shown, String dam,
+			String sire, String note, String rule) {
 	}
 
-	/** The three coats of each line, in pelt order. */
+	/** One relative: how it is related, its name, and its id so the book can open it. */
+	public record Kin(String relation, String name, UUID id) {
+	}
+
+	/** The three coats of each body, in pelt order: A, B, C. */
 	private static final Map<MountSize.Form, List<String>> PELTS = Map.ofEntries(
 			Map.entry(MountSize.Form.STEED, List.of("Bay", "Black", "Palomino")),
 			Map.entry(MountSize.Form.HART, List.of("Tan", "Red", "White")),
@@ -37,18 +45,65 @@ public final class TamePage {
 	public static List<Row> genes(Genome genome, boolean spoilers) {
 		ArrayList<Row> rows = new ArrayList<>();
 		for (Reading.Line line : Reading.of(genome)) {
-			rows.add(new Row(line.locus().name().toLowerCase(Locale.ROOT), Genotype.symbol(line.locus()),
-					Genotype.notation(line), line.shown(), line.maternal(), line.paternal(),
-					spoilers ? line.note().name().toLowerCase(Locale.ROOT) : ""));
+			String note = line.note() == Reading.Note.PLAIN ? "" : noteWord(line.note());
+			rows.add(new Row(line.group(), Genotype.name(line.locus()), Genotype.symbol(line.locus()),
+					Genotype.notation(line), line.word(), line.damWord(), line.sireWord(), spoilers ? note : "",
+					Genotype.rule(line.locus())));
 		}
 		return rows;
 	}
 
-	/** The name of the coat this mount wears. */
-	public static String pelt(Genome genome, int pelt) {
-		Phenotype phenotype = Expression.express(genome);
-		List<String> names = PELTS.get(MountSize.form(phenotype));
+	/** The note as the reader sees it. */
+	public static String noteWord(Reading.Note note) {
+		return switch (note) {
+			case PLAIN -> "";
+			case CARRIED -> "carried";
+			case BLENDED -> "averaged";
+			case INCOMPLETE -> "partial";
+			case CODOMINANT -> "both show";
+			case MASKED -> "masked";
+			case HEAVY -> "heavy";
+			case THIN -> "thinned";
+			case CHIMERA -> "chimera";
+			case SHAPED -> "shape blends";
+		};
+	}
+
+	/** The name of one pelt of the body a phenotype shows. */
+	public static String peltName(MountSize.Form form, int pelt) {
+		List<String> names = PELTS.get(form);
 		return names.get(Math.floorMod(pelt, names.size()));
+	}
+
+	/** The three pelt names of a body, A to C. */
+	public static List<String> pelts(MountSize.Form form) {
+		return PELTS.get(form);
+	}
+
+	/** The name of the coat this mount wears. */
+	public static String pelt(Genome genome) {
+		Phenotype phenotype = Expression.express(genome);
+		return peltName(MountSize.form(phenotype), phenotype.pelt);
+	}
+
+	/** The body a mount shows, as a word: the founder line whose body it is. */
+	public static String body(Genome genome) {
+		Phenotype phenotype = Expression.express(genome);
+		String form = MountSize.form(phenotype).name().toLowerCase(Locale.ROOT);
+		return switch (form) {
+			case "steed" -> "Eightfold";
+			case "hart" -> "Drum hart";
+			default -> Character.toUpperCase(form.charAt(0)) + form.substring(1);
+		};
+	}
+
+	/** One line for a tame: the body it shows, its pelt, its size, and its sex. */
+	public static String summary(Genome genome, boolean male) {
+		Phenotype phenotype = Expression.express(genome);
+		String carried = phenotype.torso != phenotype.carriedTorso && !genome.chimera
+				? " (carries " + phenotype.carriedTorso.code() + ")" : "";
+		return body(genome) + " body" + carried + ", " + pelt(genome) + ", size " + phenotype.size.name() + ", "
+				+ (male ? "male" : "female");
 	}
 
 	/** The wing line, or an empty string for a mount without wings. */
@@ -60,22 +115,31 @@ public final class TamePage {
 		return String.format(Locale.ROOT, "Wings x%.1f", phenotype.wingScale);
 	}
 
-	public static List<String> family(HerdBook book, HerdBook.Entry entry) {
-		ArrayList<String> lines = new ArrayList<>();
+	/** Dam, sire, and every foal, each with its id so the book can open it. A missing parent has no id. */
+	public static List<Kin> kin(HerdBook book, HerdBook.Entry entry) {
+		ArrayList<Kin> kin = new ArrayList<>();
 		HerdBook.Entry dam = entry.dam() == null ? null : book.get(entry.dam());
 		HerdBook.Entry sire = entry.sire() == null ? null : book.get(entry.sire());
-		lines.add("Dam: " + (dam == null ? "unknown" : dam.name()));
-		lines.add("Sire: " + (sire == null ? "unknown" : sire.name()));
-		List<HerdBook.Entry> foals = book.foals(entry.id());
-		if (foals.isEmpty()) {
-			lines.add("Foals: none");
-		} else {
-			StringBuilder names = new StringBuilder("Foals:");
-			for (HerdBook.Entry foal : foals) {
-				names.append(' ').append(foal.name());
-			}
-			lines.add(names.toString());
+		kin.add(new Kin("Dam", dam == null ? "unknown" : dam.name(), dam == null ? null : dam.id()));
+		kin.add(new Kin("Sire", sire == null ? "unknown" : sire.name(), sire == null ? null : sire.id()));
+		for (HerdBook.Entry foal : book.foals(entry.id())) {
+			kin.add(new Kin("Foal", foal.name(), foal.id()));
 		}
+		return kin;
+	}
+
+	/** The family as plain lines: dam, sire, then foals on one line. */
+	public static List<String> family(HerdBook book, HerdBook.Entry entry) {
+		ArrayList<String> lines = new ArrayList<>();
+		StringBuilder foals = new StringBuilder();
+		for (Kin kin : kin(book, entry)) {
+			if ("Foal".equals(kin.relation())) {
+				foals.append(foals.length() == 0 ? "Foals: " : ", ").append(kin.name());
+			} else {
+				lines.add(kin.relation() + ": " + kin.name());
+			}
+		}
+		lines.add(foals.length() == 0 ? "Foals: none" : foals.toString());
 		return lines;
 	}
 }

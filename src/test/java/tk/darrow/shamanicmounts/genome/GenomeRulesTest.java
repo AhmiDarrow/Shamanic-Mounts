@@ -82,6 +82,21 @@ class GenomeRulesTest {
 		Phenotype phenotype = Expression.express(cross);
 		float neck = (Marks.Species.STEED.neck + Marks.Species.BIRD.neck) * 0.5f;
 		assertEquals(neck, phenotype.proportions.neck(), 1.0e-5f);
+		// The showing body is the higher rank, and the hidden one reshapes it within limits.
+		assertEquals(Marks.Torso.STEED, Expression.torso(Marks.Torso.SERPENT, Marks.Torso.STEED));
+		assertEquals(Marks.Torso.BEAR, Expression.torso(Marks.Torso.STEED, Marks.Torso.BEAR));
+		Phenotype steedOverSerpent = Expression.express(new Genome(Strand.wild(Marks.Torso.STEED, Marks.Head.STEED),
+				Strand.wild(Marks.Torso.SERPENT, Marks.Head.SERPENT), true, true, true));
+		assertEquals(Marks.Torso.STEED, steedOverSerpent.torso);
+		assertEquals(Marks.Torso.SERPENT, steedOverSerpent.carriedTorso);
+		assertEquals(1.30f, steedOverSerpent.shape.neck(), 1.0e-5f);
+		assertEquals(1.60f, steedOverSerpent.shape.tail(), 1.0e-5f, "the serpent's tail is clamped");
+		assertEquals(0.85f, steedOverSerpent.shape.girth(), 1.0e-5f);
+		assertTrue(Expression.express(Founders.eightfold()).shape.pure());
+		// Pelt: A over B over C.
+		assertEquals(0, Expression.pelt(Marks.Pelt.C, Marks.Pelt.A));
+		assertEquals(1, Expression.pelt(Marks.Pelt.B, Marks.Pelt.C));
+		assertEquals(2, Expression.pelt(Marks.Pelt.C, Marks.Pelt.C));
 		assertEquals(Marks.Head.STEED, phenotype.head);
 		assertEquals(Marks.Head.BIRD, phenotype.carriedHead);
 		assertEquals(Phenotype.LegShow.SPARE, phenotype.legs);
@@ -92,7 +107,7 @@ class GenomeRulesTest {
 		assertEquals(6, BlockGrid.NECK);
 		assertEquals(3, BlockGrid.LEG);
 		assertEquals(2, BlockGrid.SPARE_LEG);
-		assertEquals(Reading.Note.BLENDED, Reading.of(cross).get(0).note());
+		assertEquals(Reading.Note.SHAPED, Reading.of(cross).get(0).note());
 	}
 
 	@Test

@@ -53,7 +53,9 @@ final class MountMesh {
 		Anchor[] holder = new Anchor[1];
 		// Staying, the mount lies down: the body stays level and sinks while every leg folds under it.
 		float drop = anim.sit > 0.001f ? LIE_DROP.getOrDefault(phenotype, 0f) * anim.sit : 0f;
+		float girth = phenotype.shape.girth();
 		pen.shift(0f, 0f, -drop, () -> {
+		Runnable body = () -> {
 		pen.hinge(0f, shoulder[0], shoulder[1], 0f, 0f, flyPitch, () -> {
 			Anchor anchor = Torsos.draw(pen, shell, skin);
 			holder[0] = anchor;
@@ -69,6 +71,13 @@ final class MountMesh {
 			legs(pen, phenotype, shell, skin, anchor, false);
 		});
 		legs(pen, phenotype, shell, skin, holder[0], true);
+		};
+		// A cross carries its hidden body's build: the girth widens or narrows the whole animal.
+		if (girth != 1f) {
+			pen.scaleAt(0f, 0f, 0f, girth, 1f, 1f, body);
+		} else {
+			body.run();
+		}
 		});
 		if (anim.sit > 0.001f && !LIE_DROP.containsKey(phenotype)) {
 			LIE_DROP.put(phenotype, lieDrop(drawnPosts(phenotype, holder[0])));
@@ -87,14 +96,16 @@ final class MountMesh {
 		// In flight the neck reaches forward; lying down, it is carried up so the head stays high.
 		float lean = anim.air * 18f - anim.sit * 18f;
 		pen.hinge(0f, anchor.neckY, anchor.neckZ + 2f, 0f, 0f, nod + lean, () -> {
-			float[] socket = Heads.neck(pen, shell, anchor, skin);
+			float[] socket = neck(pen, phenotype, shell, anchor, skin);
 			float hy = socket[0];
 			float hz = socket[1] + 3.5f;
 			float lookYaw = Mth.clamp(Mth.wrapDegrees(anim.yaw) + anim.idleYaw(), -45f, 45f);
 			float lookPitch = Mth.clamp(-anim.pitch, -30f, 24f) - lean * 0.6f;
 			pen.hinge(0f, hy, hz, lookYaw, 0f, lookPitch, () -> {
-				if (anim.baby) {
-					pen.scaleAt(0f, hy, hz - 3.5f, 1.3f, 1.3f, 1.3f, () -> Heads.head(pen, phenotype, shell, skin, hy, socket[1]));
+				// A foal's head is large for its body; a cross's head leans toward the hidden body's.
+				float head = phenotype.shape.head() * (anim.baby ? 1.3f : 1f);
+				if (head != 1f) {
+					pen.scaleAt(0f, hy, hz - 3.5f, head, head, head, () -> Heads.head(pen, phenotype, shell, skin, hy, socket[1]));
 				} else {
 					Heads.head(pen, phenotype, shell, skin, hy, socket[1]);
 				}
@@ -242,7 +253,29 @@ final class MountMesh {
 		}
 	}
 
+	/** The neck, lengthened or shortened by a cross's hidden body. Returns where the head sits. */
+	private static float[] neck(Pen pen, Phenotype phenotype, Shell shell, Anchor anchor, Skin skin) {
+		float length = phenotype.shape.neck();
+		if (length == 1f || shell == Shell.CHIMERA) {
+			return Heads.neck(pen, shell, anchor, skin);
+		}
+		float baseY = anchor.neckY;
+		float baseZ = anchor.neckZ + 2f;
+		float[][] socket = new float[1][];
+		pen.scaleAt(0f, baseY, baseZ, 1f, length, length, () -> socket[0] = Heads.neck(pen, shell, anchor, skin));
+		return new float[] { baseY + (socket[0][0] - baseY) * length, baseZ + (socket[0][1] - baseZ) * length };
+	}
+
 	private static void tail(Pen pen, Phenotype phenotype, Shell shell, Skin skin, Anchor anchor) {
+		float length = phenotype.shape.tail();
+		if (length != 1f && shell != Shell.CHIMERA && phenotype.tail != Phenotype.TailShow.NONE) {
+			pen.scaleAt(0f, anchor.tailY, anchor.tailZ, 1f, length, length, () -> drawTail(pen, phenotype, shell, skin, anchor));
+		} else {
+			drawTail(pen, phenotype, shell, skin, anchor);
+		}
+	}
+
+	private static void drawTail(Pen pen, Phenotype phenotype, Shell shell, Skin skin, Anchor anchor) {
 		if (shell == Shell.CHIMERA) {
 			Tails.spade(pen, anchor.tailY, anchor.tailZ, skin);
 			return;

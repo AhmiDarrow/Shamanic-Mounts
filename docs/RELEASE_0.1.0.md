@@ -12,6 +12,6 @@ First release. Minecraft 1.21.1, NeoForge 21.1.249.
 - Stay lays the mount down with its legs folded under it.
 - The mount screen: tack slots for the saddle, the new Saddle Bags, and vanilla horse armor, the mount's portrait, and a follow, stay, or wander choice. The elk's bags hold a third row.
 - The Diamond Apple is eight diamonds around an apple.
-- Three pelts per line, inherited from one parent, and a wingspan gene from small to vast.
-- The herd book reads genes in proper genealogy notation with a key, and shows the animal.
+- Genes for everything: body by dominance with the hidden body blending the shape, a size gene from XS to XL, a pelt gene (A over B over C) for each line's three pelts, and a wingspan gene from small to vast.
+- The herd book reads every gene in genealogy notation with the dam's and sire's copies side by side, links family members, opens each line onto its three pelts, and explains every rule in the key and on hover.
 - A held sneak keeps you in the saddle on a mount that hides or blinks; tap sneak to step off.

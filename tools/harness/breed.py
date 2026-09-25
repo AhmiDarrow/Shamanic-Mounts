@@ -15,13 +15,13 @@ from harness_lib import PLAYER, check, client, run  # noqa: E402
 
 GIFTS = ("road", "call", "bearing", "ferry", "skin", "omen", "dream", "veil", "might", "coil")
 LOCI = (
-    "TORSO", "HEAD", "LEGS", "FOOT", "RACK", "GAIT", "WINGS", "WINGSPAN", "TAIL", "SCALE", "COAT",
+    "TORSO", "HEAD", "LEGS", "FOOT", "RACK", "GAIT", "WINGS", "WINGSPAN", "TAIL", "SCALE", "SIZE", "COAT", "PELT",
     "REALM", "PHASE", "SENSE", "BOND", "WARD", "TRAIL", "ROAD", "CALL", "BEARING",
     "FERRY", "SKIN", "OMEN", "DREAM", "VEIL", "MIGHT", "COIL",
 )
 QUIET = {
     "LEGS": "four", "FOOT": "hoof", "RACK": "none", "GAIT": "land", "WINGS": "none", "WINGSPAN": "mid",
-    "TAIL": "none", "SCALE": "normal", "COAT": "solid", "REALM": "hearth", "PHASE": "solid",
+    "TAIL": "none", "SCALE": "normal", "SIZE": "m", "COAT": "solid", "PELT": "a", "REALM": "hearth", "PHASE": "solid",
     "SENSE": "eye", "BOND": "saddle", "WARD": "none", "TRAIL": "none",
     "ROAD": "none", "CALL": "none", "BEARING": "none", "FERRY": "none", "SKIN": "none",
     "OMEN": "none", "DREAM": "none", "VEIL": "none", "MIGHT": "none", "COIL": "none",

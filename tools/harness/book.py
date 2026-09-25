@@ -44,14 +44,29 @@ def main():
     lines_page = lines_of(fields)
     check("the lines page names every founder and the chimera", fields.get("page") == "LINES" and "Eightfold" in lines_page
           and "Chimera" in lines_page and "Barghest" in lines_page, lines_page[:120])
-    check("the chimera's line is hidden while spoilers are off", "The ninth mount." in lines_page, lines_page[-80:])
+    check("the chimera's line is hidden while spoilers are off", "The eleventh form." in lines_page, lines_page[-80:])
     client("shot book_lines")
+    picked = client("pick 0")
+    _reply, fields = report()
+    detail = lines_of(fields)
+    check("a line opens onto its three pelts and founder genes", picked.startswith("ok") and fields.get("line") == "Eightfold"
+          and "Pelts: Bay, Black, Palomino" in detail and "Lg EE" in detail, detail[:200])
+    client("shot book_line_detail")
+    client("bookscroll end")
+    time.sleep(0.2)
+    client("shot book_line_genes")
+    press_button("Back")
+    _reply, fields = report()
+    check("Back returns to the gallery", fields.get("line") == "" and fields.get("page") == "LINES", fields.get("line", ""))
+    check("the chimera cannot be opened with spoilers off", client("pick 10").startswith("error"))
 
     press_button("Key")
     _reply, fields = report()
     key_page = lines_of(fields)
-    check("the key explains the notation and lists the body loci", fields.get("page") == "KEY" and "UPPER" in key_page
+    check("the key explains the notation and lists the body loci", fields.get("page") == "KEY" and "capital letter shows" in key_page
           and "Lg legs:" in key_page and "E eight" in key_page, key_page[:120])
+    check("the key lists size, pelt, and body dominance", "Sz size: XS xs" in key_page and "Pt pelt: A first" in key_page
+          and "U > S > H > D > C > B > N" in key_page, key_page[:400])
     check("the key keeps the gifts for spoilers", "Ro road" not in key_page)
     client("shot book_key")
 
@@ -108,6 +123,7 @@ def main():
     hidden = lines_of(fields)
     check("with spoilers off the carried skin reads Sk s- none with no note", "Sk s-  none" in hidden and "carried" not in hidden, hidden[:240])
     check("the family line names the dam and the coat", "Dam: Brook" in hidden and "Pelt: " in hidden, hidden[:120])
+    check("the tame page sums up the body, pelt, size, and sex", "Shade body, Dusk, size M, female" in hidden, hidden[:120])
 
     press_button("Spoilers: off")
     time.sleep(0.2)
@@ -115,6 +131,14 @@ def main():
     shown = lines_of(fields)
     check("with spoilers on the carried skin says carried", "carried" in shown and fields.get("spoilers") == "true", shown[:240])
     client("shot book_tame")
+    client("bookscroll end")
+    time.sleep(0.2)
+    client("shot book_tame_genes")
+    client("bookscroll top")
+    linked = client("pick 0")
+    check("the dam's name links to her page", linked.startswith("ok") and "selected=Brook" in linked, linked[:160])
+    press_button("Back")
+    client("pick 1")
 
     client("type Ashen Step")
     renamed = press_button("Rename")

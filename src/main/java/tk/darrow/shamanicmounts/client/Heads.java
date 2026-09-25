@@ -362,9 +362,11 @@ final class Heads {
 			float angle = -120f + i * 24f;
 			float crest = 1f - Math.abs(rib - 5) / 5f;
 			float reach = 8.5f + 2.5f * crest;
+			// Neighbouring webs overlap near the skull; each sits a hair further back so none share a plane.
+			float layer = rib * 0.06f;
 			pen.hinge(0f, y + 0.5f, z + 2.2f, 0f, angle * open, 0f, () -> {
-				pen.box(-0.6f, y + 0.5f, z + 2.2f, 1.2f, 1f, reach + 1.2f, skin.dark());
-				pen.box(-2.9f, y + 0.8f, z + 3f, 5.8f, 0.4f, reach, Mat.FRILL);
+				pen.box(-0.6f, y + 0.5f + layer, z + 2.2f, 1.2f, 1f, reach + 1.2f, skin.dark());
+				pen.box(-2.9f, y + 0.8f + layer, z + 3f, 5.8f, 0.4f, reach, Mat.FRILL);
 			});
 		}
 	}

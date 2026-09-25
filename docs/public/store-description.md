@@ -2,7 +2,7 @@
 
 **CurseForge summary (one line):** Ten spirit mounts, from eight-legged steeds and drum harts to rocs, bears and a frilled serpent. Tame with a braced saddle, breed any two, and chase the chimera.
 
-Spirit mounts for Minecraft 1.21.1, NeoForge 21.1.249, and Java 21. Ten founder lines roam the Overworld, each with a body, a gait and something it does when ridden. Brace a wild one to tame it, then breed any line with any other. The foal is one animal: the head, the feet, the wings, the tail and the ridden gifts it inherited, all readable in a herd book that writes its genes the way a breeder would.
+Spirit mounts for Minecraft 1.21.1, NeoForge 21.1.249, and Java 21. Ten founder lines roam the Overworld, each with a body, a gait and something it does when ridden. Brace a wild one to tame it, then breed any line with any other. The foal is one animal built from two copies of every gene: body, head, legs, tail, size, pelt, wings and ridden gifts, all tracked in a herd book that writes them the way a breeder would.
 
 https://github.com/AhmiDarrow/Shamanic-Mounts
 
@@ -10,7 +10,7 @@ https://github.com/AhmiDarrow/Shamanic-Mounts
 
 ## Ten lines
 
-Every line comes in three pelts, rolled at birth and passed down from one parent.
+Every line comes in three pelts and five sizes, each set by its own gene.
 
 **Eightfold.** Eight hooves in four pairs. While you ride it, it walks on water and steps up a full block. Bay, black and palomino.
 
@@ -52,13 +52,25 @@ Any line with any other. The breed item is a Diamond Apple, eight diamonds aroun
 
 The foal is born wild. It keeps near the grown mounts of its kind and wears no saddle, bags or armor until it is grown. Then it takes the saddle like any wild adult, and its parents go into your herd book.
 
-The head, the feet, the wings, the wingspan and the tail are separate genes, so a bird's head can stand on hooves and wings do not follow the head. A mixed trait comes out as a midpoint or a smaller finished piece. Wingspan runs from small to vast and the two copies average; a roc carries a vast copy, so bred fliers can grow wings two or three times a crane's.
+Breed until two mounts carry every gift, then breed those two. Each foal is an even chance of the same cross or the chimera: a furry dragon with scale plates down its back and sides and every gift at once. The body genes of the cross stay underneath it.
 
-Each ridden gift is its own gene, so gifts stack on whatever body the cross made. The nagual's send-away, the shade's hide and blink, and the roc's full flight show only from both parents; the rest show from one. Breed until two mounts carry every gift, then breed those two. Each foal is an even chance of the same cross or the chimera: a furry dragon with scale plates down its back and sides and every gift at once. The body genes of the cross stay underneath it.
+## Genes
+
+Every mount carries two copies of every gene, one from each parent, and the herd book tracks them all.
+
+- **Body** shows by rank: bear over steed over hart over hound over cat over bird over serpent. The hidden body still pulls the neck, head, tail and girth halfway toward its own shape, so a steed carrying serpent grows a longer neck and tail.
+- **Head, feet and tail** each show one copy, picked at birth, so a bird's head can stand on hooves. The other copy is carried and can come back in a foal.
+- **Legs** meet in the middle: eight with four shows the spare pair. No legs is recessive.
+- **Size** runs XS, S, M, L, XL within every line, and the two copies average. Build is the line's frame on top of it, which is why the elk and the roc stand tallest. Bigger mounts have a little more health.
+- **Pelt** is A over B over C. The third pelt of every line, palomino, white, snow leopard, polar and the rest, needs two copies.
+- **Wingspan** runs from small to vast and the two copies average. A roc carries a vast copy, so bred fliers can grow wings two or three times a crane's.
+- **Ridden gifts** are each their own gene and stack on whatever body the cross made. The shade's hide and blink and the nagual's send-away need both copies; one dream copy flies only at night; the rest show from one.
+
+Genes that sit together usually travel together: the body with its legs, feet and gait; the head with build, size, pattern and pelt. About one time in eight a neighbour swaps over.
 
 ## The herd book
 
-A readable book of the mounts you own, with a portrait of each. It keeps every gene, both parents and the children, even for mounts that are not loaded. Genes are written like a breeder's notation: a capital for the copy that shows, lowercase for the one it hides, with a key page to read them by. The Lines page pictures every founder, and each tame's page names its pelt. Rename a tame or release it from its page. The breeding chapter hides behind a spoiler switch that stays the way you left it.
+A readable book of the mounts you own, loaded or not. Each tame's page has its portrait, a summary of its body, pelt, size and sex, links to its dam, sire and foals, and every gene grouped by body, size, coat, wings, nature and gifts, with the dam's and sire's copies side by side. Genes are written in breeder's notation, a capital for the copy that shows and lowercase for the one it hides, and hovering a gene explains how it passes down. The Lines page opens each founder onto its three pelts and its genes, and the Key page lists every gene with its rule. Rename a tame or release it from its page. The breeding chapter hides behind a spoiler switch that stays the way you left it.
 
 ## Start your ride
 

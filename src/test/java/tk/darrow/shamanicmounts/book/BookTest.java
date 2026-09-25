@@ -20,10 +20,10 @@ class BookTest {
 	void spoilersOffLeavesBasicsAndTamesAndRemembersThat(@TempDir Path dir) throws java.io.IOException {
 		assertEquals(java.util.List.of(Codex.Page.BASICS, Codex.Page.LINES, Codex.Page.TAMES, Codex.Page.KEY), Codex.open(false));
 		assertTrue(Codex.open(true).contains(Codex.Page.BREEDING));
-		String basics = String.join(" ", Codex.basics()).toLowerCase();
+		String basics = text(Codex.basics()).toLowerCase();
 		assertFalse(basics.contains("chimera"));
 		assertFalse(basics.contains("both copies"));
-		String breeding = String.join(" ", Codex.breeding()).toLowerCase();
+		String breeding = text(Codex.breeding()).toLowerCase();
 		assertTrue(breeding.contains("chimera"));
 		assertTrue(breeding.contains("both copies"));
 
@@ -83,7 +83,7 @@ class BookTest {
 				Strand.wild(Marks.Torso.STEED, Marks.Head.STEED).with(Marks.Leg.EIGHT),
 				Strand.wild(Marks.Torso.STEED, Marks.Head.STEED).with(Marks.Leg.FOUR),
 				true, true, true);
-		assertEquals("SS", row(eightOverFour, "torso").notation());
+		assertEquals("SS", row(eightOverFour, "body").notation());
 		assertEquals("EF", row(eightOverFour, "legs").notation(), "eight with four is the spare pair, both showing");
 		assertEquals("Lg", row(eightOverFour, "legs").symbol());
 		assertEquals("spare", row(eightOverFour, "legs").shown());
@@ -91,7 +91,7 @@ class BookTest {
 				Strand.wild(Marks.Torso.STEED, Marks.Head.STEED).with(Marks.Foot.HOOF),
 				Strand.wild(Marks.Torso.STEED, Marks.Head.STEED).with(Marks.Foot.PAW),
 				true, true, true);
-		assertEquals("Hp", row(hoofOverPaw, "foot").notation(), "the showing hoof is upper case, the carried paw lower");
+		assertEquals("Hp", row(hoofOverPaw, "feet").notation(), "the showing hoof is upper case, the carried paw lower");
 
 		Genome fourOverEight = new Genome(
 				Strand.wild(Marks.Torso.STEED, Marks.Head.STEED).with(Marks.Leg.FOUR),
@@ -103,7 +103,9 @@ class BookTest {
 				Strand.wild(Marks.Torso.STEED, Marks.Head.STEED),
 				Strand.wild(Marks.Torso.BIRD, Marks.Head.BIRD),
 				true, true, true);
-		assertEquals("SB", row(blend, "torso").notation());
+		assertEquals("Sb", row(blend, "body").notation(), "the steed body outranks the bird, which is carried");
+		assertEquals("steed", row(blend, "body").shown());
+		assertEquals("shape blends", row(blend, "body").note());
 		assertEquals("Sb", row(blend, "head").notation(), "the maternal head shows, the paternal is carried");
 
 		Genome oneRoad = new Genome(
@@ -121,16 +123,52 @@ class BookTest {
 				true, true, true);
 		assertEquals("s-", row(oneSkin, "skin").notation(), "a lone skin is carried, so its letter is lower case");
 
-		String key = String.join(" ", Codex.key(false));
-		assertTrue(key.contains("UPPER"));
-		assertTrue(key.contains("Lg legs: N none T two F four P spare E eight"));
-		assertFalse(key.contains("Ro road"));
-		assertTrue(String.join(" ", Codex.key(true)).contains("Ro road: R on, - empty"));
-		assertEquals("Bay", TamePage.pelt(Founders.eightfold(), 0));
-		assertEquals("Snow", TamePage.pelt(Founders.nagual(), 2));
+		assertTrue(String.join(" ", Codex.keyIntro()).contains("capital letter shows"));
+		Genotype.KeyEntry legs = Genotype.bodyKey().stream().filter(entry -> entry.symbol().equals("Lg")).findFirst().orElseThrow();
+		assertEquals("N none  T two  F four  P spare  E eight", legs.letters());
+		Genotype.KeyEntry body = Genotype.bodyKey().get(0);
+		assertTrue(body.rule().startsWith("Dominant: U > S > H > D > C > B > N"), body.rule());
+		assertTrue(Genotype.bodyKey().stream().noneMatch(entry -> entry.symbol().equals("Ro")));
+		assertTrue(Genotype.giftKey().stream().anyMatch(entry -> entry.symbol().equals("Ro") && entry.letters().equals("R on  - empty")));
+		assertEquals("Bay", TamePage.pelt(Founders.eightfold()));
+		Genome snow = new Genome(Founders.nagual().maternal.with(Marks.Pelt.C), Founders.nagual().paternal.with(Marks.Pelt.C),
+				true, true, true);
+		assertEquals("Snow", TamePage.pelt(snow));
 		assertEquals("Wings x1.0", TamePage.wings(Founders.crane()));
 		assertEquals("", TamePage.wings(Founders.eightfold()));
 		assertEquals(11, Codex.lines().size());
+	}
+
+	@Test
+	void sizeAveragesPeltRanksAndTheBodyShowsByDominance() {
+		Strand steed = Strand.wild(Marks.Torso.STEED, Marks.Head.STEED);
+		Genome small = new Genome(steed.with(Marks.Size.XS), steed.with(Marks.Size.XL), true, true, true);
+		assertEquals("XS/XL", row(small, "size").notation(), "size writes both classes, both showing");
+		assertTrue(row(small, "size").shown().startsWith("M"), row(small, "size").shown());
+		assertEquals("averaged", row(small, "size").note());
+		Genome large = Genome.homozygous(steed.with(Marks.Size.XL));
+		assertEquals(1.14f, tk.darrow.shamanicmounts.genome.Expression.express(large).sizeFactor, 1.0e-5f);
+
+		Genome bayOverPalomino = new Genome(steed.with(Marks.Pelt.A), steed.with(Marks.Pelt.C), true, true, true);
+		assertEquals("Ac", row(bayOverPalomino, "pelt").notation());
+		assertEquals("bay", row(bayOverPalomino, "pelt").shown());
+		assertEquals("palomino", row(bayOverPalomino, "pelt").sire());
+		Genome palomino = Genome.homozygous(steed.with(Marks.Pelt.C));
+		assertEquals("Palomino", TamePage.pelt(palomino));
+
+		Genome bearOverSteed = new Genome(Strand.wild(Marks.Torso.STEED, Marks.Head.STEED),
+				Strand.wild(Marks.Torso.BEAR, Marks.Head.BEAR), true, true, true);
+		assertEquals("sU", row(bearOverSteed, "body").notation(), "the sire's bear body outranks the dam's steed");
+		assertTrue(TamePage.summary(bearOverSteed, true).startsWith("Bear body (carries steed)"), TamePage.summary(bearOverSteed, true));
+		assertTrue(TamePage.summary(Founders.eightfold(), false).startsWith("Eightfold body, Bay, size M, female"));
+	}
+
+	private static String text(java.util.List<Codex.Section> sections) {
+		StringBuilder out = new StringBuilder();
+		for (Codex.Section section : sections) {
+			out.append(section.heading()).append(' ').append(String.join(" ", section.paragraphs())).append(' ');
+		}
+		return out.toString();
 	}
 
 	private static TamePage.Row row(Genome genome, String locus) {

@@ -58,6 +58,8 @@ public final class GenomeIO {
 			case WINGSPAN -> Marks.Span.valueOf(name);
 			case TAIL -> Marks.Tail.valueOf(name);
 			case SCALE -> Marks.Scale.valueOf(name);
+			case SIZE -> Marks.Size.valueOf(name);
+			case PELT -> Marks.Pelt.valueOf(name);
 			case COAT -> Marks.Coat.valueOf(name);
 			case REALM -> Marks.Realm.valueOf(name);
 			case PHASE -> Marks.Phase.valueOf(name);

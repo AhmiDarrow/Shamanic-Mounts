@@ -46,6 +46,8 @@ public final class Strand {
 		map.put(Locus.WINGSPAN, Marks.Span.MID);
 		map.put(Locus.TAIL, Marks.Tail.NONE);
 		map.put(Locus.SCALE, Marks.Scale.NORMAL);
+		map.put(Locus.SIZE, Marks.Size.M);
+		map.put(Locus.PELT, Marks.Pelt.A);
 		map.put(Locus.COAT, Marks.Coat.SOLID);
 		map.put(Locus.REALM, Marks.Realm.HEARTH);
 		map.put(Locus.PHASE, Marks.Phase.SOLID);

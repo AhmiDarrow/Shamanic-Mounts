@@ -28,6 +28,8 @@ itself. Tribal Power's showcase server uses other ports and is never touched.
   held points of the stride. Pictures only; a person judges them.
 - `ride`: each line saddled and mounted with the use key, photographed walking from the front and
   from behind, the fliers lifting off on a held jump, a sneak tap dismounting, and the hound sitting.
+- `genes`: crosses and gene extremes on the pad, photographed as `look_<case>_gene`: steed over serpent,
+  bear over steed, hart over bird, an XS and an XL eightfold, and a palomino; checks that size moves health.
 - `gifts`: every ridden ability fired once from the saddle, with its effect checked in the world:
   the drum's Regeneration, the elk's ram on a pig, the nagual's send-away and return on damage, the
   hound's glow on a zombie at night, the shade's held-sneak hide, blink, and sneak-tap dismount, the
@@ -58,5 +60,7 @@ The client polls `build/harness-client/showcase-command.txt` twice a second and 
 - `hud <on|off>`: hide or show the crosshair, hand, and hotbar.
 - `pose <swing> <amount>` and `pose off`: hold every mount at one point of its stride.
 - `wing <1|2>` and `wing off`: hold every mount in the air, gliding or flapping.
+- `pick <n>`: in the herd book, open tame n, line n, or on a tame's page relative n (0 dam, 1 sire, then foals).
+- `bookscroll end|top`: scroll the open book page to its end or back to the top.
 - `dump`: write every quad the nearest mount draws, with its atlas cell, to `showcase-dump.txt`. Use it
   when a face looks wrong: a black patch seen head-on is usually the nose pad, not a hole.

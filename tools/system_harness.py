@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness_lib import PLAYER, check, client, run, say, section, summary  # noqa: E402
 from verification_rcon import command as rcon  # noqa: E402
 
-ORDER = ["boot", "items", "book", "looks", "ride", "gifts", "bags", "perf", "breed"]
+ORDER = ["boot", "items", "book", "looks", "genes", "ride", "gifts", "bags", "perf", "breed"]
 ROOT = Path(__file__).resolve().parents[1]
 
 

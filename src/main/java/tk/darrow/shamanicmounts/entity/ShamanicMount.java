@@ -56,6 +56,7 @@ import tk.darrow.shamanicmounts.book.HerdBook;
 import tk.darrow.shamanicmounts.genome.Expression;
 import tk.darrow.shamanicmounts.genome.Founders;
 import tk.darrow.shamanicmounts.genome.Genome;
+import tk.darrow.shamanicmounts.genome.Marks;
 import tk.darrow.shamanicmounts.genome.GenomeIO;
 import tk.darrow.shamanicmounts.genome.Meiosis;
 import tk.darrow.shamanicmounts.genome.MountSize;
@@ -92,9 +93,6 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			EntityDataSerializers.BYTE);
 	private static final net.minecraft.resources.ResourceLocation ARMOR_ID = net.minecraft.resources.ResourceLocation
 			.fromNamespaceAndPath(tk.darrow.shamanicmounts.ShamanicMounts.MOD_ID, "horse_armor");
-	/** Which of the line's three coats this one wears, 0 to 2. */
-	private static final EntityDataAccessor<Byte> DATA_PELT = SynchedEntityData.defineId(ShamanicMount.class,
-			EntityDataSerializers.BYTE);
 	/** Saddle bags are strapped on. */
 	private static final EntityDataAccessor<Boolean> DATA_BAGS = SynchedEntityData.defineId(ShamanicMount.class,
 			EntityDataSerializers.BOOLEAN);
@@ -211,17 +209,28 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		return this.entityData.get(DATA_BAGS);
 	}
 
-	/** Which of the line's three coats this mount wears, 0 to 2. */
+	/** Which of the line's three coats this mount wears, 0 to 2. The pelt gene decides it. */
 	public int pelt() {
-		return this.entityData.get(DATA_PELT);
+		return phenotype.pelt;
 	}
 
-	public void setPelt(int pelt) {
-		this.entityData.set(DATA_PELT, (byte) Math.floorMod(pelt, 3));
-		peltRolled = true;
+	/**
+	 * A wild mount's own size and pelt: each copy rolled on its own. Sizes lean to the middle, and
+	 * the first pelt is the common one, so a third pelt needs two rare copies.
+	 */
+	private Genome rollWild(Genome founder) {
+		return new Genome(rollStrand(founder.maternal), rollStrand(founder.paternal), founder.headFromMaternal,
+				founder.footFromMaternal, founder.tailFromMaternal, founder.chimera);
 	}
 
-	private boolean peltRolled;
+	private tk.darrow.shamanicmounts.genome.Strand rollStrand(tk.darrow.shamanicmounts.genome.Strand strand) {
+		int sizeRoll = this.random.nextInt(100);
+		Marks.Size size = sizeRoll < 10 ? Marks.Size.XS : sizeRoll < 30 ? Marks.Size.S : sizeRoll < 70 ? Marks.Size.M
+				: sizeRoll < 90 ? Marks.Size.L : Marks.Size.XL;
+		int peltRoll = this.random.nextInt(100);
+		Marks.Pelt pelt = peltRoll < 40 ? Marks.Pelt.A : peltRoll < 70 ? Marks.Pelt.B : Marks.Pelt.C;
+		return strand.with(size).with(pelt);
+	}
 
 	public SimpleContainer tack() {
 		return tack;
@@ -246,7 +255,6 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		builder.define(DATA_CLIMBING, false);
 		builder.define(DATA_MODE, (byte) MountMode.WANDER.ordinal());
 		builder.define(DATA_BAGS, false);
-		builder.define(DATA_PELT, (byte) 0);
 		builder.define(DATA_ARMOR, (byte) 0);
 	}
 
@@ -373,12 +381,13 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	}
 
 	private void applyHealth() {
-		double health = switch (phenotype.scale) {
+		// Build sets the base; size within the line moves it a little, an XL about a seventh more.
+		double health = Math.round(switch (phenotype.scale) {
 			case SLIGHT -> 22.0;
 			case NORMAL -> 26.0;
 			case LARGE -> 32.0;
 			case GREATER -> 40.0;
-		};
+		} * phenotype.sizeFactor);
 		var attribute = this.getAttribute(Attributes.MAX_HEALTH);
 		if (attribute != null && attribute.getBaseValue() != health) {
 			float ratio = this.getMaxHealth() <= 0 ? 1.0f : this.getHealth() / this.getMaxHealth();
@@ -413,11 +422,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		if (!genomeLocked) {
 			Genome[] founders = { Founders.eightfold(), Founders.drumHart(), Founders.elk(), Founders.crane(),
 					Founders.nagual(), Founders.barghest(), Founders.roc(), Founders.shade(), Founders.bear(), Founders.serpent() };
-			setGenome(founders[this.random.nextInt(founders.length)], false);
+			setGenome(rollWild(founders[this.random.nextInt(founders.length)]), false);
 			this.male = this.random.nextBoolean();
-		}
-		if (!peltRolled) {
-			setPelt(this.random.nextInt(3));
 		}
 		return super.finalizeSpawn(level, difficulty, reason, data);
 	}
@@ -1059,7 +1065,6 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		}
 		foal.setGenome(child, true);
 		foal.male = this.random.nextBoolean();
-		foal.setPelt(this.random.nextBoolean() ? this.pelt() : other.pelt());
 		foal.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), 0.0f);
 		foal.setAge(-24000);
 		// A foal is born wild. Once grown it takes the saddle trial like any mount, and its lineage
@@ -1377,7 +1382,6 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		tag.putInt("Reveal", revealTicks);
 		tag.putBoolean("Hidden", hidden);
 		tag.putString("Mode", mode().name());
-		tag.putInt("Pelt", pelt());
 		tag.putByte("RiderKeys", (byte) ((riderSneak ? 1 : 0) | (jumpHeld ? 2 : 0)));
 		tag.putInt("SneakHeld", sneakHeld);
 		tag.put("Chest", this.chest.createTag(this.registryAccess()));
@@ -1425,9 +1429,6 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		this.awayCooldown = tag.getInt("AwayCd");
 		this.blinkCooldown = tag.getInt("Blink");
 		this.revealTicks = tag.getInt("Reveal");
-		if (tag.contains("Pelt")) {
-			setPelt(tag.getInt("Pelt"));
-		}
 		if (tag.contains("Mode")) {
 			try {
 				setMode(MountMode.valueOf(tag.getString("Mode")));

@@ -6,6 +6,9 @@ package tk.darrow.shamanicmounts.client;
  * the tail. A membrane wing swaps feathers for long fingers with skin between them.
  */
 final class Wings {
+	/** How far each feather or web sits above its neighbour, in pixels. */
+	private static final float LAYER = 0.15f;
+
 	private Wings() {
 	}
 
@@ -64,8 +67,11 @@ final class Wings {
 					float fan = sign * fly * (fromMid * (2.2f + down * 4.0f));
 					float lag = sign * (float) Math.sin(t - 1.15f - covert * 0.2f) * 16.0f * power;
 					float length = 3f + covert * 1.2f;
+					// Each covert lies a hair above the one before, like real feathers, so neighbours
+					// never share a plane and flicker.
+					float layer = covert * LAYER;
 					pen.shift(dir * (forearm - 3f), fromMid * covertSlot, 0.0f, () -> pen.curl(fan, lag, 0.0f, () ->
-							pen.box(dir < 0 ? -length : -2f, -1f, 0f, length + 2f, 2f, 1f, dark)));
+							pen.box(dir < 0 ? -length : -2f, -1f, layer, length + 2f, 2f, 1f, dark)));
 				}
 				if (membrane) {
 					// The web along the forearm, no deeper than the forearm itself.
@@ -82,14 +88,16 @@ final class Wings {
 						float wide = membrane ? 1.2f : 3f;
 						float thin = membrane ? 1.2f : 1.6f;
 						Mat vane = membrane ? mat : feather % 2 == 0 ? primary : dark;
+						// Primaries and webs stack a hair apart for the same reason as the coverts.
+						float layer = feather * LAYER;
 						pen.shift(dir * (hand - 3f), fromMid * primarySlot, 0.0f, () -> pen.curl(fan, lag, 0.0f, () -> {
-							pen.box(dir < 0 ? -length : -3f, -wide * 0.5f, -thin * 0.5f, length + 3f, wide, thin, vane);
+							pen.box(dir < 0 ? -length : -3f, -wide * 0.5f, -thin * 0.5f + layer, length + 3f, wide, thin, vane);
 							if (membrane) {
 								// Each finger carries its own web behind it, the length of the finger, so the
 								// wing fans open and folds without a sheet poking through.
 								float web = Math.max(2f, primarySlot + 1.6f);
-								pen.box(dir < 0 ? -length : -3f, wide * 0.5f - 0.2f, -0.25f, length + 3f, web, 0.5f, primary);
-								pen.box(dir < 0 ? -length : -3f, -0.3f, -1.1f, length + 3f, 0.6f, 0.4f, Mat.HORN);
+								pen.box(dir < 0 ? -length : -3f, wide * 0.5f - 0.2f, -0.25f + layer, length + 3f, web, 0.5f, primary);
+								pen.box(dir < 0 ? -length : -3f, -0.3f, -1.1f + layer, length + 3f, 0.6f, 0.4f, Mat.HORN);
 							}
 						}));
 					}

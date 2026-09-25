@@ -15,6 +15,10 @@ public final class Expression {
 		Marks.Torso torsoM = (Marks.Torso) genome.maternal(Locus.TORSO);
 		Marks.Torso torsoP = (Marks.Torso) genome.paternal(Locus.TORSO);
 		Proportions proportions = Proportions.blend(torsoM.species, torsoP.species);
+		Marks.Torso torso = torso(torsoM, torsoP);
+		Phenotype.Shape shape = shape(torso.species, proportions);
+		float sizeFactor = (((Marks.Size) genome.maternal(Locus.SIZE)).factor + ((Marks.Size) genome.paternal(Locus.SIZE)).factor) * 0.5f;
+		int pelt = pelt((Marks.Pelt) genome.maternal(Locus.PELT), (Marks.Pelt) genome.paternal(Locus.PELT));
 
 		Marks.Leg legM = (Marks.Leg) genome.maternal(Locus.LEGS);
 		Marks.Leg legP = (Marks.Leg) genome.paternal(Locus.LEGS);
@@ -37,11 +41,42 @@ public final class Expression {
 		boolean nagual = bond == Phenotype.BondShow.NAGUAL;
 		EnumSet<Marks.Gift> gifts = gifts(genome);
 
-		return new Phenotype(torsoM, torsoP, proportions, genome.head(), genome.carriedHead(), foot(genome.foot()),
+		return new Phenotype(torsoM, torsoP, torso, shape, sizeFactor, pelt, proportions, genome.head(), genome.carriedHead(), foot(genome.foot()),
 				legs(legM, legP), rack(rackM, rackP), rackM == Marks.Rack.CROWN && rackP == Marks.Rack.CROWN,
-				wings(wingM, wingP), (spanM.factor + spanP.factor) * 0.5f, tail(genome), scale, uniform(scale), coat(coatM, coatP), ghost, gait(genome), realms(genome),
+				wings(wingM, wingP), (spanM.factor + spanP.factor) * 0.5f, tail(genome), scale, uniform(scale) * sizeFactor, coat(coatM, coatP), ghost, gait(genome), realms(genome),
 				realmPotent(genome), phase, sense(genome), bond, wards, trails(genome), gifts,
 				giftWhole(genome, gifts), ghost && nagual && !wards.contains(Marks.Ward.GUARD), genome.chimera);
+	}
+
+	/** The body that shows: the higher rank. */
+	public static Marks.Torso torso(Marks.Torso a, Marks.Torso b) {
+		return a.rank() >= b.rank() ? a : b;
+	}
+
+	/** The pelt that shows: A over B over C. */
+	public static int pelt(Marks.Pelt a, Marks.Pelt b) {
+		return (a.rank() >= b.rank() ? a : b).ordinal();
+	}
+
+	/**
+	 * The hidden copy pulls the showing body halfway toward its own proportions, within limits so a
+	 * cross never tears the rig: neck 0.75 to 1.35, head 0.8 to 1.25, tail 0.5 to 1.6, girth 0.85 to 1.2.
+	 */
+	static Phenotype.Shape shape(Marks.Species shown, Proportions blend) {
+		float neck = clamp(blend.neck() / shown.neck, 0.75f, 1.35f);
+		float head = clamp(blend.muzzle() / shown.muzzle, 0.8f, 1.25f);
+		float tail = clamp(blend.tail() / Math.max(0.2f, shown.tail), 0.5f, 1.6f);
+		float girth = clamp((blend.chest() / shown.chest + blend.hip() / shown.hip) * 0.5f, 0.85f, 1.2f);
+		Phenotype.Shape shape = new Phenotype.Shape(round(neck), round(head), round(tail), round(girth));
+		return shape.equals(Phenotype.Shape.PURE) ? Phenotype.Shape.PURE : shape;
+	}
+
+	private static float clamp(float value, float low, float high) {
+		return Math.max(low, Math.min(high, value));
+	}
+
+	private static float round(float value) {
+		return Math.round(value * 100f) / 100f;
 	}
 
 	/**

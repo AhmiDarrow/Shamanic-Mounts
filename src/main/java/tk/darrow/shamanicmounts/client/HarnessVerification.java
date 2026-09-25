@@ -385,9 +385,16 @@ public final class HarnessVerification {
 					return "error no book";
 				}
 				int index = Integer.parseInt(parts[1]);
-				double y = 36 + index * 14.0;
-				boolean hit = book.mouseClicked(140, y, 0);
+				boolean hit = book.harnessPick(index);
 				return (hit ? "ok " : "error miss ") + book.harnessReport();
+			}
+			case "bookscroll" -> {
+				// bookscroll end|top: move the open book page to its end or back to the top.
+				if (!(mc.screen instanceof HerdBookScreen book)) {
+					return "error no book";
+				}
+				book.harnessScroll(parts.length > 1 && parts[1].equals("end"));
+				return "ok " + book.harnessReport();
 			}
 			case "type" -> {
 				if (!(mc.screen instanceof HerdBookScreen book)) {

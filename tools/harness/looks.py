@@ -30,8 +30,8 @@ def mix_nbt():
         strand(FOUNDERS["call"][1]), strand(FOUNDERS["road"][1]))
 
 
-def chimera_nbt():
-    body = {**CHIMERA_BODY, **{gift.upper(): gift for gift in GIFTS}}
+def chimera_nbt(pelt="a"):
+    body = {**CHIMERA_BODY, **{gift.upper(): gift for gift in GIFTS}, "PELT": pelt}
     return "{HeadM:1b,FootM:1b,TailM:1b,Chimera:1b,Maternal:%s,Paternal:%s}" % (strand(body), strand(body))
 
 
@@ -113,7 +113,13 @@ def main():
     # The other two pelts of every line, and the ends of the wingspan gene.
     for gift, name, genome in lines[:-1]:
         for pelt in (1, 2):
-            if not check(f"{name} in pelt {pelt} stands on the pad", summon(name, genome, owner, f",Pelt:{pelt}")):
+            # Both copies of the pelt gene set to the second or third pelt.
+            code = "abc"[pelt]
+            if gift == "chimera":
+                genome = chimera_nbt(code)
+            else:
+                genome = genome_nbt({**FOUNDERS[gift][1], "PELT": code}, FOUNDERS[gift][2])
+            if not check(f"{name} in pelt {pelt} stands on the pad", summon(name, genome, owner)):
                 continue
             time.sleep(1.2)
             scale, head = CAMERA.get(name, (1.6, 1.35))

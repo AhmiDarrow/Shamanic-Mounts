@@ -20,6 +20,14 @@ final class Pen {
 	private final SolidDraw draw = new SolidDraw();
 	private int group;
 	private int groupSeq;
+	/** How many parts deep the pen is. Each level grows its cubes a hair, see {@link #NEST}. */
+	private int depth;
+	/**
+	 * Growth per level of nesting, in blocks (about a fiftieth of a pixel). Culling cannot see across
+	 * parts, so a child face lying in its parent's plane would fight it for the same depth and
+	 * flicker; a hair of growth makes the child win cleanly without a visible change.
+	 */
+	private static final float NEST = 0.0012f;
 
 	Pen(PoseStack pose, MountPose anim) {
 		this.pose = pose;
@@ -41,7 +49,9 @@ final class Pen {
 	}
 
 	private void add(float x, float y, float z, float dx, float dy, float dz, Mat coat, int eyeFace, Mat eye) {
-		draw.add(pose, group, x / 16f, z / 16f, y / 16f, dx / 16f, dz / 16f, dy / 16f, coat, eyeFace, eye);
+		float grow = depth * NEST;
+		draw.add(pose, group, x / 16f - grow, z / 16f - grow, y / 16f - grow, dx / 16f + 2 * grow, dz / 16f + 2 * grow,
+				dy / 16f + 2 * grow, coat, eyeFace, eye);
 	}
 
 	/** Offset in blender pixels from the current joint, staying in the same rigid part. */
@@ -56,6 +66,7 @@ final class Pen {
 	void curl(float yawDeg, float rollDeg, float pitchDeg, Runnable body) {
 		int saved = group;
 		group = ++groupSeq;
+		depth++;
 		pose.pushPose();
 		if (yawDeg != 0f) {
 			pose.mulPose(Axis.YP.rotationDegrees(yawDeg));
@@ -69,6 +80,7 @@ final class Pen {
 		body.run();
 		pose.popPose();
 		group = saved;
+		depth--;
 	}
 
 	/**
@@ -78,6 +90,7 @@ final class Pen {
 	void hinge(float bx, float by, float bz, float yawDeg, float rollDeg, float pitchDeg, Runnable body) {
 		int saved = group;
 		group = ++groupSeq;
+		depth++;
 		float hx = bx / 16f;
 		float hy = bz / 16f;
 		float hz = by / 16f;
@@ -96,12 +109,14 @@ final class Pen {
 		body.run();
 		pose.popPose();
 		group = saved;
+		depth--;
 	}
 
 	/** Grow or shrink a part about a blender-pixel point, in its own rigid group. */
 	void scaleAt(float bx, float by, float bz, float sx, float sy, float sz, Runnable body) {
 		int saved = group;
 		group = ++groupSeq;
+		depth++;
 		float hx = bx / 16f;
 		float hy = bz / 16f;
 		float hz = by / 16f;
@@ -112,17 +127,20 @@ final class Pen {
 		body.run();
 		pose.popPose();
 		group = saved;
+		depth--;
 	}
 
 	/** Move a whole part without rotating it, in its own rigid group. */
 	void lift(float bx, float by, float bz, Runnable body) {
 		int saved = group;
 		group = ++groupSeq;
+		depth++;
 		pose.pushPose();
 		pose.translate(bx / 16f, bz / 16f, by / 16f);
 		body.run();
 		pose.popPose();
 		group = saved;
+		depth--;
 	}
 
 	SolidDraw.Plan flush(VertexConsumer consumer, int light, int overlay, SolidDraw.Plan cached, Supplier<VertexConsumer> glow) {

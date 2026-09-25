@@ -8,6 +8,18 @@ public final class Phenotype {
 	public enum WingShow { NONE, PINION, FULL, ASTRAL, ASTRAL_FULL }
 	public enum RackShow { NONE, BUDS, FULL, CROWN }
 	public enum ScaleShow { SLIGHT, NORMAL, LARGE, GREATER }
+
+	/**
+	 * How the hidden body copy pulls the shape, as multipliers on the showing body: neck length,
+	 * head size, tail length, and girth. All 1 when both copies agree.
+	 */
+	public record Shape(float neck, float head, float tail, float girth) {
+		public static final Shape PURE = new Shape(1f, 1f, 1f, 1f);
+
+		public boolean pure() {
+			return this.equals(PURE);
+		}
+	}
 	public enum CoatShow {
 		SOLID, ROSETTE, STAR, DUSK, BONE, SPECKLED, DUSK_WASH, DUSK_ROSETTE, DUSK_STAR
 	}
@@ -20,7 +32,16 @@ public final class Phenotype {
 
 	public final Marks.Torso torsoMaternal;
 	public final Marks.Torso torsoPaternal;
+	/** The body that shows, by dominance, and the one carried under it. */
+	public final Marks.Torso torso;
+	public final Marks.Torso carriedTorso;
 	public final Proportions proportions;
+	public final Shape shape;
+	/** Size within the line: the average of both copies, and the class nearest it. */
+	public final float sizeFactor;
+	public final Marks.Size size;
+	/** Which of the line's three pelts shows, 0 to 2. */
+	public final int pelt;
 	public final Marks.Head head;
 	public final Marks.Head carriedHead;
 	public final FootShow foot;
@@ -47,10 +68,11 @@ public final class Phenotype {
 	/** Every gift that is showing is on both strands. A lone dream is only a glimpse. */
 	public final boolean giftWhole;
 	public final boolean thin;
-	/** The ninth form. Body genes underneath are the cross; the animal showing is the chimera. */
+	/** The eleventh form. Body genes underneath are the cross; the animal showing is the chimera. */
 	public final boolean chimera;
 
-	public Phenotype(Marks.Torso torsoMaternal, Marks.Torso torsoPaternal, Proportions proportions, Marks.Head head,
+	public Phenotype(Marks.Torso torsoMaternal, Marks.Torso torsoPaternal, Marks.Torso torso, Shape shape, float sizeFactor,
+			int pelt, Proportions proportions, Marks.Head head,
 			Marks.Head carriedHead, FootShow foot, LegShow legs, RackShow rack, boolean crownHeavy, WingShow wings,
 			float wingScale, TailShow tail, ScaleShow scale, float uniformScale, CoatShow coat, boolean coatMasked, GaitShow gait,
 			EnumSet<Marks.Realm> realms, boolean realmPotent, PhaseShow phase, SenseShow sense, BondShow bond,
@@ -58,6 +80,12 @@ public final class Phenotype {
 			boolean thin, boolean chimera) {
 		this.torsoMaternal = torsoMaternal;
 		this.torsoPaternal = torsoPaternal;
+		this.torso = torso;
+		this.carriedTorso = torso == torsoMaternal ? torsoPaternal : torsoMaternal;
+		this.shape = shape;
+		this.sizeFactor = sizeFactor;
+		this.size = Marks.Size.nearest(sizeFactor);
+		this.pelt = pelt;
 		this.proportions = proportions;
 		this.head = head;
 		this.carriedHead = carriedHead;

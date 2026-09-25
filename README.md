@@ -29,7 +29,7 @@ The CurseForge page for the first send is [docs/public/store-description.md](doc
 
 A mount that inherited more than one of the drum, the send-away, and the blink uses them in that order. The attack control coils if it has the coil, mauls if it has the might, and rams otherwise. Sneak and use blinks first, so the others stay reachable.
 
-Everyone stands at least as tall as a horse. Every line comes in three pelts, rolled at birth and passed down from one parent.
+Everyone stands at least as tall as a horse. Every line comes in three pelts and five sizes, each its own gene.
 
 Sneak and right-click a tame mount, or press your inventory key while riding, for the classic mount screen: the tack slots and the mount on the left, its bags on the right, and three choices under them. **Saddle Bags** are their own item, four leather around a chest, and strap on under the saddle for two rows of five slots. Taking them off tips out whatever they held. Vanilla horse armor, leather to diamond, buckles into the third slot with its usual protection and is worn over the whole barrel. **Follow** keeps up with you. **Stay** lies down where it was left. **Wander** roams nearby. A barghest stays on its own when you step off.
 
@@ -41,7 +41,16 @@ The saddle is a gold ingot over leather, a saddle, and leather. Right-click a wi
 
 ## Breeding
 
-Any line with any other. The breed item is a Diamond Apple: eight diamonds around an apple, the same shape as a golden apple. Feed one to a tame adult you own, then the other within ten seconds and eight blocks. One foal, one body. The foal is born wild, keeps near the grown mounts, and wears no saddle, bags, or armor until it is grown. Tame it then with the saddle like any wild adult, and its parents go in the herd book. Those two parents rest for five minutes. An operator can feed them during that rest, and a mount an operator readied stays ready until the pair is made. Head, feet, wings, wingspan, and tail are separate genes. Wingspan runs from small to vast, the two copies average, and a roc carries a vast copy, so bred fliers can carry wings two or three times a crane's. A mixed shape is a midpoint or a smaller finished piece. Each ridden ability is its own gene, so a foal can collect them and keep the body of that cross. Skin, veil, and the full dream need both copies. The others show from one.
+Any line with any other. The breed item is a Diamond Apple: eight diamonds around an apple, the same shape as a golden apple. Feed one to a tame adult you own, then the other within ten seconds and eight blocks. One foal, one body. The foal is born wild, keeps near the grown mounts, and wears no saddle, bags, or armor until it is grown. Tame it then with the saddle like any wild adult, and its parents go in the herd book. Those two parents rest for five minutes. An operator can feed them during that rest, and a mount an operator readied stays ready until the pair is made. Every gene has two copies, one from each parent, and the herd book tracks both.
+
+- **Body** shows by rank: bear, steed, hart, hound, cat, bird, serpent. The hidden body pulls the neck, head, tail, and girth halfway toward its own shape.
+- **Head, feet, and tail** each show one copy, picked at birth. **Legs** meet in the middle; no legs is recessive.
+- **Size** is XS to XL within the line, and the copies average. **Build** is the line's frame on top of it.
+- **Pelt** is A over B over C; the third pelt of every line needs two copies.
+- **Wingspan** averages its two copies, small x0.6 to vast x3.0.
+- **Ridden gifts** stack on any body. Skin, veil, and the nagual's bond need both copies; one dream copy flies only at night.
+
+Linked genes travel together: the body with legs, feet, and gait; the head with build, size, pattern, and pelt. A crossover splits neighbours about one time in eight.
 
 When both parents already have every ability, the foal is an even chance of that normal cross, or the **chimera**: a furry dragon with scale plates, the eleventh form, carrying every ability. The bred body genes stay underneath the dragon.
 
