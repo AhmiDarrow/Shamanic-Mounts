@@ -4,9 +4,22 @@
 
 Spirit mounts for Minecraft 1.21.1, NeoForge 21.1.249, and Java 21. Ten founder lines roam the Overworld, each in its own biomes and in the pelt at home there, each with a body, a gait and something it does when ridden. Brace a wild one to tame it, then breed any line with any other. The foal is one animal built from two copies of every gene: body, head, legs, tail, size, pelt, wings and ridden gifts, all tracked in a herd book that writes them the way a breeder would.
 
-https://github.com/AhmiDarrow/Shamanic-Mounts
+![The ten founder lines and the chimera](https://raw.githubusercontent.com/AhmiDarrow/Shamanic-Mounts/main/docs/public/shamanic-mounts-founders.png)
 
-![The founders](shamanic-mounts-founders.png)
+## What it changes in your game
+
+Vanilla gives you the horse, the donkey and the camel. Shamanic Mounts puts ten new rideable animals into the world, and each one changes how you get around:
+
+- **Cross water and climb without jumping.** The Eightfold walks on water and steps up full blocks, so a lake or a hillside is no longer a detour.
+- **Fly.** The Roc climbs on held jump for about eight seconds, then glides on broad condor wings while the bar refills. The Crane glides and carries a second rider.
+- **Swim and dive.** The Serpent has no legs; it swims fast and takes you under water, and a pure-bred one lets you breathe down there.
+- **Fight from the saddle.** The Elk rams, the Bear mauls everything in front of it, the Serpent coils and poisons, and a Barghest lights up every hostile mob within 32 blocks through walls while you ride.
+- **Slip past danger.** Hold sneak on a Shade and mobs lose track of you; sneak and use to blink six blocks ahead. The Nagual vanishes for 30 seconds and leaves you with Speed II and Jump Boost II.
+- **Heal your party.** The Drum hart's drum gives Regeneration II to you and every player within eight blocks.
+
+Taming is a small test, not a pile of food: brace a Shamanic Saddle on a wild mount and hold jump through four jolts. Breeding is where the mod goes deep. Any line crosses with any other, and every foal is one animal built from two copies of every gene, so you can see the cross: a bird's head on hooves, a steed with a serpent's long neck and tail, a bear that also carries a roc's flight. Breed long enough and two mounts carrying every gift can give you the chimera, a furry dragon with all of them at once. A herd book records every gene, parent and foal.
+
+Tame mounts get a proper inventory screen with a saddle, strap-on saddle bags and vanilla horse armor, and three orders: Follow, Stay (it lies down) and Wander.
 
 ## Ten lines
 
@@ -24,7 +37,7 @@ Every line comes in three pelts and five sizes, each set by its own gene.
 
 **Barghest.** While you ride it, hostile mobs within 32 blocks glow through walls, or 48 from both parents. Step off and it stays, then goes for anything that hurts you. Black, grey and red.
 
-**Roc.** Hold jump to fly and gain height: about 8 seconds of climb, then it glides until the bar refills. No fall damage while mounted. From both parents the climb does not drain hunger; from one, it flies only at night. Larger than a horse. Bone, storm and red.
+**Roc.** Hold jump to fly and gain height: about 8 seconds of climb, then it glides until the bar refills. No fall damage while mounted. From both parents the climb does not drain hunger; from one, it flies only at night. Its wings spread like a condor's in flight and fold flat along its flanks when it stands. Larger than a horse. Bone, storm and red.
 
 **Bear.** The attack control is a maul: a heavy swipe at everything in front, with a slow, on a 3 second cooldown. From both parents you take less damage while riding. It stands guard when you step off. Black bear, grizzly and polar.
 
@@ -108,6 +121,6 @@ Find a wild mount in its home biomes: bears in the woods and the snow, cranes on
 
 ## With other mods
 
-None needed. Shamanic Mounts is written to sit beside [Chocobos Reborn](https://www.curseforge.com/minecraft/mc-mods/chocobos-reborn) and [Tribal Power](https://www.curseforge.com/minecraft/mc-mods/tribalpower): the chocobos stay the pad-runners, and these are the other mounts. It is built on the same Minecraft and NeoForge as [Ninjacat Skies](https://www.curseforge.com/minecraft/modpacks/ninjacat-skies).
+None needed. Shamanic Mounts is written to sit beside [Chocobos Reborn](https://www.curseforge.com/minecraft/mc-mods/chocobos-reborn) and [Tribal Power](https://www.curseforge.com/minecraft/mc-mods/tribalpower): the chocobos stay the pad-runners, and these are the other mounts. With Tribal Power installed, every line also lives in the March, each in the lands that suit it: Eightfold and Drum harts on the Steppe, Bears and Elk in the Highlands and Snow Fields, Cranes and Serpents in the Reed Fen and Shallows, red Rocs and Barghests in the Ember Wastes, and the rest across Glimmer Ridge and the Crystal Fields. Without it those rules do nothing. It is built on the same Minecraft and NeoForge as [Ninjacat Skies](https://www.curseforge.com/minecraft/modpacks/ninjacat-skies).
 
-Version 0.1.1. Created by Ahmi Darrow. MIT. [Source and documentation](https://github.com/AhmiDarrow/Shamanic-Mounts).
+Version 0.1.3. Created by Ahmi Darrow. MIT. [Source and documentation](https://github.com/AhmiDarrow/Shamanic-Mounts).

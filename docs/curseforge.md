@@ -14,7 +14,7 @@ The token is read from `tools/secrets/.env` or the Ninjacat Skies checkout besid
 
 - Jar: `build/libs/shamanicmounts-<version>.jar` from `./gradlew build`.
 - Icon: `docs/public/shamanic-mounts-icon-400.png` (400x400), resampled from `art/branding/shamanic-mounts-logo.png`.
-- Description: `docs/public/store-description.md`. `store-description.html` is the same text for the console's HTML editor (`python tools/render_store_html.py`). After the founders sheet is attached on the project, replace the image address in that HTML with the ForgeCDN url.
+- Description: `docs/public/store-description.md`. `store-description.html` is the same text for the console's HTML editor (`python tools/render_store_html.py`). Every image in it must be an absolute URL (the founders sheet points at raw.githubusercontent.com on `main`): a relative path is a broken image on CurseForge and moderation sends the project back. Moderation also rejects a bare or short description, so paste the whole thing.
 - Founders sheet: `docs/public/shamanic-mounts-founders.png` (ten lines and the chimera), composed from live harness pictures by `python tools/founders_sheet.py` after `python tools/system_harness.py --only store`.
 - Changelog: `docs/RELEASE_<version>.md`, as a heading plus short player-facing bullets. Write that file for the version being sent.
 - Tags: Minecraft 1.21.1, NeoForge, Client + Server. Display name `Shamanic Mounts <version> - <subtitle>`.

@@ -4,11 +4,9 @@
 
 # Shamanic Mounts
 
-Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Ten founder lines. Any two can breed. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited.
+Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.3**. Ten new rideable lines roam the Overworld, each with something it does under you: walk on water, fly, swim and dive, ram, maul, coil, hide from mobs, blink ahead, or heal the party. Tame one with a braced saddle, then breed any line with any other. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited. Breed far enough and you reach the chimera, a furry dragon with every ability at once.
 
-Source: https://github.com/AhmiDarrow/Shamanic-Mounts. The sanitize gate `python tools/gates/sanitize.py` runs before every push and upload.
-
-The CurseForge page for the first send is [docs/public/store-description.md](docs/public/store-description.md). Upload notes are in [docs/curseforge.md](docs/curseforge.md). The CurseForge project id is 1711650. The release gate is the live harness in [docs/harness.md](docs/harness.md): a real server and client that photograph every line, ride each one, fire every ability, and breed a chimera from the ten wild lines.
+[Download from GitHub Releases](https://github.com/AhmiDarrow/Shamanic-Mounts/releases/latest) · [CurseForge](https://www.curseforge.com/minecraft/mc-mods/shamanic-mounts) · [0.1.3 notes](docs/RELEASE_0.1.3.md)
 
 <p align="center">
   <img src="docs/public/shamanic-mounts-founders.png" alt="Eightfold, Drum hart, Elk, Crane, Nagual, Barghest, Roc, Shade, Chimera, Bear, and Serpent">
@@ -22,7 +20,7 @@ The CurseForge page for the first send is [docs/public/store-description.md](doc
 - **Crane.** Two riders. Hold jump to glide. Hunger at half speed.
 - **Nagual.** Use sends it away for 30 seconds. You get Speed II and Jump Boost II, and creepers ignore you. It returns beside you when the time ends or if you take damage. Cooldown 60 seconds. Both parents must pass it on.
 - **Barghest.** Hostile mobs within 32 blocks glow through walls while you ride (48 if both parents passed the scent on). It sits when you dismount and attacks anything that hurts you.
-- **Roc.** Hold jump to fly and climb for about 8 seconds, then glide until the bar refills. No fall damage while mounted. Both copies: the climb does not drain hunger. One copy: flight only at night. Larger than a horse.
+- **Roc.** Hold jump to fly and climb for about 8 seconds, then glide on condor wings until the bar refills. No fall damage while mounted. Both copies: the climb does not drain hunger. One copy: flight only at night. Larger than a horse.
 - **Bear.** Attack control mauls everything in front for heavy damage and a slow, 3 second cooldown. Both copies: Resistance while you ride. Stands guard like the hound. Black, grizzly, and polar pelts.
 - **Serpent.** No legs: an anaconda's body with a frilled snake's head. It swims fast and dives; hold jump to rise, hold sneak to sink, tap sneak to step off. Attack coils the nearest foe in front, holding and poisoning it for 3 seconds, 5 second cooldown. Both copies: you breathe under water while riding. River, jungle, and bone pelts.
 - **Shade.** Hold sneak and mobs stop targeting you and the cat, until you hit something or break a block. Sneak and use blinks 6 blocks forward into open air, 3 second cooldown. Hide and blink each need both copies. Under light level 7, Speed I. On a mount that hides or blinks, a held sneak keeps you in the saddle; tap sneak to step off.
@@ -44,7 +42,7 @@ Everything is a tag, built on the common `c:` biome tags so modded biomes pick t
 - `data/shamanicmounts/tags/worldgen/biome/size/larger.json` and `smaller.json`: the climate's size lean.
 - `data/shamanicmounts/tags/block/spawnable_on.json`: the ground a wild mount spawns on.
 
-`python tools/write_spawn_tags.py` regenerates them from one table.
+`python tools/write_spawn_tags.py` regenerates them from one table. With [Tribal Power](https://www.curseforge.com/minecraft/mc-mods/tribalpower) installed, every line also lives in the March biomes that suit it, with its home pelt; without it those rules do nothing.
 
 ## Tack and taming
 
@@ -68,5 +66,20 @@ Linked genes travel together: the body with legs, feet, and gait; the head with 
 When both parents already have every ability, the foal is an even chance of that normal cross, or the **chimera**: a furry dragon with scale plates, the eleventh form, carrying every ability. The bred body genes stay underneath the dragon.
 
 The herd book keeps every gene, the parents, and the children, including mounts that are not loaded. Rename a tame or release it from the tames page. The breeding chapter hides behind a spoiler switch saved on your computer.
+
+## Requirements
+
+| | |
+|---|---|
+| **Minecraft** | 1.21.1 |
+| **Loader** | NeoForge **21.1.249** |
+| **Java** | 21 |
+| **Side** | Client + Server |
+
+No other mods required.
+
+## Build
+
+Java 21. `./gradlew test`, then `./gradlew build`; the jar is `build/libs/shamanicmounts-<version>.jar`. The release gate is the live harness in [docs/harness.md](docs/harness.md): a real server and client that photograph every line, ride each one, fire every ability, and breed a chimera from the ten wild lines. `python tools/gates/sanitize.py` runs before every push and upload. The store page text is [docs/public/store-description.md](docs/public/store-description.md); upload notes are in [docs/curseforge.md](docs/curseforge.md).
 
 Code is MIT. Created by Ahmi Darrow.
