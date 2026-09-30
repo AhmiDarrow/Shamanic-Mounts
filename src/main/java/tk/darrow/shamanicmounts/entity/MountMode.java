@@ -4,7 +4,7 @@ package tk.darrow.shamanicmounts.entity;
 public enum MountMode {
 	/** Keeps up with its owner, and teleports after them if they get far ahead. */
 	FOLLOW,
-	/** Sits where it was left. */
+	/** Lies down where it was left. */
 	STAY,
 	/** Roams near where it was left. */
 	WANDER;

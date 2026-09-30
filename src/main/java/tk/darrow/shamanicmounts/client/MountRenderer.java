@@ -22,8 +22,8 @@ import tk.darrow.shamanicmounts.genome.Phenotype;
 /** Block cubes, scaled to the same size as the hitbox, with a walk, a sit, and a wing pose. */
 public class MountRenderer extends EntityRenderer<ShamanicMount> {
 	private static final ResourceLocation COAT = ResourceLocation.fromNamespaceAndPath(ShamanicMounts.MOD_ID, "textures/entity/mount.png");
-	/** Sit and air ease in over a few frames so a mount settles instead of snapping. */
-	private final Map<ShamanicMount, float[]> eased = new WeakHashMap<>();
+	/** Sit and air ease in over a few ticks so a mount settles instead of snapping. */
+	private final Map<ShamanicMount, MountEase> eased = new WeakHashMap<>();
 	/** The live harness can hold every mount at one stride position: swing and amount. */
 	static float[] forcedGait;
 	/** The live harness can hold every mount in the air with one wing pose (1 glide, 2 flap); -1 is off. */
@@ -54,14 +54,17 @@ public class MountRenderer extends EntityRenderer<ShamanicMount> {
 			swing = forcedGait[0];
 			amount = forcedGait[1];
 		}
-		float[] ease = eased.computeIfAbsent(mount, key -> new float[2]);
 		float sitTarget = mount.isInSittingPose() ? 1.0f : 0.0f;
 		boolean flying = forcedWing > 0 || (mount.wingPose() != 0 && !mount.onGround());
 		float airTarget = flying || (!mount.onGround() && !mount.isInWater() && mount.getDeltaMovement().y < -0.3) ? 1.0f : 0.0f;
-		ease[0] += (sitTarget - ease[0]) * 0.12f;
-		ease[1] += (airTarget - ease[1]) * 0.15f;
-		float sit = ease[0];
-		float air = ease[1];
+		MountEase ease = eased.computeIfAbsent(mount, key -> new MountEase(sitTarget, airTarget, key.tickCount));
+		if (mount.isAddedToLevel()) {
+			ease.tick(mount.tickCount, sitTarget, airTarget);
+		} else {
+			ease.snap(sitTarget, airTarget);
+		}
+		float sit = ease.sit(partialTick);
+		float air = ease.air(partialTick);
 		pose.translate(0.0f, Math.abs(Mth.cos(swing * 1.3324f) * 0.04f * amount), 0.0f);
 		// The rig's chest front is near its origin; slide it forward so the hitbox centres on the body.
 		pose.translate(0.0f, 0.0f, -MountSize.form(mount.phenotype()).centre / 16f);

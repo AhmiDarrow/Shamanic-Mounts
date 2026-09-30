@@ -6,7 +6,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-/** One piece of tack on the mount screen: the saddle, the bags, and in time the armor. Holds one. */
+/** One piece of tack on the mount screen: the saddle, the bags, or the horse armor. Holds one. */
 public final class TackSlot extends Slot {
 	private final Predicate<ItemStack> fits;
 

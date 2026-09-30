@@ -23,7 +23,7 @@ itself. Tribal Power's showcase server uses other ports and is never touched.
 - `items`: names and textures of the saddle, herd book, and diamond apple, the mod's creative tab, and
   their recipes at a real crafting table.
 - `book`: every page of the herd book, the spoiler switch and its saved file, rename, and release.
-- `looks`: each of the eight lines, the chimera, and a hart-over-eightfold cross, alone on a pad, from
+- `looks`: each of the ten lines, the chimera, and a hart-over-eightfold cross, alone on a pad, from
   the front, the side, a low three-quarter, a close side profile and front view of the face, and two
   held points of the stride. Pictures only; a person judges them.
 - `ride`: each line saddled and mounted with the use key, photographed walking from the front and

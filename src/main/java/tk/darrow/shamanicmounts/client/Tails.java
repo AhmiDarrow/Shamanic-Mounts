@@ -22,7 +22,7 @@ final class Tails {
 	static void plume(Pen pen, float y, float z, Skin skin) {
 		MountPose anim = pen.anim;
 		pen.hinge(0f, y, z + 1f, wag(anim, 0), 0f, -lift(anim, 0) * 2f, () -> {
-			pen.box(-1.5f, y - 1f, z - 1f, 3f, 4f, 3.5f, skin.dark());
+			pen.box(-1.5f, y - 1f, z - 1f, 3f, 4f, 3.38f, skin.dark());
 			pen.box(-1.5f, y + 1f, z - 6f, 3f, 3f, 6f, Mat.MANE);
 			pen.hinge(0f, y + 2.5f, z - 6f, wag(anim, 1) * 0.6f, 0f, -lift(anim, 1), () -> {
 				pen.box(-1.5f, y + 1.5f, z - 13f, 3f, 3.5f, 7.5f, Mat.MANE);
@@ -37,7 +37,7 @@ final class Tails {
 		MountPose anim = pen.anim;
 		float raise = anim.amount * 40f;
 		pen.hinge(0f, y, z, wag(anim, 0) * 0.4f, 0f, -raise, () -> {
-			pen.box(-1.5f, y - 1f, z - 1f, 3f, 4f, 2.5f, skin.base());
+			pen.box(-1.5f, y - 0.88f, z - 1f, 3f, 3.88f, 2.5f, skin.base());
 			pen.box(-1.5f, y + 1f, z - 4f, 3f, 3f, 4f, Mat.FLAG);
 			pen.box(-1f, y + 1.5f, z - 5f, 2f, 2f, 1.5f, Mat.FLAG);
 		});
@@ -45,7 +45,6 @@ final class Tails {
 
 	/** A cat's or a hound's tail: a tapered chain that curls up at the end. */
 	static void lash(Pen pen, float y, float z, Skin skin, int segments, float thick, boolean curl) {
-		MountPose anim = pen.anim;
 		chain(pen, y, z, skin, segments, thick, curl, 0);
 	}
 

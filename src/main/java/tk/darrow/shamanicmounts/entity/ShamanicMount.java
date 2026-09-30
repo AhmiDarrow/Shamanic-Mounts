@@ -69,7 +69,7 @@ import tk.darrow.shamanicmounts.tack.SaddleRules;
 import tk.darrow.shamanicmounts.tame.BraceTrial;
 
 /**
- * One shamanic mount. Wild adults are tamed by the four-jolt brace. Foals are born tame.
+ * One shamanic mount. Wild adults are tamed by the four-jolt brace. Foals are born wild and take the brace once grown.
  * Riding needs the shamanic saddle. A Diamond Apple breeds two tames the same player owns.
  */
 public class ShamanicMount extends TamableAnimal implements PlayerRideableJumping, HasCustomInventoryScreen {
@@ -648,14 +648,12 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			}
 		}
 		if (GiftRules.drum(phenotype)) {
-			player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
-					net.minecraft.world.effect.MobEffects.NIGHT_VISION, 40, 0, true, false, true));
+			// Night vision with 10 seconds or less left dims and pulses, so the ride keeps it above that.
+			keep(player, net.minecraft.world.effect.MobEffects.NIGHT_VISION, NIGHT_VISION_TICKS, NIGHT_VISION_TICKS - 40);
 		}
 		if (GiftRules.pinion(phenotype)) {
-			player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
-					net.minecraft.world.effect.MobEffects.SLOW_FALLING, 10, 0, true, false, true));
-			this.addEffect(new net.minecraft.world.effect.MobEffectInstance(
-					net.minecraft.world.effect.MobEffects.SLOW_FALLING, 10, 0, true, false, true));
+			keep(player, net.minecraft.world.effect.MobEffects.SLOW_FALLING, 10, 5);
+			keep(this, net.minecraft.world.effect.MobEffects.SLOW_FALLING, 10, 5);
 		}
 		if (GiftRules.longevity(phenotype)) {
 			float now = player.getFoodData().getExhaustionLevel();
@@ -670,16 +668,13 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			}
 		}
 		if (GiftRules.deepCoil(genome)) {
-			player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
-					net.minecraft.world.effect.MobEffects.WATER_BREATHING, 40, 0, true, false, true));
+			keep(player, net.minecraft.world.effect.MobEffects.WATER_BREATHING, 40, 20);
 		}
 		if (GiftRules.thickHide(genome)) {
-			player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
-					net.minecraft.world.effect.MobEffects.DAMAGE_RESISTANCE, 40, 0, true, false, true));
+			keep(player, net.minecraft.world.effect.MobEffects.DAMAGE_RESISTANCE, 40, 20);
 		}
 		if (GiftRules.shadowSpeed(phenotype) && this.level().getMaxLocalRawBrightness(this.blockPosition()) < 7) {
-			player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
-					net.minecraft.world.effect.MobEffects.MOVEMENT_SPEED, 40, 0, true, false, true));
+			keep(player, net.minecraft.world.effect.MobEffects.MOVEMENT_SPEED, 40, 20);
 		}
 		boolean hide = GiftRules.sneakHide(phenotype) && riderSneak && revealTicks <= 0;
 		if (hide) {
@@ -716,6 +711,22 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			} else {
 				tryRam(player);
 			}
+		}
+	}
+
+	/** How long the drum's night vision runs. Over ten seconds, or the screen dims and pulses. */
+	private static final int NIGHT_VISION_TICKS = 260;
+
+	/**
+	 * Keeps a riding effect on without renewing it every tick: each renewal sends the rider an effect
+	 * packet and fires the effect events. It is topped up once {@code renewAt} ticks or fewer are left.
+	 * A stronger or endless copy the rider already has is left alone.
+	 */
+	private static void keep(LivingEntity who, net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> effect,
+			int ticks, int renewAt) {
+		net.minecraft.world.effect.MobEffectInstance now = who.getEffect(effect);
+		if (now == null || (now.getAmplifier() == 0 && !now.isInfiniteDuration() && now.getDuration() <= renewAt)) {
+			who.addEffect(new net.minecraft.world.effect.MobEffectInstance(effect, ticks, 0, true, false, true));
 		}
 	}
 
@@ -1335,6 +1346,12 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	@Override
 	public void removePassenger(Entity passenger) {
 		super.removePassenger(passenger);
+		if (!this.level().isClientSide() && passenger instanceof Player rider && GiftRules.drum(phenotype)) {
+			net.minecraft.world.effect.MobEffectInstance sight = rider.getEffect(net.minecraft.world.effect.MobEffects.NIGHT_VISION);
+			if (sight != null && sight.isAmbient() && !sight.isInfiniteDuration() && sight.getDuration() <= NIGHT_VISION_TICKS) {
+				rider.removeEffect(net.minecraft.world.effect.MobEffects.NIGHT_VISION);
+			}
+		}
 		if (this.trial != null && !this.trial.finished()) {
 			failTrial();
 		} else if (!this.level().isClientSide() && GiftRules.guard(phenotype) && this.isTame()) {

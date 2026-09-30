@@ -159,7 +159,7 @@ public final class HerdBookScreen extends Screen {
 		int chapters = Codex.open(spoiled()).size();
 		for (Codex.Page chapter : Codex.open(spoiled())) {
 			Codex.Page choice = chapter;
-			addRenderableWidget(Button.builder(Component.translatable("book.shamanicmounts." + chapter.name().toLowerCase()),
+			addRenderableWidget(Button.builder(Component.translatable("book.shamanicmounts." + chapter.name().toLowerCase(java.util.Locale.ROOT)),
 					button -> open(choice)).bounds(LEFT, y, LEFT_W, 20).build());
 			y += 22;
 		}

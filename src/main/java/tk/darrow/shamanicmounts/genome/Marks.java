@@ -58,7 +58,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -84,7 +84,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -103,7 +103,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -123,7 +123,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -148,7 +148,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -168,7 +168,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -187,7 +187,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -213,7 +213,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -233,7 +233,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -253,7 +253,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -279,7 +279,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -318,7 +318,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		/** Higher shows: A is 2, C is 0. */
@@ -338,7 +338,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -358,7 +358,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -377,7 +377,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -396,7 +396,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -415,7 +415,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -434,7 +434,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -470,7 +470,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override
@@ -493,7 +493,7 @@ public final class Marks {
 
 		@Override
 		public String code() {
-			return name().toLowerCase();
+			return name().toLowerCase(java.util.Locale.ROOT);
 		}
 
 		@Override

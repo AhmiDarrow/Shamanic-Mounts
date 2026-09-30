@@ -70,14 +70,26 @@ public final class Codex {
 						"Wingspan averages its two copies. A roc carries a vast copy, so bred fliers can have wings three times a crane's.")),
 				new Section("Ridden gifts", List.of(
 						"Each ridden gift is its own gene, and they stack on whatever body the cross made.",
-						"Skin (the hide) and veil (the blink) need both copies. One dream copy flies only at night. The nagual's send-away needs its bond from both parents. The rest show from one copy.")),
+						"Skin (the nagual's send-away) and veil (the blink) need both copies. One dream copy flies only at night. The shade's hide is not a gift: it needs the ghost phase from both parents. The rest show from one copy.")),
 				new Section("The chimera", List.of(
 						"When both parents have every gift, the foal is an even chance of the normal cross or the chimera.",
-						"The chimera is the furry scaled dragon, with every gift at once. The body genes of the cross stay underneath, and its foals inherit them.")));
+						"The chimera is the furry scaled dragon, with all ten ridden gifts at once, both copies of each: it walks on water, drums, rams, carries two, sends itself away, makes mobs glow, flies any time, blinks, mauls, and coils.",
+						"Hiding, gliding, and guarding are not gifts. They come from the ghost phase, full wings, and the guard ward, so the chimera has them only if the cross underneath does. The body genes of the cross stay underneath, and its foals inherit them.")));
 	}
 
-	/** The ten founders and the chimera. The chimera's line waits for spoilers. */
+	/**
+	 * The ten founders and the chimera. The chimera's line waits for spoilers. Built once: the genomes
+	 * never change, and the book caches each line's gene rows by its genome.
+	 */
 	public static List<Line> lines() {
+		return LinesHolder.LINES;
+	}
+
+	private static final class LinesHolder {
+		static final List<Line> LINES = buildLines();
+	}
+
+	private static List<Line> buildLines() {
 		return List.of(
 				new Line("Eightfold", Founders.eightfold(), "Eight hooves. Walks on water and steps up a full block.", false),
 				new Line("Drum hart", Founders.drumHart(), "Use sounds the drum: Regeneration for you and friends. Night vision.", false),
@@ -89,7 +101,8 @@ public final class Codex {
 				new Line("Shade", Founders.shade(), "Hold sneak to hide from mobs. Sneak and use blinks forward.", false),
 				new Line("Bear", Founders.bear(), "Attack mauls everything in front. Both copies: less damage riding.", false),
 				new Line("Serpent", Founders.serpent(), "No legs. Swims and dives. Attack coils one foe.", false),
-				new Line("Chimera", Founders.eightfold().asChimera(), "Every ability at once. Bred from two mounts that have them all.",
+				new Line("Chimera", Founders.eightfold().asChimera(),
+						"All ten ridden gifts at once. Hides, glides, or guards only if the cross beneath does. Bred from two mounts with every gift.",
 						true));
 	}
 

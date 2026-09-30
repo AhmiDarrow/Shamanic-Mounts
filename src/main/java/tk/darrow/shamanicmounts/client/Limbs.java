@@ -11,10 +11,26 @@ final class Limbs {
 	}
 
 	/**
-	 * One leg. {@code phase} is where in the stride this leg is. {@code sit} folds every leg under
-	 * the lying body; {@code air} tucks every leg back for flight.
+	 * How far a thigh's outer side sits inside the flank, in pixels. The thigh's post is flush with the
+	 * torso, and breathing swells a flank up to a fifteenth of a pixel either way, so a thigh face in the
+	 * flank's plane would cross it twice a breath and flicker. Paws folded under a lying chest keep the
+	 * same distance.
 	 */
-	static void leg(Pen pen, Anchor.Post post, Foot foot, Skin skin, float phase, float sit, float air) {
+	static final float FLANK = 0.1f;
+	/** How far a thigh's front and back sit inside the body's ends, which do not breathe. */
+	static final float END = 0.02f;
+	/**
+	 * How much thinner every other leg is on each side, so two legs passing in a stride never share a face. Not
+	 * 0.02: that is one nesting step (Pen.NEST), which the front legs, a level shallower, would cancel.
+	 */
+	static final float ALTERNATE = 0.03f;
+
+	/**
+	 * One leg. {@code phase} is where in the stride this leg is. {@code sit} folds every leg under
+	 * the lying body; {@code air} tucks every leg back for flight. {@code inset} trims the leg's sides
+	 * by a hair ({@link #ALTERNATE} on every other leg, else 0).
+	 */
+	static void leg(Pen pen, Anchor.Post post, Foot foot, Skin skin, float phase, float sit, float air, float inset) {
 		MountPose pose = pen.anim;
 		boolean bird = foot == Foot.TALON || foot == Foot.GRIP;
 		float reach = bird ? 24f : 32f;
@@ -39,27 +55,31 @@ final class Limbs {
 		float hipAngle = hipSwing;
 		float kneeAngle = bend;
 		pen.hinge(cx, cy, hip, 0f, 0f, hipAngle, () -> {
-			float tx = cx - thighThick * 0.5f;
-			float ty = cy - thighThick * 0.5f;
+			// The outer side is the one away from the centre line; it stays FLANK inside the torso's side.
+			float tx = cx - thighThick * 0.5f + inset + (cx < 0f ? FLANK : 0f);
+			float ty = cy - thighThick * 0.5f + inset + END;
 			// The thigh runs up into the body, however short the leg, so a spare leg never floats.
-			pen.box(tx, ty, knee - 1f, thighThick, thighThick, post.top - knee + 1f, skin.base());
+			pen.box(tx, ty, knee - 1f, thighThick - 2f * inset - FLANK, thighThick - 2f * (inset + END), post.top - knee + 1f,
+					skin.base());
 			pen.hinge(cx, cy, knee, 0f, 0f, kneeAngle, () -> {
-				float lx = cx - cannonThick * 0.5f;
-				float ly = cy - cannonThick * 0.5f;
+				float lx = cx - cannonThick * 0.5f + inset;
+				float ly = cy - cannonThick * 0.5f + inset;
 				float footHigh = foot == Foot.HOOF ? 2f : foot == Foot.PAW ? 1.5f : 1f;
-				pen.box(lx, ly, footHigh - 0.5f, cannonThick, cannonThick, knee - footHigh + 1.5f, skin.dark());
+				pen.box(lx, ly, footHigh - 0.5f, cannonThick - 2f * inset, cannonThick - 2f * inset, knee - footHigh + 1.5f, skin.dark());
 				switch (foot) {
-					case HOOF -> pen.box(cx - thick * 0.5f - 0.5f, cy - thick * 0.5f - 0.5f, 0f, thick + 1f, thick + 1f, 2f, Mat.HOOF);
-					case PAW -> paw(pen, cx, cy, thick, skin);
-					case TALON -> talons(pen, cx, cy, thick, Mat.TALON, 1f, 3f);
-					case GRIP -> talons(pen, cx, cy, thick, Mat.BEAK, 1.5f, 4.5f);
+					case HOOF -> pen.box(cx - thick * 0.5f - 0.5f + inset, cy - thick * 0.5f - 0.5f + inset, 0f, thick + 1f - 2f * inset,
+							thick + 1f - 2f * inset, 2f, Mat.HOOF);
+					case PAW -> paw(pen, cx, cy, thick, skin, inset);
+					case TALON -> talons(pen, cx, cy, thick, Mat.TALON, 1f, 3f, inset);
+					case GRIP -> talons(pen, cx, cy, thick, Mat.BEAK, 1.5f, 4.5f, inset);
 				}
 			});
 		});
 	}
 
-	private static void paw(Pen pen, float cx, float cy, float thick, Skin skin) {
-		float w = thick + 1f;
+	private static void paw(Pen pen, float cx, float cy, float thick, Skin skin, float inset) {
+		// FLANK narrower each side: lying down, a front paw folds under the chest flush with its side.
+		float w = thick + 1f - 2f * (FLANK + inset);
 		float x = cx - w * 0.5f;
 		float y = cy - thick * 0.5f - 1f;
 		pen.box(x, y, 0f, w, thick + 1.5f, 1.6f, skin.dark());
@@ -70,15 +90,22 @@ final class Limbs {
 		}
 	}
 
-	/** Three toes forward and one back, each with a darker claw. */
-	private static void talons(Pen pen, float cx, float cy, float thick, Mat mat, float width, float length) {
+	/**
+	 * Three toes forward and one back, each with a darker claw. A wide bird's inner toes cross under its
+	 * body into the other foot's, so {@code in} trims every side of one foot's toes by a hair.
+	 */
+	private static void talons(Pen pen, float cx, float cy, float thick, Mat mat, float width, float length, float in) {
 		float[] spread = { -1.6f, 0f, 1.6f };
 		for (float s : spread) {
 			float x = cx + s * (thick * 0.45f + width * 0.3f) - width * 0.5f;
-			pen.box(x, cy - length - thick * 0.3f, 0f, width, length, 1f, mat);
-			pen.box(x + width * 0.2f, cy - length - thick * 0.3f - 1f, 0f, width * 0.6f, 1f, 0.8f, Mat.TALON);
+			toe(pen, x, cy - length - thick * 0.3f, width, length, 1f, mat, in);
+			toe(pen, x + width * 0.2f, cy - length - thick * 0.3f - 1f, width * 0.6f, 1f, 0.8f, Mat.TALON, in);
 		}
-		pen.box(cx - width * 0.5f, cy + thick * 0.3f, 0f, width, length * 0.6f, 1f, mat);
-		pen.box(cx - thick * 0.5f, cy - thick * 0.5f, 0f, thick, thick, 1.2f, mat);
+		toe(pen, cx - width * 0.5f, cy + thick * 0.3f, width, length * 0.6f, 1f, mat, in);
+		toe(pen, cx - thick * 0.5f, cy - thick * 0.5f, thick, thick, 1.2f, mat, in);
+	}
+
+	private static void toe(Pen pen, float x, float y, float dx, float dy, float dz, Mat mat, float in) {
+		pen.box(x + in, y + in, in, dx - 2f * in, dy - 2f * in, dz - 2f * in, mat);
 	}
 }

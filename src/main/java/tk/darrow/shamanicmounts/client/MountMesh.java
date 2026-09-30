@@ -39,7 +39,6 @@ final class MountMesh {
 	private MountMesh() {
 	}
 
-	/** {@code armor} is the horse armor tier: 0 none, 1 leather, 2 iron, 3 gold, 4 diamond. */
 	/** {@code armor} is the horse armor tier: 0 none, 1 leather, 2 iron, 3 gold, 4 diamond. {@code pelt} is 0 to 2. */
 	static void draw(Phenotype phenotype, boolean saddled, boolean bags, int armor, int pelt, PoseStack pose,
 			VertexConsumer consumer, Supplier<VertexConsumer> glow, int light, int overlay, MountPose anim) {
@@ -70,7 +69,7 @@ final class MountMesh {
 			Anchor anchor = Torsos.draw(pen, shell, skin);
 			holder[0] = anchor;
 			neckAndHead(pen, phenotype, shell, skin, anchor);
-			wings(pen, phenotype, shell, skin, anchor);
+			wings(pen, phenotype, shell, skin, anchor, pelt);
 			tail(pen, phenotype, shell, skin, anchor);
 			if (armor > 0) {
 				barding(pen, anchor, armor);
@@ -146,7 +145,10 @@ final class MountMesh {
 			if ((index & 1) == 1) {
 				phase += (float) Math.PI;
 			}
-			Limbs.leg(pen, leg, foot, skin, phase, pen.anim.sit, pen.anim.air);
+			// Neighbours along a side pass through each other in the stride, and a pair's feet can meet under
+			// the body, so every other leg on a side, and the right leg of the first pair, is a hair thinner.
+			float inset = ((pair + index) & 1) == 1 ? Limbs.ALTERNATE : 0f;
+			Limbs.leg(pen, leg, foot, skin, phase, pen.anim.sit, pen.anim.air, inset);
 		}
 	}
 
@@ -239,14 +241,21 @@ final class MountMesh {
 		};
 	}
 
-	private static void wings(Pen pen, Phenotype phenotype, Shell shell, Skin skin, Anchor anchor) {
+	/**
+	 * Feathered wings take their colours from the pelt, as the coat does: a crane's from its pelt's wing cells, a
+	 * roc's (its astral pair too) from its own coat. On any other body they keep the first crane and roc colours.
+	 */
+	private static void wings(Pen pen, Phenotype phenotype, Shell shell, Skin skin, Anchor anchor, int pelt) {
 		if (shell == Shell.CHIMERA) {
 			Wings.membrane(pen, anchor, 22f * phenotype.wingScale, 7f * (0.6f + 0.4f * phenotype.wingScale), skin.rosette(), Mat.MEMBRANE,
 					4 + (phenotype.wingScale >= 2.0f ? 1 : 0));
 			return;
 		}
-		Mat mat = shell == Shell.CRANE ? Mat.CRANE_WING : shell == Shell.ROC ? Mat.ROC : Mat.CRANE_WING;
-		Mat dark = shell == Shell.CRANE ? Mat.CRANE_WING_DARK : shell == Shell.ROC ? Mat.ROC_DARK : Mat.CRANE_WING_DARK;
+		int which = shell == Shell.CRANE ? Math.floorMod(pelt, 3) : 0;
+		Mat mat = shell == Shell.ROC ? skin.base() : Skin.CRANE_WING[which];
+		Mat dark = shell == Shell.ROC ? skin.dark() : Skin.CRANE_WING_DARK[which];
+		Mat astral = shell == Shell.ROC ? skin.base() : Mat.ROC;
+		Mat astralDark = shell == Shell.ROC ? skin.dark() : Mat.ROC_DARK;
 		float span = phenotype.wingScale;
 		float chord = 0.6f + 0.4f * span;
 		int extra = span >= 2.0f ? 2 : span >= 1.4f ? 1 : span < 0.8f ? -1 : 0;
@@ -255,10 +264,10 @@ final class MountMesh {
 			}
 			case PINION -> Wings.feathered(pen, anchor, 11f * span, 5f * chord, mat, dark, Mat.PRIMARY, 3 + extra);
 			case FULL -> Wings.feathered(pen, anchor, 20f * span, 7f * chord, mat, dark, Mat.PRIMARY, 5 + extra);
-			case ASTRAL -> Wings.feathered(pen, anchor, 26f * span, 8f * chord, Mat.ROC, Mat.ROC_DARK, Mat.ASTRAL, 6 + extra);
+			case ASTRAL -> Wings.feathered(pen, anchor, 26f * span, 8f * chord, astral, astralDark, Mat.ASTRAL, 6 + extra);
 			case ASTRAL_FULL -> {
-				Wings.feathered(pen, anchor, 20f * span, 7f * chord, mat, dark, Mat.PRIMARY, 5 + extra);
-				Wings.feathered(pen, anchor, 26f * span, 8f * chord, Mat.ROC, Mat.ROC_DARK, Mat.ASTRAL, 6 + extra);
+				Wings.feathered(pen, anchor, 20f * span, 7f * chord, mat, dark, Mat.PRIMARY, 5 + extra, 0.03f);
+				Wings.feathered(pen, anchor, 26f * span, 8f * chord, astral, astralDark, Mat.ASTRAL, 6 + extra);
 			}
 		}
 	}
@@ -372,15 +381,15 @@ final class MountMesh {
 		float chestZ = a.chestZ;
 		float back = a.tailY - 1f;
 		// Caparison over the back, from the neck root to the rump, under the seat.
-		pen.box(-half - 0.4f, a.neckY - 1f, z - 0.2f, half * 2f + 0.8f, back - a.neckY + 1f, 1.2f, plate);
+		pen.box(-half - 0.4f, a.neckY - 1f, z - 0.2f, half * 2f + 0.8f, back - a.neckY + 1f, 1.35f, plate);
 		// Skirts down both flanks to the belly line.
-		pen.pair(-half - 1.2f, a.neckY - 1f, chestZ - 6.5f, 1.2f, back - a.neckY + 1f, z - chestZ + 6.5f, plate);
+		pen.pair(-half - 1.2f, a.neckY - 1f, chestZ - 6.5f, 1.2f, back - a.neckY + 1f, z - chestZ + 6.65f, plate);
 		pen.pair(-half - 1.4f, a.neckY - 1f, chestZ - 6.5f, 1.4f, back - a.neckY + 1f, 0.8f, edge);
 		// Chest plate down the front of the chest.
 		pen.box(-half + 0.3f, a.neckY - 3.2f, chestZ - 6.5f, half * 2f - 0.6f, 2.4f, z - chestZ + 6.5f, plate);
 		pen.box(-half + 0.8f, a.neckY - 3.5f, chestZ - 6.9f, half * 2f - 1.6f, 1f, 0.8f, edge);
 		// Crupper over the rump, with its edge.
-		pen.box(-half + 0.2f, back, z - 4f, half * 2f - 0.4f, 1.4f, 5f, plate);
+		pen.box(-half + 0.2f, back, z - 4f, half * 2f - 0.4f, 1.4f, 5.15f, plate);
 		pen.box(-half + 0.6f, back + 0.3f, z + 1f, half * 2f - 1.2f, 0.8f, 0.8f, edge);
 	}
 

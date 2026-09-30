@@ -36,7 +36,7 @@ final class Heads {
 			pen.box(-3f, sy, sz, 6f, 7f, 7f, skin.base());
 			if (i < 3) {
 				pen.box(-1f, sy - 0.5f, sz + 7f, 2f, 7.5f, 1.8f, Mat.MANE);
-				pen.box(3f, sy + 0.5f, sz + 2f, 1.2f, 6.5f, 6f, Mat.MANE);
+				pen.box(3f, sy + 0.5f, sz + 2f, 1.2f, 6.5f, 5.88f, Mat.MANE);
 			}
 		}
 		return new float[] { y - 6.6f, z + 9.6f };
@@ -85,7 +85,7 @@ final class Heads {
 	private static float[] rocNeck(Pen pen, Anchor a, Skin skin) {
 		float y = a.neckY - 2f;
 		float z = a.neckZ - 1f;
-		pen.box(-4.5f, y, z, 9f, 8f, 9f, skin.base());
+		pen.box(-4.5f, y, z, 9f, 8f, 8.88f, skin.base());
 		pen.box(-4.5f, y - 2.5f, z + 3f, 9f, 8f, 9f, skin.base());
 		pen.pair(-5.5f, y - 1f, z + 3f, 1f, 7f, 8f, skin.dark());
 		return new float[] { y - 2.5f, z + 3.5f };
@@ -105,8 +105,10 @@ final class Heads {
 		for (int i = 0; i < 3; i++) {
 			float sy = y - 2f * i;
 			float sz = z + 2.5f * i;
-			pen.box(-3f, sy, sz, 6f, 7f, 7f, skin.base());
-			pen.box(-1.2f, sy, sz + 7f, 2.4f, 7f, 1f, skin.dark());
+			// The first segment's top sits just under the back line, and its ridge with it.
+			float high = i == 0 ? 6.88f : 7f;
+			pen.box(-3f, sy, sz, 6f, 7f, high, skin.base());
+			pen.box(-1.2f, sy, sz + high, 2.4f, 7f, 1f, skin.dark());
 		}
 		return new float[] { y - 4f, z + 5f };
 	}
@@ -114,7 +116,7 @@ final class Heads {
 	private static float[] shadeNeck(Pen pen, Anchor a, Skin skin) {
 		float y = a.neckY - 1f;
 		float z = a.neckZ - 1f;
-		pen.box(-2.5f, y, z, 5f, 5f, 5f, skin.base());
+		pen.box(-2.5f, y, z, 5f, 5f, 4.88f, skin.base());
 		pen.box(-2.5f, y - 2f, z + 2.5f, 5f, 5f, 5f, skin.base());
 		return new float[] { y - 2f, z + 2.5f };
 	}
@@ -129,8 +131,9 @@ final class Heads {
 			float sy = y + rise[i][0];
 			float sz = z + rise[i][1];
 			float w = 7.5f - i * 0.5f;
-			pen.box(-w * 0.5f, sy - 3.5f, sz, w, 7.5f, w * 0.9f, skin.base());
-			pen.box(-w * 0.3f, sy - 3.7f, sz - 0.2f, w * 0.6f, 7.9f, 1.2f, skin.pale());
+			// A hair off the ground, so the first segment's underside never lies in the body's.
+			pen.box(-w * 0.5f, sy - 3.5f, sz + 0.03f, w, 7.5f, w * 0.9f - 0.03f, skin.base());
+			pen.box(-w * 0.3f, sy - 3.7f, sz - 0.17f, w * 0.6f, 7.9f, 1.17f, skin.pale());
 		}
 		return new float[] { y - 13.5f, z + 14f };
 	}
@@ -149,9 +152,11 @@ final class Heads {
 		for (int i = 0; i < 3; i++) {
 			float sy = y - 2.5f * i;
 			float sz = z + 3f * i;
-			pen.box(-4f, sy, sz, 8f, 7f, 8f, skin.base());
-			pen.box(-1.2f, sy + 1f, sz + 8f, 2.4f, 3f, 2.5f, i % 2 == 0 ? Mat.WISH : Mat.PEARL);
-			pen.pair(-5f, sy + 0.5f, sz + 2f, 1f, 6f, 6f, skin.dark());
+			// The first segment's top sits just under the back line.
+			float high = i == 0 ? 7.88f : 8f;
+			pen.box(-4f, sy, sz, 8f, 7f, high, skin.base());
+			pen.box(-1.2f, sy + 1f, sz + high, 2.4f, 3f, 2.5f, i % 2 == 0 ? Mat.WISH : Mat.PEARL);
+			pen.pair(-5f, sy + 0.5f, sz + 2f, 1f, 6f, high - 2f, skin.dark());
 		}
 		return new float[] { y - 5f, z + 6f };
 	}
@@ -366,7 +371,7 @@ final class Heads {
 			float layer = rib * 0.06f;
 			pen.hinge(0f, y + 0.5f, z + 2.2f, 0f, angle * open, 0f, () -> {
 				pen.box(-0.6f, y + 0.5f + layer, z + 2.2f, 1.2f, 1f, reach + 1.2f, skin.dark());
-				pen.box(-2.9f, y + 0.8f + layer, z + 3f, 5.8f, 0.4f, reach, Mat.FRILL);
+				pen.box(-2.9f, y + 0.82f + layer, z + 3f, 5.8f, 0.4f, reach, Mat.FRILL);
 			});
 		}
 	}

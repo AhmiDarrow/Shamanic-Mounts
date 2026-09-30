@@ -160,7 +160,12 @@ enum Mat {
 	SERPENT_BONE(12, 12),
 	SERPENT_BONE_DARK(13, 12),
 	SERPENT_BONE_PALE(14, 12),
-	FRILL(15, 12);
+	FRILL(15, 12),
+	// Row 13: the grey and black cranes' wings.
+	CRANE_GREY_WING(0, 13),
+	CRANE_GREY_WING_DARK(1, 13),
+	CRANE_BLACK_WING(2, 13),
+	CRANE_BLACK_WING_DARK(3, 13);
 
 	/** Atlas texels per side. */
 	static final float ATLAS = 512.0f;

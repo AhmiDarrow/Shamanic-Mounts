@@ -55,7 +55,8 @@ final class Torsos {
 			pen.box(-5f, 0f, 12f, 10f, 20f, 9f, skin.base());
 			pen.box(-5.5f, -2f, 11.5f, 11f, 9f, 9.5f, skin.base());
 			pen.box(-4f, 5f, 11f, 8f, 13f, 1.6f, skin.pale());
-			pen.box(-3f, -2.4f, 12.5f, 6f, 2f, 6f, skin.pale());
+			// The chest plate stays a hair inside the neck's sides (see Limbs.FLANK for why).
+			pen.box(-2.95f, -2.4f, 12.5f, 5.9f, 2f, 6f, skin.pale());
 			pen.box(-4.5f, 16f, 12.5f, 9f, 6.5f, 9f, skin.base());
 		});
 		Anchor a = new Anchor();
@@ -113,7 +114,7 @@ final class Torsos {
 			pen.box(-4.5f, -1f, 22f, 9f, 7f, 3f, skin.dark());
 			pen.box(-5f, 4f, 12f, 10f, 14f, 1.5f, skin.pale());
 			pen.box(-6f, 16f, 13.5f, 12f, 6.5f, 9.5f, skin.base());
-			pen.box(-2f, -3.5f, 10f, 4f, 6f, 4f, skin.hair());
+			pen.box(-1.95f, -3.5f, 10f, 3.9f, 6f, 4f, skin.hair());
 		});
 		Anchor a = new Anchor();
 		a.neckY = -3f;
@@ -235,7 +236,7 @@ final class Torsos {
 		breathe(pen, 6f, 13f, () -> {
 			pen.box(-3.5f, 0f, 10f, 7f, 18f, 6f, skin.base());
 			pen.box(-4f, -2f, 9.5f, 8f, 6f, 6.5f, skin.base());
-			pen.box(-2.5f, -2.4f, 9.5f, 5f, 3f, 4.5f, skin.pale());
+			pen.box(-2.45f, -2.4f, 9.5f, 4.9f, 3f, 4.5f, skin.pale());
 			pen.box(-3.5f, 14f, 10.5f, 7f, 5f, 5.5f, skin.base());
 		});
 		Anchor a = new Anchor();
@@ -270,10 +271,12 @@ final class Torsos {
 			float y = -4f + i * 5f;
 			float sway = Mth.sin(travel - i * 0.9f) * (1.2f + 2.4f * anim.amount) + Mth.sin(anim.age * 0.05f + i) * 0.6f;
 			int seg = i;
+			// Neighbours overlap, so every other segment is a hair lower on top and higher underneath.
+			float in = i % 2 == 1 ? 0.02f : 0f;
 			pen.lift(sway, 0f, 0f, () -> {
-				pen.box(-w * 0.5f, y, 0f, w, 5.2f, w * 0.9f, skin.base());
-				pen.box(-w * 0.35f, y - 0.1f, -0.2f, w * 0.7f, 5.4f, 1.4f, skin.pale());
-				pen.box(-w * 0.2f, y, w * 0.9f - 0.2f, w * 0.4f, 5.2f, 1f, skin.dark());
+				pen.box(-w * 0.5f, y, in, w, 5.2f, w * 0.9f - 2f * in, skin.base());
+				pen.box(-w * 0.35f, y - 0.1f, -0.2f + in, w * 0.7f, 5.4f, 1.4f - 2f * in, skin.pale());
+				pen.box(-w * 0.2f, y, w * 0.9f - 0.2f + in, w * 0.4f, 5.2f, 1f - 2f * in, skin.dark());
 				if (seg % 2 == 0) {
 					pen.pair(-w * 0.5f - 0.3f, y + 1f, 2f, 0.5f, 3f, w * 0.5f, skin.dark());
 				}
@@ -329,7 +332,7 @@ final class Torsos {
 			pen.box(-6f, 0f, 11f, 12f, 24f, 11f, skin.base());
 			pen.box(-6.5f, -3f, 10.5f, 13f, 10f, 11.5f, skin.base());
 			pen.box(-6f, 18f, 11.5f, 12f, 6.5f, 10.5f, skin.base());
-			pen.box(-2f, -4.5f, 21.5f, 4f, 5f, 2.8f, skin.dark());
+			pen.box(-2f, -4.5f, 21.5f, 4f, 4.98f, 2.8f, skin.dark());
 			float[] plates = { 0f, 3f, 15f, 18f, 21f };
 			for (int i = 0; i < plates.length; i++) {
 				pen.box(-1.5f, plates[i], 21.6f, 3f, 2.4f, 3.2f, i % 2 == 0 ? Mat.PEARL : Mat.WISH);

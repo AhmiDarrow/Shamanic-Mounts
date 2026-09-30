@@ -54,17 +54,22 @@ record Skin(Mat base, Mat dark, Mat pale, Mat hair, Mat eye, Mat rosette, Mat st
 			new Skin(Mat.FUR_NIGHT, Mat.FUR_NIGHT_DARK, Mat.FUR_NIGHT, Mat.FUR_NIGHT_DARK, Mat.EYE_DRAGON, Mat.SCALE_NIGHT,
 					Mat.SCALE_NIGHT_DARK) };
 
-	/** The bear, the ninth line, whose body is still to come. Black and grizzly look out of a hound's eye, polar a deer's. */
+	/** The serpent: river, jungle, and bone. */
 	static final Skin[] SERPENT = {
 			new Skin(Mat.SERPENT, Mat.SERPENT_DARK, Mat.SERPENT_PALE, Mat.SERPENT_DARK, Mat.EYE_CAT, Mat.SERPENT, Mat.SERPENT),
 			new Skin(Mat.SERPENT_JUNGLE, Mat.SERPENT_JUNGLE_DARK, Mat.SERPENT_JUNGLE_PALE, Mat.SERPENT_JUNGLE_DARK, Mat.EYE_CAT_GREEN,
 					Mat.SERPENT_JUNGLE, Mat.SERPENT_JUNGLE),
 			new Skin(Mat.SERPENT_BONE, Mat.SERPENT_BONE_DARK, Mat.SERPENT_BONE_PALE, Mat.SERPENT_BONE_DARK, Mat.EYE_SHADE, Mat.SERPENT_BONE,
 					Mat.SERPENT_BONE) };
+	/** The bear. Black and grizzly look out of a hound's eye, polar a deer's. */
 	static final Skin[] BEAR = {
 			new Skin(Mat.BEAR_BLACK, Mat.BEAR_BLACK_DARK, Mat.BEAR_BLACK_PALE, Mat.BEAR_BLACK_DARK, Mat.EYE_HOUND),
 			new Skin(Mat.BEAR_GRIZZLY, Mat.BEAR_GRIZZLY_DARK, Mat.BEAR_GRIZZLY_PALE, Mat.BEAR_GRIZZLY_DARK, Mat.EYE_HOUND),
 			new Skin(Mat.BEAR_POLAR, Mat.BEAR_POLAR_DARK, Mat.BEAR_POLAR_PALE, Mat.BEAR_POLAR_DARK, Mat.EYE_DEER) };
+
+	/** A crane's wing coverts and flight feathers, and their dark, per pelt. A roc's wing is its own coat. */
+	static final Mat[] CRANE_WING = { Mat.CRANE_WING, Mat.CRANE_GREY_WING, Mat.CRANE_BLACK_WING };
+	static final Mat[] CRANE_WING_DARK = { Mat.CRANE_WING_DARK, Mat.CRANE_GREY_WING_DARK, Mat.CRANE_BLACK_WING_DARK };
 
 	/** The names the herd book prints, per line (in {@link MountMesh.Shell} order, then the bear) and pelt. */
 	static final String[][] PELT_NAMES = {

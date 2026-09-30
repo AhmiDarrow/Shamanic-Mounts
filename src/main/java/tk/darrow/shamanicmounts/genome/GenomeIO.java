@@ -46,7 +46,7 @@ public final class GenomeIO {
 		if ("none".equals(code) && isGift(locus)) {
 			return Marks.Off.of(locus);
 		}
-		String name = code.toUpperCase();
+		String name = code.toUpperCase(java.util.Locale.ROOT);
 		return switch (locus) {
 			case TORSO -> Marks.Torso.valueOf(name);
 			case HEAD -> Marks.Head.valueOf(name);

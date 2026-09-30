@@ -3,7 +3,7 @@ package tk.darrow.shamanicmounts.tame;
 /**
  * Taming is four braced jolts, in place. The mount telegraphs, then bucks.
  * The rider has to be holding jump on that tick. Food is not involved.
- * A foal is born tame and skips this. It still needs the shamanic saddle to be ridden.
+ * A foal is born wild and takes this once grown, like any wild adult.
  */
 public final class BraceTrial {
 	public static final int JOLTS = 4;

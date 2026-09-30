@@ -15,9 +15,14 @@ final class Wings {
 	}
 
 	static void feathered(Pen pen, Anchor anchor, float span, float chord, Mat mat, Mat dark, Mat primary, int feathers) {
+		feathered(pen, anchor, span, chord, mat, dark, primary, feathers, 0f);
+	}
+
+	/** {@code inset} moves both wings a hair in, back, and down, so a second pair on the same shoulders never shares a face. */
+	static void feathered(Pen pen, Anchor anchor, float span, float chord, Mat mat, Mat dark, Mat primary, int feathers, float inset) {
 		float reach = Math.max(8f, anchor.tailY - anchor.wingY);
-		bird(pen, true, -anchor.half, anchor.wingY, anchor.wingZ, span, chord, reach, mat, dark, primary, feathers);
-		bird(pen, false, anchor.half, anchor.wingY, anchor.wingZ, span, chord, reach, mat, dark, primary, feathers);
+		bird(pen, true, -anchor.half + inset, anchor.wingY + inset, anchor.wingZ - inset, span, chord, reach, mat, dark, primary, feathers);
+		bird(pen, false, anchor.half - inset, anchor.wingY + inset, anchor.wingZ - inset, span, chord, reach, mat, dark, primary, feathers);
 	}
 
 	/**
@@ -91,7 +96,7 @@ final class Wings {
 			for (int i = 0; i < tertials; i++) {
 				float along = (i + 0.5f) / tertials;
 				float length = deep * (0.72f + 0.26f * along);
-				back(pen, dir, humerus * along, length, 3.8f, 0.2f + i * LAYER, armTuck, mat, dark);
+				back(pen, dir, humerus * along, length, 3.8f, 0.21f + i * LAYER, armTuck, mat, dark);
 			}
 			pen.shift(dir * (humerus - 1f), 0.0f, 0.0f, () -> pen.curl(elbowYaw, elbowRoll, 0.0f, () -> {
 				bone(pen, dir, forearm, 2.2f, mat);
@@ -186,10 +191,14 @@ final class Wings {
 							mat, dark);
 				}
 			}
-			// The leading edge: the folded wrist and forearm along the top, rounded at the front.
+			// The leading edge: the folded wrist and forearm along the top, rounded at the front. It is its own
+			// part: left in the body's part under this shift, the culler compared it with the other wing's edge in
+			// the same local coordinates and cut away its inner face and slivers of the rest.
 			float edge = length * 0.34f;
-			pen.box(dir < 0 ? -2.0f : 0.0f, 0.5f, top, 2.0f, edge, 1.6f, mat);
-			pen.box(dir < 0 ? -1.8f : 0.0f, -0.6f, top - 1.2f, 1.8f, 1.6f, 2.4f, mat);
+			pen.lift(0f, 0f, 0f, () -> {
+				pen.box(dir < 0 ? -2.0f : 0.0f, 0.5f, top, 2.0f, edge, 1.6f, mat);
+				pen.box(dir < 0 ? -1.8f : 0.0f, -0.6f, top - 1.2f, 1.8f, 1.6f, 2.4f, mat);
+			});
 		});
 	}
 
@@ -325,13 +334,16 @@ final class Wings {
 						// Primaries and webs stack a hair apart for the same reason as the coverts.
 						float layer = feather * LAYER;
 						pen.shift(dir * (hand - 3f), fromMid * primarySlot, 0.0f, () -> pen.curl(fan, lag, 0.0f, () -> {
-							pen.box(dir < 0 ? -length : -3f, -wide * 0.5f, -thin * 0.5f + layer, length + 3f, wide, thin, vane);
+							// Each finger's root stops a hair short of the last one's, so the roots never share a plane.
+							float root = feather * 0.03f;
+							float x0 = dir < 0 ? -length : -3f + root;
+							pen.box(x0, -wide * 0.5f, -thin * 0.5f + layer, length + 3f - root, wide, thin, vane);
 							if (membrane) {
 								// Each finger carries its own web behind it, the length of the finger, so the
 								// wing fans open and folds without a sheet poking through.
 								float web = Math.max(2f, primarySlot + 1.6f);
-								pen.box(dir < 0 ? -length : -3f, wide * 0.5f - 0.2f, -0.25f + layer, length + 3f, web, 0.5f, primary);
-								pen.box(dir < 0 ? -length : -3f, -0.3f, -1.1f + layer, length + 3f, 0.6f, 0.4f, Mat.HORN);
+								pen.box(x0, wide * 0.5f - 0.2f, -0.25f + layer, length + 3f - root, web, 0.5f, primary);
+								pen.box(x0, -0.3f, -1.1f + layer, length + 3f - root, 0.6f, 0.4f, Mat.HORN);
 							}
 						}));
 					}

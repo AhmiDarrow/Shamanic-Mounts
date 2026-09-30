@@ -196,6 +196,27 @@ class BookTest {
 		return out.toString();
 	}
 
+	/** The chimera's text promises its ten ridden gifts and no more: hiding, gliding, and guarding are not gifts. */
+	@Test
+	void theChimeraTextSaysWhatTheChimeraHas() {
+		Codex.Line chimera = Codex.lines().stream().filter(line -> line.name().equals("Chimera")).findFirst().orElseThrow();
+		tk.darrow.shamanicmounts.genome.Phenotype shown = tk.darrow.shamanicmounts.genome.Expression.express(chimera.genome());
+		for (Marks.Gift gift : Marks.Gift.values()) {
+			if (gift != Marks.Gift.NONE) {
+				assertTrue(shown.gifts.contains(gift), "the chimera lacks " + gift);
+			}
+		}
+		assertEquals(10, shown.gifts.size());
+		// The book's chimera is an eightfold underneath: no ghost phase, no wings, no guard ward.
+		assertFalse(tk.darrow.shamanicmounts.ride.GiftRules.sneakHide(shown));
+		assertFalse(tk.darrow.shamanicmounts.ride.GiftRules.glide(shown));
+		assertFalse(tk.darrow.shamanicmounts.ride.GiftRules.guard(shown));
+		String said = (chimera.blurb() + " " + text(Codex.breeding())).toLowerCase();
+		assertFalse(said.contains("every ability"), said);
+		assertTrue(chimera.blurb().toLowerCase().contains("ten ridden gifts"), chimera.blurb());
+		assertTrue(said.contains("hiding, gliding, and guarding are not gifts"), said);
+	}
+
 	private static TamePage.Row row(Genome genome, String locus) {
 		return TamePage.genes(genome, true).stream().filter(row -> row.locus().equals(locus)).findFirst().orElseThrow();
 	}

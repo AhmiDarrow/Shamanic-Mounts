@@ -30,7 +30,7 @@ public final class MountItems {
 	public static final DeferredItem<Item> HERD_BOOK = ITEMS.register("herd_book",
 			() -> new HerdBookItem(new Item.Properties().stacksTo(1)));
 
-	/** Eight diamonds around a carrot. Feed one to each tame adult you want to breed. */
+	/** Eight diamonds around an apple. Feed one to each tame adult you want to breed. */
 	public static final DeferredItem<Item> DIAMOND_APPLE = ITEMS.register(BreedingRules.ITEM_ID,
 			() -> new Item(new Item.Properties().stacksTo(64)
 					.component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)));

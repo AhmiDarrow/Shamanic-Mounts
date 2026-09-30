@@ -4,7 +4,7 @@
 
 # Shamanic Mounts
 
-Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.3**. Ten new rideable lines roam the Overworld, each with something it does under you: walk on water, fly, swim and dive, ram, maul, coil, hide from mobs, blink ahead, or heal the party. Tame one with a braced saddle, then breed any line with any other. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited. Breed far enough and you reach the chimera, a furry dragon with every ability at once.
+Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.4**. Ten new rideable lines roam the Overworld, each with something it does under you: walk on water, fly, swim and dive, ram, maul, coil, hide from mobs, blink ahead, or heal the party. Tame one with a braced saddle, then breed any line with any other. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited. Breed far enough and you reach the chimera, a furry dragon with all ten ridden gifts at once.
 
 [Download from GitHub Releases](https://github.com/AhmiDarrow/Shamanic-Mounts/releases/latest) · [CurseForge](https://www.curseforge.com/minecraft/mc-mods/shamanic-mounts) · [0.1.3 notes](docs/RELEASE_0.1.3.md)
 
@@ -63,7 +63,7 @@ Any line with any other. The breed item is a Diamond Apple: eight diamonds aroun
 
 Linked genes travel together: the body with legs, feet, and gait; the head with build, size, pattern, and pelt. A crossover splits neighbours about one time in eight.
 
-When both parents already have every ability, the foal is an even chance of that normal cross, or the **chimera**: a furry dragon with scale plates, the eleventh form, carrying every ability. The bred body genes stay underneath the dragon.
+When both parents already have every ridden gift, the foal is an even chance of that normal cross, or the **chimera**: a furry dragon with scale plates, the eleventh form, carrying all ten gifts. Hiding, gliding, and guarding are not gifts (they come from the ghost phase, full wings, and the guard ward), so the chimera has them only if the bred body genes underneath do.
 
 The herd book keeps every gene, the parents, and the children, including mounts that are not loaded. Rename a tame or release it from the tames page. The breeding chapter hides behind a spoiler switch saved on your computer.
 
