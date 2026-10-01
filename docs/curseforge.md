@@ -43,3 +43,7 @@ Shamanic Mounts 0.1.3 - Condor Wings, CurseForge file **8978477** (uploaded 2026
 ## 0.1.4
 
 Shamanic Mounts 0.1.4 - Steady Herd, CurseForge file **9018208** (uploaded 2026-09-30, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.4
+
+## 0.1.5
+
+Shamanic Mounts 0.1.5 - Wild Herds Stay, CurseForge file **9023646** (uploaded 2026-09-30, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.5
