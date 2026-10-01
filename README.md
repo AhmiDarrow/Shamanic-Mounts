@@ -4,7 +4,7 @@
 
 # Shamanic Mounts
 
-Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.5**. Ten new rideable lines roam the Overworld, each with something it does under you: walk on water, fly, swim and dive, ram, maul, coil, hide from mobs, blink ahead, or heal the party. Tame one with a braced saddle, then breed any line with any other. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited. Breed far enough and you reach the chimera, a furry dragon with all ten ridden gifts at once.
+Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.6**. Ten new rideable lines roam the Overworld, each with something it does under you: walk on water, fly, swim and dive, ram, maul, coil, hide from mobs, blink ahead, or heal the party. Tame one with a braced saddle, then breed any line with any other. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited. Breed far enough and you reach the chimera, a furry dragon with all ten ridden gifts at once.
 
 [Download from GitHub Releases](https://github.com/AhmiDarrow/Shamanic-Mounts/releases/latest) · [CurseForge](https://www.curseforge.com/minecraft/mc-mods/shamanic-mounts) · [0.1.3 notes](docs/RELEASE_0.1.3.md)
 
@@ -19,9 +19,9 @@ Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.5**. T
 - **Elk.** Its saddle bags hold three rows instead of two. Attack control rams, with strong knockback, on a 4 second cooldown. Larger than a horse.
 - **Crane.** Two riders. Hold jump to glide. Hunger at half speed.
 - **Nagual.** Use sends it away for 30 seconds. You get Speed II and Jump Boost II, and creepers ignore you. It returns beside you when the time ends or if you take damage. Cooldown 60 seconds. Both parents must pass it on.
-- **Barghest.** Hostile mobs within 32 blocks glow through walls while you ride (48 if both parents passed the scent on). It sits when you dismount and attacks anything that hurts you.
+- **Barghest.** Hostile mobs within 32 blocks glow through walls while you ride (48 if both parents passed the scent on). It guards: told to stay, it still gets up to fight back.
 - **Roc.** Hold jump to fly and climb for about 8 seconds, then glide on condor wings until the bar refills. No fall damage while mounted. Both copies: the climb does not drain hunger. One copy: flight only at night. Larger than a horse.
-- **Bear.** Attack control mauls everything in front for heavy damage and a slow, 3 second cooldown. Both copies: Resistance while you ride. Stands guard like the hound. Black, grizzly, and polar pelts.
+- **Bear.** Attack control mauls everything in front for heavy damage and a slow, 3 second cooldown. Both copies: Resistance while you ride. Guards like the hound. Black, grizzly, and polar pelts.
 - **Serpent.** No legs: an anaconda's body with a frilled snake's head. It swims fast and dives; hold jump to rise, hold sneak to sink, tap sneak to step off. Attack coils the nearest foe in front, holding and poisoning it for 3 seconds, 5 second cooldown. Both copies: you breathe under water while riding. River, jungle, and bone pelts.
 - **Shade.** Hold sneak and mobs stop targeting you and the cat, until you hit something or break a block. Sneak and use blinks 6 blocks forward into open air, 3 second cooldown. Hide and blink each need both copies. Under light level 7, Speed I. On a mount that hides or blinks, a held sneak keeps you in the saddle; tap sneak to step off.
 
@@ -29,7 +29,11 @@ A mount that inherited more than one of the drum, the send-away, and the blink u
 
 Everyone stands at least as tall as a horse. Every line comes in three pelts and five sizes, each its own gene.
 
-Sneak and right-click a tame mount, or press your inventory key while riding, for the classic mount screen: the tack slots and the mount on the left, its bags on the right, and three choices under them. **Saddle Bags** are their own item, four leather around a chest, and strap on under the saddle for two rows of five slots. Taking them off tips out whatever they held. Vanilla horse armor, leather to diamond, buckles into the third slot with its usual protection and is worn over the whole barrel. **Follow** keeps up with you. **Stay** lies down where it was left. **Wander** roams nearby. A barghest stays on its own when you step off.
+Sneak and right-click a tame mount, or press your inventory key while riding, for the classic mount screen: the tack slots and the mount on the left, its bags on the right, and three choices under them. **Saddle Bags** are their own item, four leather around a chest, and strap on under the saddle for two rows of five slots. Taking them off tips out whatever they held. Vanilla horse armor, leather to diamond, buckles into the third slot with its usual protection and is worn over the whole barrel. A new tame is on **Follow**: it keeps up with you, keeps following when you step off, and teleports to safe ground beside you when you get more than 12 blocks ahead. **Stay** lies down where it was left, and again wherever you step off it, until you choose another order. **Wander** roams nearby. Each choice is confirmed above the hotbar.
+
+Following mounts go with you into other dimensions. When you leave by a portal, a command, the way home from the End, or another mod's teleport, every following mount of yours within 24 blocks comes too, up to eight, nearest first, and is set down beside you on solid ground, out of water, lava, fire, and leaves. If you were riding one, you arrive in the saddle. Mounts on stay or wander, leashed mounts, mounts carrying another rider, and mounts in chunks that are not loaded stay where they are, and a mount that finds no room beside you stays behind and says so.
+
+Mounts saved by 0.1.5 or earlier that were on wander, the order every tame used to get, load on follow, and so do guarding mounts that were sitting, since stepping off used to sit them. Any other mount told to stay keeps staying.
 
 ## Where they live
 

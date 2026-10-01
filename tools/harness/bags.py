@@ -91,14 +91,19 @@ def main():
     check("the bags' contents are saved on the mount", "minecraft:apple" in nbt("Chest"), nbt("Chest")[:80])
     client("shot bags_on")
 
+    check("a tame with no saved order is on follow", "FOLLOW" in nbt("Mode").upper(), nbt("Mode"))
+    bars = {"Stay": "stays wherever you leave it", "Follow": "follows you", "Wander": "wanders near here"}
     for mode in ("Stay", "Follow", "Wander"):
+        client("messages clear")
         pressed = press_button(mode)
-        time.sleep(0.5)
+        time.sleep(0.6)
         saved = nbt("Mode")
         sitting = nbt("Sitting")
         expect_sit = "1b" if mode == "Stay" else "0b"
         check(f"{mode} is saved and the mount {'sits' if mode == 'Stay' else 'stands'}",
               pressed.startswith("ok") and mode.upper() in saved.upper() and sitting == expect_sit, f"{pressed} mode={saved} sitting={sitting}")
+        said = client("messages") or ""
+        check(f"{mode} is confirmed on the action bar", "[bar]" in said and bars[mode] in said, said[-120:])
 
     run(f"item replace entity {PLAYER} hotbar.2 with minecraft:iron_horse_armor 1")
     time.sleep(0.3)
@@ -171,8 +176,8 @@ def main():
     time.sleep(0.15)
     client("key sneak up")
     time.sleep(0.8)
-    check("a barghest stays when its rider steps off", "none" not in str(riding) and "STAY" in nbt("Mode").upper() and nbt("Sitting") == "1b",
-          f"{riding} mode={nbt('Mode')} sitting={nbt('Sitting')}")
+    check("a barghest keeps following when its rider steps off", "none" not in str(riding) and "FOLLOW" in nbt("Mode").upper()
+          and nbt("Sitting") == "0b", f"{riding} mode={nbt('Mode')} sitting={nbt('Sitting')}")
 
     # A foal wears nothing: its tack slots refuse the saddle, the bags, and armor until it is grown.
     client("close")

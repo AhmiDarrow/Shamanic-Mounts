@@ -27,7 +27,8 @@ itself. Tribal Power's showcase server uses other ports and is never touched.
   the front, the side, a low three-quarter, a close side profile and front view of the face, and two
   held points of the stride. Pictures only; a person judges them.
 - `ride`: each line saddled and mounted with the use key, photographed walking from the front and
-  from behind, the fliers lifting off on a held jump, a sneak tap dismounting, and the hound sitting.
+  from behind, the fliers lifting off on a held jump, a sneak tap dismounting, and the hound still on
+  follow after its rider steps off.
 - `genes`: crosses and gene extremes on the pad, photographed as `look_<case>_gene`: steed over serpent,
   bear over steed, hart over bird, an XS and an XL eightfold, and a palomino; checks that size moves health.
 - `gifts`: every ridden ability fired once from the saddle, with its effect checked in the world:
@@ -36,7 +37,16 @@ itself. Tribal Power's showcase server uses other ports and is never touched.
   roc's climb draining its bar, and the chimera doing the drum and the blink.
 - `bags`: the mount screen opened with sneak and use, Saddle Bags strapped on and taken off again,
   an item stowed and tipped out, iron horse armor buckled on for its five armor, the elk's third row, the follow, stay, and wander buttons
-  changing what the mount does, and a tame foal's tack slots refusing a saddle and armor.
+  changing what the mount does and confirming it on the action bar, a barghest still on follow after
+  its rider steps off, and a tame foal's tack slots refusing a saddle and armor.
+- `follow`: a wild eightfold tamed for real with the saddle and four held jumps comes out on follow,
+  stays on follow when its rider steps off, and walks after its owner; a mount told to stay is still
+  staying after a ride. Then the owner goes overworld to nether, back, to the end, and back by
+  command, and the following mount must arrive beside them each time, exactly once across all three
+  dimensions, while the staying mount and a following mount 40 blocks off stay put. A command
+  teleport while riding must land the rider back in the saddle, and a ride through a lit nether
+  portal must carry the mount across once. Glass boxes at -100 100 -100 in the nether and 200 64 0 in
+  the end are the landing pads.
 - `breed`: ten founders with one gift each, a ladder of Diamond Apple matings that walks the gift
   chromosome until both strands carry every gift, then the chimera coin. Every foal must be born wild;
   the ladder hands each one to the player so it can be a parent. Ends with a picture of the

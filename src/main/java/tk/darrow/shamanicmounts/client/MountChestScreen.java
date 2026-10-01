@@ -72,7 +72,7 @@ public class MountChestScreen extends AbstractContainerScreen<MountChestMenu> {
 	/** The chosen mode's button is pressed in; the other two stay live. */
 	private void refreshModes() {
 		ShamanicMount mount = this.menu.mount();
-		MountMode current = mount == null ? MountMode.WANDER : mount.mode();
+		MountMode current = mount == null ? MountMode.FOLLOW : mount.mode();
 		follow.active = current != MountMode.FOLLOW;
 		stay.active = current != MountMode.STAY;
 		wander.active = current != MountMode.WANDER;

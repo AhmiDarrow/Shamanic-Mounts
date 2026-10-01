@@ -19,7 +19,7 @@ Vanilla gives you the horse, the donkey and the camel. Shamanic Mounts puts ten 
 
 Taming is a small test, not a pile of food: brace a Shamanic Saddle on a wild mount and hold jump through four jolts. Breeding is where the mod goes deep. Any line crosses with any other, and every foal is one animal built from two copies of every gene, so you can see the cross: a bird's head on hooves, a steed with a serpent's long neck and tail, a bear that also carries a roc's flight. Breed long enough and two mounts carrying every gift can give you the chimera, a furry dragon with all of them at once. A herd book records every gene, parent and foal.
 
-Tame mounts get a proper inventory screen with a saddle, strap-on saddle bags and vanilla horse armor, and three orders: Follow, Stay (it lies down) and Wander.
+Tame mounts get a proper inventory screen with a saddle, strap-on saddle bags and vanilla horse armor, and three orders: Follow, Stay (it lies down) and Wander. A new tame follows you, keeps following when you step off, and goes with you into other dimensions.
 
 ## Ten lines
 
@@ -35,11 +35,11 @@ Every line comes in three pelts and five sizes, each set by its own gene.
 
 **Nagual.** Use sends it away for 30 seconds. You get Speed II and Jump Boost II, and creepers do not target you. It comes back beside you when the time ends, or at once if you take damage. Cooldown 60 seconds. Gold, a green-eyed black panther, and a golden-eyed snow leopard.
 
-**Barghest.** While you ride it, hostile mobs within 32 blocks glow through walls, or 48 from both parents. Step off and it stays, then goes for anything that hurts you. Black, grey and red.
+**Barghest.** While you ride it, hostile mobs within 32 blocks glow through walls, or 48 from both parents. It guards: told to stay, it still gets up to fight back. Black, grey and red.
 
 **Roc.** Hold jump to fly and gain height: about 8 seconds of climb, then it glides until the bar refills. No fall damage while mounted. From both parents the climb does not drain hunger; from one, it flies only at night. Its wings spread like a condor's in flight and fold flat along its flanks when it stands. Larger than a horse. Bone, storm and red.
 
-**Bear.** The attack control is a maul: a heavy swipe at everything in front, with a slow, on a 3 second cooldown. From both parents you take less damage while riding. It stands guard when you step off. Black bear, grizzly and polar.
+**Bear.** The attack control is a maul: a heavy swipe at everything in front, with a slow, on a 3 second cooldown. From both parents you take less damage while riding. It guards like the barghest. Black bear, grizzly and polar.
 
 **Serpent.** No legs: an anaconda's body and a snake's head ringed by a frilled lizard's collar. It swims fast and dives. Hold jump to rise, hold sneak to sink, tap sneak to step off. The attack control coils the nearest foe in front, holding and poisoning it for 3 seconds, on a 5 second cooldown. From both parents you breathe under water while riding. River, jungle and bone.
 
@@ -78,7 +78,9 @@ Sneak and right-click a tame mount, or press your inventory key while riding, fo
 
 - **Saddle Bags** are their own item, four leather around a chest. They strap on under the saddle for two rows of five, or three on an elk. Taking them off tips out what they held.
 - **Horse armor**, leather to diamond, buckles into the third slot with its usual protection and is worn over the whole barrel.
-- **Follow** keeps up with you, **Stay** lies down where you left it, and **Wander** roams nearby.
+- **Follow** is where every new tame starts. It keeps up with you, keeps following when you step off, and teleports to safe ground beside you when you get far ahead.
+- **Stay** lies down where you left it, and again wherever you step off it. **Wander** roams nearby.
+- **Across dimensions.** Go through a portal, use a command, head home from the End, or take another mod's teleport, and your following mounts within 24 blocks come too, up to eight, set down on solid ground beside you. Ride one through and you arrive in the saddle. Staying, wandering and leashed mounts stay where they are.
 
 ## Breeding and the chimera
 
@@ -123,4 +125,4 @@ Find a wild mount in its home biomes: bears in the woods and the snow, cranes on
 
 None needed. Shamanic Mounts is written to sit beside [Chocobos Reborn](https://www.curseforge.com/minecraft/mc-mods/chocobos-reborn) and [Tribal Power](https://www.curseforge.com/minecraft/mc-mods/tribalpower): the chocobos stay the pad-runners, and these are the other mounts. With Tribal Power installed, every line also lives in the March, each in the lands that suit it: Eightfold and Drum harts on the Steppe, Bears and Elk in the Highlands and Snow Fields, Cranes and Serpents in the Reed Fen and Shallows, red Rocs and Barghests in the Ember Wastes, and the rest across Glimmer Ridge and the Crystal Fields. Without it those rules do nothing. It is built on the same Minecraft and NeoForge as [Ninjacat Skies](https://www.curseforge.com/minecraft/modpacks/ninjacat-skies).
 
-Version 0.1.5. Created by Ahmi Darrow. MIT. [Source and documentation](https://github.com/AhmiDarrow/Shamanic-Mounts).
+Version 0.1.6. Created by Ahmi Darrow. MIT. [Source and documentation](https://github.com/AhmiDarrow/Shamanic-Mounts).

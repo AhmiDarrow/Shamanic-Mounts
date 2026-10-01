@@ -60,7 +60,7 @@ def main():
     # Staying, a mount lies down with its legs folded under a level body.
     genomes = dict(lines)
     for name in ("eightfold", "bear", "crane", "nagual"):
-        if not check(f"{name} lies down on stay", summon(name, genomes[name], owner, ',Sitting:1b,Mode:"STAY"')):
+        if not check(f"{name} lies down on stay", summon(name, genomes[name], owner, ',Sitting:1b,Mode:"STAY",ModeVersion:1')):
             continue
         time.sleep(1.6)
         face_south()

@@ -63,6 +63,7 @@ import tk.darrow.shamanicmounts.genome.MountSize;
 import tk.darrow.shamanicmounts.genome.Phenotype;
 import tk.darrow.shamanicmounts.item.MountItems;
 import tk.darrow.shamanicmounts.ride.BreedingRules;
+import tk.darrow.shamanicmounts.ride.FollowRules;
 import tk.darrow.shamanicmounts.ride.GiftRules;
 import tk.darrow.shamanicmounts.ride.MountNames;
 import tk.darrow.shamanicmounts.tack.SaddleRules;
@@ -127,6 +128,9 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	private int blinkCooldown;
 	private int revealTicks;
 	private float lastExhaustion = -1.0f;
+	/** The last player to step off, and the game tick they did, so a teleport that unseated them can seat them again. */
+	private UUID lastRider;
+	private long lastRiderTick = -1;
 	private boolean trialTookSaddle;
 	private boolean herdChecked;
 	private UUID dam;
@@ -236,7 +240,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		builder.define(DATA_STAMINA, GiftRules.CLIMB_TICKS);
 		builder.define(DATA_WING, (byte) 0);
 		builder.define(DATA_CLIMBING, false);
-		builder.define(DATA_MODE, (byte) MountMode.WANDER.ordinal());
+		builder.define(DATA_MODE, (byte) FollowRules.DEFAULT.ordinal());
 		builder.define(DATA_BAGS, false);
 		builder.define(DATA_ARMOR, (byte) 0);
 	}
@@ -246,15 +250,17 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		this.goalSelector.addGoal(0, new FloatGoal(this));
 		this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.2, true));
 		this.goalSelector.addGoal(2, new SitWhenOrderedToGoal(this));
+		// Vanilla's follow already stops for a sit or a leash, and teleports only onto walkable ground the
+		// whole body fits on, never into water, lava, or leaves. A ridden mount goes where its rider says.
 		this.goalSelector.addGoal(3, new FollowOwnerGoal(this, 1.1, 8.0f, 2.0f) {
 			@Override
 			public boolean canUse() {
-				return mode() == MountMode.FOLLOW && !tended() && super.canUse();
+				return following() && super.canUse();
 			}
 
 			@Override
 			public boolean canContinueToUse() {
-				return mode() == MountMode.FOLLOW && !tended() && super.canContinueToUse();
+				return following() && super.canContinueToUse();
 			}
 		});
 		this.goalSelector.addGoal(4, new PanicGoal(this, 1.3));
@@ -342,6 +348,37 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 
 	public MountMode mode() {
 		return MountMode.of(this.entityData.get(DATA_MODE));
+	}
+
+	/** On follow and free to: not ridden, not sent away, and its screen not open. */
+	private boolean following() {
+		return mode() == MountMode.FOLLOW && !tended() && !this.isVehicle() && !isAway();
+	}
+
+	/**
+	 * Whether this mount goes along when {@code owner} leaves the dimension from where they stand now:
+	 * a following tame of theirs, near, not leashed, and with nobody else on it.
+	 */
+	public boolean crossesWith(Player owner) {
+		boolean otherRider = false;
+		for (Entity passenger : this.getPassengers()) {
+			otherRider |= passenger != owner;
+		}
+		return this.isAlive() && !this.isRemoved() && this.trial == null
+				&& FollowRules.crosses(this.isTame(), owner.getUUID().equals(this.getOwnerUUID()), mode(),
+						this.isOrderedToSit(), this.isLeashed(), this.isPassenger(), otherRider, isAway(),
+						this.distanceToSqr(owner));
+	}
+
+	/** Whether {@code player} was in the saddle when they left this level at {@code leftTick}. */
+	public boolean riddenBy(Player player, long leftTick) {
+		return this.hasPassenger(player)
+				|| player.getUUID().equals(lastRider) && FollowRules.wasRiding(lastRiderTick, leftTick);
+	}
+
+	/** Smoke and a soft teleport where a following mount comes out beside its owner in another dimension. */
+	public void arrivedBeside() {
+		MountEffects.slip(this);
 	}
 
 	/** Follow, stay, or wander. Stay is the sit; the other two stand it back up. */
@@ -1043,6 +1080,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		Player rider = this.getControllingPassenger() instanceof Player player ? player : null;
 		if (rider != null) {
 			this.tame(rider);
+			// A new tame follows. Stay and wander are orders its owner gives on the mount screen.
+			this.setMode(FollowRules.DEFAULT);
 			remember(rider, dam, sire);
 		}
 		this.playSound(SoundEvents.HORSE_AMBIENT, 0.8f, 1.2f);
@@ -1352,10 +1391,13 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 				rider.removeEffect(net.minecraft.world.effect.MobEffects.NIGHT_VISION);
 			}
 		}
+		if (!this.level().isClientSide() && passenger instanceof Player rider) {
+			lastRider = rider.getUUID();
+			lastRiderTick = this.level().getGameTime();
+		}
+		// Stepping off leaves the order as it was: a following mount keeps following.
 		if (this.trial != null && !this.trial.finished()) {
 			failTrial();
-		} else if (!this.level().isClientSide() && GiftRules.guard(phenotype) && this.isTame()) {
-			setMode(MountMode.STAY);
 		}
 	}
 
@@ -1447,6 +1489,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		tag.putInt("Reveal", revealTicks);
 		tag.putBoolean("Hidden", hidden);
 		tag.putString("Mode", mode().name());
+		tag.putInt("ModeVersion", FollowRules.ORDERS_VERSION);
 		tag.putByte("RiderKeys", (byte) ((riderSneak ? 1 : 0) | (jumpHeld ? 2 : 0)));
 		tag.putInt("SneakHeld", sneakHeld);
 		net.minecraft.nbt.ListTag chestList = new net.minecraft.nbt.ListTag();
@@ -1505,15 +1548,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		this.awayCooldown = tag.getInt("AwayCd");
 		this.blinkCooldown = tag.getInt("Blink");
 		this.revealTicks = tag.getInt("Reveal");
-		if (tag.contains("Mode")) {
-			try {
-				setMode(MountMode.valueOf(tag.getString("Mode")));
-			} catch (IllegalArgumentException ignored) {
-				setMode(MountMode.WANDER);
-			}
-		} else if (this.isOrderedToSit()) {
-			setMode(MountMode.STAY);
-		}
+		setMode(FollowRules.loaded(tag.contains("Mode") ? tag.getString("Mode") : null, tag.getInt("ModeVersion"),
+				this.isOrderedToSit(), GiftRules.guard(phenotype)));
 		this.chest.clearContent();
 		for (net.minecraft.nbt.Tag raw : tag.getList("Chest", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
 			CompoundTag one = (CompoundTag) raw;

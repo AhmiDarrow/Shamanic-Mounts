@@ -1,4 +1,4 @@
-"""Ride every line and photograph it moving: the stride, the wings in the air, and the hound sitting.
+"""Ride every line and photograph it moving: the stride, the wings in the air, and the hound still following.
 
 Each mount is summoned tame, owned, and saddled, the player climbs on with the use key, the camera
 goes to third person, and the forward key is held for a second before the picture. Fliers then hold
@@ -139,9 +139,11 @@ def main():
             time.sleep(0.3)
             client(f"look {PAD[0]:.1f} {PAD[1] + 0.9:.2f} {PAD[2]:.1f}")
             time.sleep(1.0)
-            sat = client("shot sit_barghest")
+            stood = client("shot stand_barghest")
             sitting = run("data get entity @e[type=shamanicmounts:mount,tag=ride,limit=1] Sitting") or ""
-            check("the hound sits when its rider steps off", sat.startswith("ok") and "1b" in sitting, sitting.strip()[:80])
+            mode = run("data get entity @e[type=shamanicmounts:mount,tag=ride,limit=1] Mode") or ""
+            check("the hound keeps following when its rider steps off", stood.startswith("ok") and "0b" in sitting
+                  and "FOLLOW" in mode.upper(), f"{sitting.strip()[-12:]} {mode.strip()[-12:]}")
     release()
     client("camera first")
     run("kill @e[type=shamanicmounts:mount]")

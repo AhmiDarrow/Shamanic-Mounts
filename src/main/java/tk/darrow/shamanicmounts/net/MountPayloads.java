@@ -124,7 +124,9 @@ public final class MountPayloads {
 		private static void handle(MountModeChoice payload, ServerPlayer player) {
 			if (player.level().getEntity(payload.entity()) instanceof ShamanicMount mount && mount.isTame()
 					&& mount.isOwnedBy(player) && player.distanceToSqr(mount) < 100.0) {
-				mount.setMode(tk.darrow.shamanicmounts.entity.MountMode.of(payload.mode()));
+				tk.darrow.shamanicmounts.entity.MountMode mode = tk.darrow.shamanicmounts.entity.MountMode.of(payload.mode());
+				mount.setMode(mode);
+				player.displayClientMessage(net.minecraft.network.chat.Component.translatable(mode.orderKey(), mount.getDisplayName()), true);
 			}
 		}
 	}

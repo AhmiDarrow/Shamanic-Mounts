@@ -44,7 +44,8 @@ public final class Codex {
 						"Sneak to step off. On a mount that hides, blinks, or dives, a held sneak keeps you on; tap it to step off.")),
 				new Section("Keeping", List.of(
 						"Sneak and right-click a tame for its tack: the saddle, Saddle Bags, and horse armor. Foals wear none.",
-						"Tell it to follow, stay, or wander. Staying, it lies down.",
+						"A new tame follows you, and keeps following when you step off. On that screen, tell it to stay and it lies down wherever you leave it, or to wander nearby.",
+						"A following mount near you goes with you into another dimension: by portal, by command, or home from the End. Ride one through and you arrive in the saddle.",
 						"Your tames are listed here, loaded or not. Open one for its genes and family, to rename it, or to release it.")),
 				new Section("This book", List.of(
 						"Lines shows every founder and its three pelts. Key explains how genes are written.",
@@ -96,7 +97,7 @@ public final class Codex {
 				new Line("Elk", Founders.elk(), "Bigger saddle bags. Attack rams with strong knockback.", false),
 				new Line("Crane", Founders.crane(), "Two riders. Hold jump to glide.", false),
 				new Line("Nagual", Founders.nagual(), "Use sends it away. You get Speed and Jump Boost meanwhile.", false),
-				new Line("Barghest", Founders.barghest(), "Hostile mobs glow through walls. Stays and guards you.", false),
+				new Line("Barghest", Founders.barghest(), "Hostile mobs glow through walls. Guards: gets up from a stay to fight.", false),
 				new Line("Roc", Founders.roc(), "Hold jump to fly and climb, then glide until the bar refills.", false),
 				new Line("Shade", Founders.shade(), "Hold sneak to hide from mobs. Sneak and use blinks forward.", false),
 				new Line("Bear", Founders.bear(), "Attack mauls everything in front. Both copies: less damage riding.", false),
