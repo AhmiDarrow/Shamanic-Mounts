@@ -45,6 +45,7 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnGroupData;
@@ -67,11 +68,13 @@ import tk.darrow.shamanicmounts.ride.FollowRules;
 import tk.darrow.shamanicmounts.ride.GiftRules;
 import tk.darrow.shamanicmounts.ride.MountNames;
 import tk.darrow.shamanicmounts.tack.SaddleRules;
-import tk.darrow.shamanicmounts.tame.BraceTrial;
+import tk.darrow.shamanicmounts.tame.ReinTrial;
 
 /**
- * One shamanic mount. Wild adults are tamed by the four-jolt brace. Foals are born wild and take the brace once grown.
- * Riding needs the shamanic saddle. A Diamond Apple breeds two tames the same player owns.
+ * One shamanic mount. Wild adults attack until a golden apple calms them. The saddle goes on only then, and the tame
+ * is a thirty-second rein trial once the rider is seated: the mount steps the opposite way from the asked direction.
+ * Foals are born wild and take that trial once grown. Riding needs the shamanic saddle. A Diamond Apple breeds two
+ * tames the same player owns.
  */
 public class ShamanicMount extends TamableAnimal implements PlayerRideableJumping, HasCustomInventoryScreen {
 	private static final EntityDataAccessor<CompoundTag> DATA_GENOME = SynchedEntityData.defineId(ShamanicMount.class,
@@ -98,6 +101,12 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	/** Follow, stay, or wander, as {@link MountMode} ordinals. */
 	private static final EntityDataAccessor<Byte> DATA_MODE = SynchedEntityData.defineId(ShamanicMount.class,
 			EntityDataSerializers.BYTE);
+	/** A golden apple is still keeping this wild adult from attacking. The timer itself stays on the server. */
+	private static final EntityDataAccessor<Boolean> DATA_CALM = SynchedEntityData.defineId(ShamanicMount.class,
+			EntityDataSerializers.BOOLEAN);
+	/** The rein prompt: 0 none, 1 left, 2 right, 3 forward, 4 back. Both sides move from this. */
+	private static final EntityDataAccessor<Byte> DATA_CUE = SynchedEntityData.defineId(ShamanicMount.class,
+			EntityDataSerializers.BYTE);
 
 	/**
 	 * What a mount is before its own genome is set: built once and shared, since every spawn attempt and every
@@ -114,7 +123,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	private final SimpleContainer chest = new SimpleContainer(GiftRules.CHEST_SLOTS);
 	/** The saddle and the saddle bags, as items, so the mount screen can take them on and off. */
 	private final SimpleContainer tack = new SimpleContainer(3);
-	private BraceTrial.Trial trial;
+	private ReinTrial.Trial trial;
 	private int refuseTicks;
 	private int restTicks;
 	private int offerTicks;
@@ -159,7 +168,13 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	private boolean scentShown;
 	/** Ticks a fall-proof flier has been off the ground while ridden. */
 	private int airTicks;
-	private int lastJolts;
+	/** Ticks of calm left. Clients only hear {@link #DATA_CALM}. */
+	private int calmTicks;
+	/** Direction keys the rider is holding, as a {@link ReinTrial} mask. */
+	private int reinMask;
+	/** The prompt last seen, and the tick it changed, so the buck starts with the new direction. */
+	private byte cueCodeSeen;
+	private int cueSeenTick;
 
 	public ShamanicMount(EntityType<? extends ShamanicMount> type, Level level) {
 		super(type, level);
@@ -250,6 +265,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		builder.define(DATA_MODE, (byte) FollowRules.DEFAULT.ordinal());
 		builder.define(DATA_BAGS, false);
 		builder.define(DATA_ARMOR, (byte) 0);
+		builder.define(DATA_CALM, false);
+		builder.define(DATA_CUE, (byte) 0);
 	}
 
 	@Override
@@ -270,24 +287,111 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 				return following() && super.canContinueToUse();
 			}
 		});
-		this.goalSelector.addGoal(4, new PanicGoal(this, 1.3));
+		this.goalSelector.addGoal(4, new PanicGoal(this, 1.3) {
+			@Override
+			public boolean canUse() {
+				return !huntsPlayers() && super.canUse();
+			}
+		});
 		// A wild foal keeps to the grown mounts of its kind until it is grown itself.
 		this.goalSelector.addGoal(5, new net.minecraft.world.entity.ai.goal.FollowParentGoal(this, 1.1));
 		this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0) {
 			@Override
 			public boolean canUse() {
-				return (!isTame() || mode() == MountMode.WANDER) && !tended() && super.canUse();
+				return (trial == null || trial.finished()) && (!isTame() || mode() == MountMode.WANDER) && !tended()
+						&& super.canUse();
 			}
 
 			@Override
 			public boolean canContinueToUse() {
-				return !tended() && super.canContinueToUse();
+				return (trial == null || trial.finished()) && !tended() && super.canContinueToUse();
 			}
 		});
 		this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 8.0f));
 		this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
 		this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
 		this.targetSelector.addGoal(2, new HurtByTargetGoal(this));
+		this.targetSelector.addGoal(3, new PlayerHuntGoal(this));
+	}
+
+	/** A wild adult with nothing calming it, and nobody in the middle of taming it. Foals stay peaceful. */
+	public boolean huntsPlayers() {
+		return SaddleRules.hostile(this.isTame(), this.isBaby(), this.calmTicks, this.trial != null && !this.trial.finished());
+	}
+
+	/**
+	 * A calmed wild mount, a foal, and a mount in the rein trial do not bite a player. A tame still may:
+	 * it defends its owner.
+	 */
+	@Override
+	public void setTarget(@Nullable LivingEntity target) {
+		if (target instanceof Player && !this.isTame() && !this.huntsPlayers()) {
+			target = null;
+		}
+		super.setTarget(target);
+	}
+
+	/** Direction keys from the rider's client. Scoring stays here. */
+	public void reinKeys(Player player, int mask) {
+		if (player != this.getControllingPassenger()) {
+			return;
+		}
+		this.reinMask = mask & 15;
+	}
+
+	/** The prompt both sides are showing. Null when the trial is not asking for anything. */
+	public ReinTrial.Dir shownCue() {
+		return ReinTrial.Dir.fromCode(this.entityData.get(DATA_CUE));
+	}
+
+	/**
+	 * The rider's box, if the mount were at {@code x,y,z}. Riding turns the player's own collision off, and the
+	 * seat puts their head above the hitbox, so this is the box that has to stay out of the tree.
+	 */
+	private boolean riderClear(Player player, double x, double y, double z) {
+		float[] seat = MountSize.seat(this.phenotype, 0);
+		double yaw = Math.toRadians(this.yBodyRot);
+		double dx = Math.sin(yaw) * seat[0];
+		double dz = -Math.cos(yaw) * seat[0];
+		Vec3 sit = player.getVehicleAttachmentPoint(this);
+		AABB box = player.getDimensions(player.getPose()).makeBoundingBox(x + dx - sit.x, y + seat[1] - sit.y, z + dz - sit.z)
+				.deflate(0.05, 0.0, 0.05);
+		return this.level().noCollision(player, box);
+	}
+
+	/** Camera-relative steer turned into world XZ. Positive strafe is left, positive forward is forward. */
+	private static Vec3 steerWorld(float strafe, float forward, float yawDeg) {
+		double yaw = Math.toRadians(yawDeg);
+		double sin = Math.sin(yaw);
+		double cos = Math.cos(yaw);
+		return new Vec3(strafe * cos - forward * sin, 0.0, forward * cos + strafe * sin);
+	}
+
+	/** Room for the rider a short way along this steer input, raised by {@code lift}. */
+	private boolean riderAhead(Player player, float strafe, float forward, float yaw, double lift) {
+		Vec3 world = steerWorld(strafe, forward, yaw);
+		double scale = Math.sqrt(world.x * world.x + world.z * world.z);
+		if (scale < 1.0e-4) {
+			return this.riderClear(player, this.getX(), this.getY() + lift, this.getZ());
+		}
+		double dx = world.x / scale;
+		double dz = world.z / scale;
+		for (double dist = 0.4; dist <= 0.81; dist += 0.4) {
+			if (!this.riderClear(player, this.getX() + dx * dist, this.getY() + lift, this.getZ() + dz * dist)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** Ticks since this prompt appeared. Each side counts from when it first saw the synced cue. */
+	private int cueAge() {
+		byte code = this.entityData.get(DATA_CUE);
+		if (code != this.cueCodeSeen) {
+			this.cueCodeSeen = code;
+			this.cueSeenTick = this.tickCount;
+		}
+		return this.tickCount - this.cueSeenTick;
 	}
 
 	/** The owner as last found in this level; see {@link #getOwner()}. */
@@ -524,6 +628,9 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		if (refuseTicks > 0) {
 			refuseTicks--;
 		}
+		if (calmTicks > 0 && --calmTicks == 0) {
+			this.entityData.set(DATA_CALM, false);
+		}
 		if (restTicks > 0) {
 			restTicks--;
 		}
@@ -610,20 +717,23 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		if (trial == null || trial.finished()) {
 			return;
 		}
+		this.getNavigation().stop();
 		boolean riding = this.getControllingPassenger() instanceof Player;
-		BraceTrial.tick(trial, jumpHeld, !riding, false);
-		if (trial.jolts() > lastJolts) {
-			lastJolts = trial.jolts();
-			if (!trial.done()) {
-				MountEffects.jolt(this);
-			}
+		ReinTrial.tick(trial, ReinTrial.Press.of(reinMask), !riding);
+		if (trial.caughtBeat()) {
+			MountEffects.caught(this);
+		} else if (trial.missedBeat() && !trial.failed()) {
+			MountEffects.missed(this);
 		}
-		this.setDeltaMovement(0.0, this.getDeltaMovement().y, 0.0);
 		if (trial.failed()) {
 			failTrial();
-		} else if (trial.done()) {
-			finishTame();
+			return;
 		}
+		if (trial.done()) {
+			finishTame();
+			return;
+		}
+		showCue(trial.cue());
 	}
 
 	private void tickAway() {
@@ -695,9 +805,10 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			sneakHeld = 0;
 			riderSneak = false;
 			jumpHeld = false;
+			reinMask = 0;
 			return;
 		}
-		// A wild mount under a brace trial gives nothing: no drum, no sight, no strike.
+		// A wild mount under a rein trial gives nothing: no drum, no sight, no strike.
 		if (!this.isTame() || this.trial != null) {
 			return;
 		}
@@ -1082,11 +1193,37 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	@Override
 	public InteractionResult mobInteract(Player player, InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
-		boolean saddle = stack.is(MountItems.SHAMANIC_SADDLE.get());
-		if (SaddleRules.canOffer(!this.isTame() && !this.isBaby(), saddle, refuseTicks) && this.trial == null
-				&& !this.isVehicle()) {
+		boolean wildAdult = !this.isTame() && !this.isBaby();
+		boolean calm = this.entityData.get(DATA_CALM);
+		boolean trialNow = this.trialShown();
+		if (SaddleRules.canCalm(wildAdult, stack.is(Items.GOLDEN_APPLE), trialNow)) {
 			if (!this.level().isClientSide()) {
-				beginTrial(player, stack);
+				this.setCalm(SaddleRules.CALM_TICKS);
+				this.setTarget(null);
+				if (!player.getAbilities().instabuild) {
+					stack.shrink(1);
+				}
+				this.playSound(SoundEvents.HORSE_EAT, 0.7f, 1.0f);
+				MountEffects.calmed(this);
+			}
+			return InteractionResult.sidedSuccess(this.level().isClientSide());
+		}
+		boolean saddle = stack.is(MountItems.SHAMANIC_SADDLE.get());
+		if (SaddleRules.canPlaceSaddle(wildAdult, calm, saddle, this.saddled(), trialNow)) {
+			if (!this.level().isClientSide()) {
+				this.trialTookSaddle = !player.getAbilities().instabuild;
+				if (this.trialTookSaddle) {
+					stack.shrink(1);
+				}
+				this.setSaddled(true);
+				this.playSound(SoundEvents.HORSE_SADDLE, 0.6f, 1.0f);
+			}
+			return InteractionResult.sidedSuccess(this.level().isClientSide());
+		}
+		if (!player.isShiftKeyDown() && SaddleRules.canMount(wildAdult, calm, this.saddled(),
+				this.level().isClientSide() ? 0 : this.refuseTicks, trialNow, this.isVehicle())) {
+			if (!this.level().isClientSide()) {
+				beginTrial(player);
 			}
 			return InteractionResult.sidedSuccess(this.level().isClientSide());
 		}
@@ -1116,17 +1253,46 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		return super.mobInteract(player, hand);
 	}
 
-	private void beginTrial(Player player, ItemStack stack) {
-		this.trialTookSaddle = !player.getAbilities().instabuild;
-		if (this.trialTookSaddle) {
-			stack.shrink(1);
+	private boolean trialShown() {
+		if (this.trial != null && !this.trial.finished()) {
+			return true;
 		}
-		this.setSaddled(true);
-		this.trial = BraceTrial.start();
-		this.lastJolts = 0;
+		return this.level().isClientSide() && this.entityData.get(DATA_CUE) != 0;
+	}
+
+	private void setCalm(int ticks) {
+		this.calmTicks = Math.max(0, ticks);
+		boolean calm = this.calmTicks > 0;
+		if (this.entityData.get(DATA_CALM) != calm) {
+			this.entityData.set(DATA_CALM, calm);
+		}
+	}
+
+	private void showCue(ReinTrial.Dir dir) {
+		byte code = dir == null ? 0 : dir.code();
+		if (this.entityData.get(DATA_CUE) == code) {
+			return;
+		}
+		this.entityData.set(DATA_CUE, code);
+		if (code != 0) {
+			MountEffects.cue(this);
+		}
+	}
+
+	private void clearCue() {
+		if (this.entityData.get(DATA_CUE) != 0) {
+			this.entityData.set(DATA_CUE, (byte) 0);
+		}
+	}
+
+	private void beginTrial(Player player) {
+		this.getNavigation().stop();
+		this.setTarget(null);
+		this.reinMask = 0;
+		this.trial = ReinTrial.start(this.random.nextLong());
+		this.showCue(this.trial.cue());
 		this.setOrderedToSit(false);
 		player.startRiding(this);
-		this.playSound(SoundEvents.HORSE_SADDLE, 0.6f, 1.0f);
 	}
 
 	private void failTrial() {
@@ -1134,7 +1300,9 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			return;
 		}
 		this.trial = null;
-		this.refuseTicks = BraceTrial.REFUSE_TICKS;
+		this.reinMask = 0;
+		this.clearCue();
+		this.refuseTicks = ReinTrial.REFUSE_TICKS;
 		// A dead mount already dropped its tack, saddle included; a live one hands back the saddle it wore.
 		ItemStack worn = this.isAlive() ? tack.removeItemNoUpdate(MountChestMenu.SADDLE_SLOT) : ItemStack.EMPTY;
 		this.setSaddled(false);
@@ -1148,6 +1316,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 
 	private void finishTame() {
 		this.trial = null;
+		this.reinMask = 0;
+		this.clearCue();
 		Player rider = this.getControllingPassenger() instanceof Player player ? player : null;
 		if (rider != null) {
 			this.tame(rider);
@@ -1320,7 +1490,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		move.accept(passenger, this.getX() + dx - sit.x, this.getY() + seat[1] - sit.y, this.getZ() + dz - sit.z);
 	}
 
-	/** The rider who steers: the owner in the front seat, or the rider of a brace trial. A friend behind never steers. */
+	/** The rider who steers: the owner in the front seat, or the rider of a rein trial. A friend behind never steers. */
 	@Override
 	public LivingEntity getControllingPassenger() {
 		if (!(this.getFirstPassenger() instanceof LivingEntity living)) {
@@ -1334,7 +1504,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 
 	@Override
 	public boolean canJump() {
-		return this.isVehicle() && (canBeRiddenNow() || (this.trial != null && !this.trial.finished()));
+		return this.isVehicle() && canBeRiddenNow();
 	}
 
 	/** Vanilla reports a riding jump only when the key is released; the key itself arrives by payload. */
@@ -1356,9 +1526,51 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 
 	@Override
 	public void travel(Vec3 travel) {
-		if (this.trial != null && !this.trial.finished()) {
-			super.travel(Vec3.ZERO);
-			this.setDeltaMovement(0.0, this.getDeltaMovement().y, 0.0);
+		// The cue is synced, because the trial object lives on the server and the rider's client owns the motion.
+		// Asked left steps right, asked forward steps back. The step kicks, then eases, and the mount hops.
+		// The rider sticks up past the hitbox, so a kick toward a tree or a wall is held in place instead.
+		ReinTrial.Dir cue = this.shownCue();
+		if (cue != null && !this.isTame()) {
+			if (this.getControllingPassenger() instanceof Player player) {
+				float yaw = player.getYRot();
+				int into = this.cueAge();
+				float fight = (float) Math.sin(into * 0.85) * 9.0f;
+				float toss = 0.0f;
+				if (into < 8) {
+					toss = -24.0f * (1.0f - into / 8.0f);
+				} else if (into < 16) {
+					toss = 12.0f * (1.0f - (into - 8) / 8.0f);
+				}
+				this.setYRot(yaw);
+				this.yRotO = yaw;
+				this.setYBodyRot(yaw + fight);
+				this.setYHeadRot(yaw - fight * 0.6f);
+				this.setXRot(toss);
+				float surge = ReinTrial.buck(into);
+				float strafe = cue.strafe() * surge;
+				float forward = cue.forward() * surge;
+				boolean ahead = this.riderAhead(player, strafe, forward, yaw, 0.0);
+				boolean up = this.riderClear(player, this.getX(), this.getY() + ReinTrial.BUCK_HOP + 0.2, this.getZ());
+				boolean aheadUp = this.riderAhead(player, strafe, forward, yaw, ReinTrial.BUCK_HOP + 0.2);
+				boolean hop = this.isControlledByLocalInstance() && ReinTrial.hops(into) && this.onGround() && up
+						&& (aheadUp || !ahead);
+				if (hop) {
+					Vec3 motion = this.getDeltaMovement();
+					boolean carry = ahead && aheadUp;
+					this.setDeltaMovement(carry ? motion.x : 0.0, ReinTrial.BUCK_HOP, carry ? motion.z : 0.0);
+					this.hasImpulse = true;
+				}
+				this.setSpeed((float) this.getAttributeValue(Attributes.MOVEMENT_SPEED));
+				if (ahead && (!hop || aheadUp)) {
+					super.travel(new Vec3(strafe, 0.0, forward));
+				} else {
+					Vec3 motion = this.getDeltaMovement();
+					this.setDeltaMovement(0.0, motion.y, 0.0);
+					super.travel(Vec3.ZERO);
+				}
+			} else {
+				super.travel(Vec3.ZERO);
+			}
 			this.climbing = false;
 			syncWing();
 			return;
@@ -1474,11 +1686,6 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 
 	@Override
 	public boolean hurt(DamageSource source, float amount) {
-		if (this.trial != null && !this.trial.finished()) {
-			boolean hit = super.hurt(source, amount);
-			failTrial();
-			return hit;
-		}
 		if (this.isVehicle() && GiftRules.sneakHide(phenotype)) {
 			reveal();
 		}
@@ -1547,6 +1754,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		tag.putBoolean("Male", male);
 		tag.putBoolean("Saddled", this.saddled());
 		tag.putInt("Refuse", refuseTicks);
+		tag.putInt("Calm", calmTicks);
+		tag.putBoolean("SaddlePaid", trialTookSaddle);
 		tag.putInt("Rest", restTicks);
 		tag.putInt("Stamina", this.stamina());
 		tag.putBoolean("ClimbSpent", climbSpent);
@@ -1576,7 +1785,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		net.minecraft.nbt.ListTag tackList = new net.minecraft.nbt.ListTag();
 		for (int slot = 0; slot < this.tack.getContainerSize(); slot++) {
 			ItemStack piece = this.tack.getItem(slot);
-			// The saddle of a brace trial belongs to the rider until the trial ends; it is not saved on the mount.
+			// The saddle of a rein trial is handed back if the try fails, so it is not also saved on the mount.
 			boolean trialSaddle = slot == MountChestMenu.SADDLE_SLOT && this.trial != null;
 			if (!piece.isEmpty() && !trialSaddle) {
 				CompoundTag one = new CompoundTag();
@@ -1608,6 +1817,11 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			this.setSaddled(true);
 		}
 		this.refuseTicks = tag.getInt("Refuse");
+		this.calmTicks = tag.getInt("Calm");
+		if (this.calmTicks > 0) {
+			this.entityData.set(DATA_CALM, true);
+		}
+		this.trialTookSaddle = tag.getBoolean("SaddlePaid");
 		this.restTicks = tag.getInt("Rest");
 		this.stamina = tag.contains("Stamina") ? tag.getInt("Stamina") : GiftRules.CLIMB_TICKS;
 		this.climbSpent = tag.getBoolean("ClimbSpent");
@@ -1640,6 +1854,9 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			}
 		}
 		syncTack();
+		if (this.tack.getItem(MountChestMenu.SADDLE_SLOT).isEmpty()) {
+			this.trialTookSaddle = false;
+		}
 		this.dam = tag.hasUUID("Dam") ? tag.getUUID("Dam") : null;
 		this.sire = tag.hasUUID("Sire") ? tag.getUUID("Sire") : null;
 		if (awayTicks > 0) {

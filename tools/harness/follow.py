@@ -1,6 +1,6 @@
 """Follow by default, and following mounts crossing dimensions with their owner.
 
-A wild eightfold is tamed for real with the saddle and four held jumps, and must come out on follow, stay on
+A wild eightfold is calmed with a golden apple, saddled, then tamed by the rein prompts, and must come out on follow, stay on
 follow when its rider steps off, and walk after its owner. A second mount is told to stay on its screen and
 must still be staying after a ride. Then the owner goes overworld to nether, nether to overworld, overworld
 to the end and back by command: the following mount must arrive beside them each time, exactly once across
@@ -128,26 +128,59 @@ def main():
         check(f"{tag.replace('_', ' ')} loads as {mode.lower()}", mode in saved.upper() and sat == sitting, f"{saved} {sat}")
     run("kill @e[type=shamanicmounts:mount]")
 
-    # A real taming: the saddle on a wild adult and jump held through the four jolts.
+    # A real taming: calm a wild adult, put the saddle on, then answer each rein prompt.
+    run(f"effect give {PLAYER} minecraft:resistance 120 4 true")
     check("a wild eightfold stands on the pad", summon("fol", "", PAD[0], PAD[2]))
-    run(f"item replace entity {PLAYER} hotbar.0 with shamanicmounts:shamanic_saddle 1")
-    client("hotbar 0")
-    time.sleep(0.4)
-    # The first jolt lands 15 ticks after the saddle goes on, so jump is held the moment the use lands.
     run(f"tp {sel('fol')} {PAD[0]} {PAD[1]} {PAD[2]} 0 0")
     run(f"tp {PLAYER} {PAD[0]:.1f} {PAD[1]} {PAD[2] + 2.2:.1f}")
     time.sleep(0.4)
     client(f"look {PAD[0]:.1f} {PAD[1] + HEAD * 0.5:.2f} {PAD[2]:.1f}")
     time.sleep(0.15)
+    run(f"item replace entity {PLAYER} hotbar.0 with minecraft:golden_apple 1")
+    client("hotbar 0")
+    time.sleep(0.2)
     used = client("useentity")
-    client("key jump down")
+    time.sleep(0.4)
+    calm_text = nbt("fol", "Calm")
+    calm_match = re.search(r"-?\d+", calm_text)
+    calm_ticks = int(calm_match.group()) if calm_match else -1
+    check("a golden apple calms it", calm_ticks > 2000, f"{used} {calm_text}")
+    run(f"item replace entity {PLAYER} hotbar.0 with shamanicmounts:shamanic_saddle 1")
+    client("hotbar 0")
+    time.sleep(0.2)
+    used = client("useentity")
+    time.sleep(0.4)
     riding = client("riding")
-    check("the saddle starts the brace", "none" not in str(riding), f"{used} {riding}")
-    time.sleep(6.0)
-    client("key jump up")
-    time.sleep(0.5)
-    tamed = "I;" in nbt("fol", "Owner")
-    check("four held jumps tame it", tamed, nbt("fol", "Owner")[:60])
+    check("the saddle goes on and does not mount", "none" in str(riding) and nbt("fol", "Saddled") == "1b",
+          f"{used} {riding} saddled={nbt('fol', 'Saddled')}")
+    run(f"item replace entity {PLAYER} hotbar.0 with minecraft:air")
+    client("hotbar 0")
+    time.sleep(0.2)
+    used = client("useentity")
+    riding = client("riding")
+    check("mounting starts the rein trial", "none" not in str(riding), f"{used} {riding}")
+    held = None
+    tamed = False
+    try:
+        deadline = time.time() + 45
+        while time.time() < deadline:
+            reply = client("cue") or ""
+            cue = reply.split()[-1] if reply.startswith("ok") else "none"
+            if cue in ("left", "right", "forward", "back") and cue != held:
+                if held:
+                    client(f"key {held} up")
+                client(f"key {cue} down")
+                held = cue
+            elif cue == "none":
+                tamed = "I;" in nbt("fol", "Owner")
+                if tamed:
+                    break
+    finally:
+        for name in ("left", "right", "forward", "back"):
+            client(f"key {name} up")
+    if not tamed:
+        tamed = "I;" in nbt("fol", "Owner")
+    check("the rein trial tames it", tamed, nbt("fol", "Owner")[:60])
     check("a new tame is on follow", "FOLLOW" in nbt("fol", "Mode").upper() and nbt("fol", "Sitting") == "0b",
           f"{nbt('fol', 'Mode')} {nbt('fol', 'Sitting')}")
     tap_sneak()

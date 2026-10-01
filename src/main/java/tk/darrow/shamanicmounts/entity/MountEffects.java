@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Particles and sounds for every gift, the brace, and the chimera's aura. Vanilla particles only.
+ * Particles and sounds for every gift, the rein trial, and the chimera's aura. Vanilla particles only.
  * Every recipe is a burst or a rate-limited trickle, spawned on the body rather than at the feet,
  * and none of them changes a rule.
  */
@@ -250,18 +250,48 @@ final class MountEffects {
 		level.sendParticles(ParticleTypes.END_ROD, back.x, back.y, back.z, 1, 0.1, 0.05, 0.1, 0.0);
 	}
 
-	/** One braced jolt held: a snort from the nose. */
-	static void jolt(ShamanicMount mount) {
+	/** A new direction: a short chime and a puff at the nose. */
+	static void cue(ShamanicMount mount) {
 		ServerLevel level = server(mount);
 		if (level == null) {
 			return;
 		}
 		Vec3 nose = body(mount, 0.65, 0.0, 0.8);
-		level.sendParticles(ParticleTypes.SMOKE, nose.x, nose.y, nose.z, 4, 0.1, 0.05, 0.1, 0.02);
-		level.playSound(null, nose.x, nose.y, nose.z, SoundEvents.HORSE_BREATHE, SoundSource.NEUTRAL, 0.8f, 0.9f);
+		level.sendParticles(ParticleTypes.SMOKE, nose.x, nose.y, nose.z, 3, 0.08, 0.04, 0.08, 0.01);
+		level.sendParticles(ParticleTypes.POOF, mount.getX(), mount.getY() + 0.15, mount.getZ(), 8, 0.35, 0.05, 0.35, 0.02);
+		level.playSound(null, nose.x, nose.y, nose.z, SoundEvents.NOTE_BLOCK_CHIME, SoundSource.NEUTRAL, 0.7f, 1.2f);
+		level.playSound(null, mount.getX(), mount.getY(), mount.getZ(), SoundEvents.HORSE_JUMP, SoundSource.NEUTRAL, 0.4f, 0.8f);
 	}
 
-	/** The fourth jolt held: a quiet ring under the hearts. */
+	/** The prompt was answered. */
+	static void caught(ShamanicMount mount) {
+		ServerLevel level = server(mount);
+		if (level == null) {
+			return;
+		}
+		level.playSound(null, mount.getX(), mount.getY(), mount.getZ(), SoundEvents.NOTE_BLOCK_BELL, SoundSource.NEUTRAL, 0.35f,
+				1.5f);
+	}
+
+	/** The prompt was missed, and the try is still going. */
+	static void missed(ShamanicMount mount) {
+		ServerLevel level = server(mount);
+		if (level == null) {
+			return;
+		}
+		level.playSound(null, mount.getX(), mount.getY(), mount.getZ(), SoundEvents.HORSE_ANGRY, SoundSource.NEUTRAL, 0.45f, 1.15f);
+	}
+
+	/** A golden apple landed. The mount stops. */
+	static void calmed(ShamanicMount mount) {
+		ServerLevel level = server(mount);
+		if (level == null) {
+			return;
+		}
+		ring(level, ParticleTypes.HAPPY_VILLAGER, mount, mount.getBbWidth() * 0.6, 0.5, 8);
+	}
+
+	/** The trial held: a quiet ring under the hearts. */
 	static void tamed(ShamanicMount mount) {
 		ServerLevel level = server(mount);
 		if (level == null) {

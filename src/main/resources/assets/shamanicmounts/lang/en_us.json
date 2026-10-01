@@ -33,5 +33,9 @@
   "item.shamanicmounts.egg_roc": "Roc Spawn Egg",
   "item.shamanicmounts.egg_shade": "Shade Spawn Egg",
   "item.shamanicmounts.egg_bear": "Bear Spawn Egg",
-  "item.shamanicmounts.egg_serpent": "Serpent Spawn Egg"
+  "item.shamanicmounts.egg_serpent": "Serpent Spawn Egg",
+  "tame.shamanicmounts.left": "Left",
+  "tame.shamanicmounts.right": "Right",
+  "tame.shamanicmounts.forward": "Forward",
+  "tame.shamanicmounts.back": "Back"
 }

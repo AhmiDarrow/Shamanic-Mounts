@@ -1,8 +1,8 @@
 # Shamanic Mounts — The Spirit Herd
 
-**CurseForge summary (one line):** Ten spirit mounts, from eight-legged steeds and drum harts to rocs, bears and a frilled serpent. Tame with a braced saddle, breed any two, and chase the chimera.
+**CurseForge summary (one line):** Ten spirit mounts, from eight-legged steeds and drum harts to rocs, bears and a frilled serpent. Calm one with a golden apple, breed any two, and chase the chimera.
 
-Spirit mounts for Minecraft 1.21.1, NeoForge 21.1.249, and Java 21. Ten founder lines roam the Overworld, each in its own biomes and in the pelt at home there, each with a body, a gait and something it does when ridden. Brace a wild one to tame it, then breed any line with any other. The foal is one animal built from two copies of every gene: body, head, legs, tail, size, pelt, wings and ridden gifts, all tracked in a herd book that writes them the way a breeder would.
+Spirit mounts for Minecraft 1.21.1, NeoForge 21.1.249, and Java 21. Ten founder lines roam the Overworld, each in its own biomes and in the pelt at home there, each with a body, a gait and something it does when ridden. Calm a wild one with a golden apple, tame it from the saddle, then breed any line with any other. The foal is one animal built from two copies of every gene: body, head, legs, tail, size, pelt, wings and ridden gifts, all tracked in a herd book that writes them the way a breeder would.
 
 ![The ten founder lines and the chimera](https://raw.githubusercontent.com/AhmiDarrow/Shamanic-Mounts/main/docs/public/shamanic-mounts-founders.png)
 
@@ -17,7 +17,7 @@ Vanilla gives you the horse, the donkey and the camel. Shamanic Mounts puts ten 
 - **Slip past danger.** Hold sneak on a Shade and mobs lose track of you; sneak and use to blink six blocks ahead. The Nagual vanishes for 30 seconds and leaves you with Speed II and Jump Boost II.
 - **Heal your party.** The Drum hart's drum gives Regeneration II to you and every player within eight blocks.
 
-Taming is a small test, not a pile of food: brace a Shamanic Saddle on a wild mount and hold jump through four jolts. Breeding is where the mod goes deep. Any line crosses with any other, and every foal is one animal built from two copies of every gene, so you can see the cross: a bird's head on hooves, a steed with a serpent's long neck and tail, a bear that also carries a roc's flight. Breed long enough and two mounts carrying every gift can give you the chimera, a furry dragon with all of them at once. A herd book records every gene, parent and foal.
+Taming is a small test, not a pile of food: a golden apple calms a wild adult for two minutes, the Shamanic Saddle goes on, and for thirty seconds you press the direction it shows while it steps the other way. Breeding is where the mod goes deep. Any line crosses with any other, and every foal is one animal built from two copies of every gene, so you can see the cross: a bird's head on hooves, a steed with a serpent's long neck and tail, a bear that also carries a roc's flight. Breed long enough and two mounts carrying every gift can give you the chimera, a furry dragon with all of them at once. A herd book records every gene, parent and foal.
 
 Tame mounts get a proper inventory screen with a saddle, strap-on saddle bags and vanilla horse armor, and three orders: Follow, Stay (it lies down) and Wander. A new tame follows you, keeps following when you step off, and goes with you into other dimensions.
 
@@ -68,9 +68,9 @@ Cold biomes lean a size larger and hot ones a size smaller. Spawn eggs hatch the
 
 Every one of these is a biome tag built on the common `c:` tags, so modded biomes tagged as forest, taiga, snowy, jungle and the rest get the right mounts on their own, and a datapack can add any biome to `shamanicmounts:spawns/<line>` or `shamanicmounts:pelts/<line>/<a|b|c>`.
 
-## Brace to tame
+## Calm, then the saddle
 
-Food does not tame a spirit mount. Craft a Shamanic Saddle, a gold ingot over leather, a saddle and leather, and right-click a wild adult with it. The saddle goes on and the mount stands still. Four jolts follow. Each winds up for three quarters of a second, and you must be holding jump as it ends. Four held jumps and it is yours. Miss, get off or hit the mount and the try fails; you keep the saddle, and that mount refuses another try for 10 seconds. A vanilla saddle does not fit.
+Wild adults attack. Food does not tame a spirit mount. A golden apple makes one stop for two minutes. While it is calm, craft a Shamanic Saddle, a gold ingot over leather, a saddle and leather, and right-click to put it on. Right-click again to mount. For thirty seconds it shows a direction. Press that direction with the movement keys or the arrow keys. The mount steps the other way. Fifteen prompts, two seconds each. Four misses are allowed. Getting off fails the try; you keep the saddle, and that mount refuses another try for 10 seconds. A hit does not. A vanilla saddle does not fit.
 
 ## Tack and orders
 
@@ -86,7 +86,7 @@ Sneak and right-click a tame mount, or press your inventory key while riding, fo
 
 Any line with any other. The breed item is a Diamond Apple, eight diamonds around an apple. Feed one to a tame adult you own, then the other within ten seconds and eight blocks. One foal is born and the parents rest for five minutes. An operator can feed them through that rest.
 
-The foal is born wild. It keeps near the grown mounts of its kind and wears no saddle, bags or armor until it is grown. Then it takes the saddle like any wild adult, and its parents go into your herd book.
+The foal is born wild. It keeps near the grown mounts of its kind and wears no saddle, bags or armor until it is grown. Once grown, calm it with a golden apple and tame it from the saddle, and its parents go into your herd book.
 
 Breed until two mounts carry every gift, then breed those two. Each foal is an even chance of the same cross or the chimera: a furry dragon with scale plates down its back and sides and every gift at once. The body genes of the cross stay underneath it.
 
@@ -110,7 +110,7 @@ A readable book of the mounts you own, loaded or not. Each tame's page has its p
 
 ## Start your ride
 
-Find a wild mount in its home biomes: bears in the woods and the snow, cranes on the rivers, rocs in the mountains. Craft a Shamanic Saddle and brace it to tame. Sneak and right-click it to strap on bags, then open the herd book. Everything the mod adds sits in its own creative tab.
+Find a wild mount in its home biomes: bears in the woods and the snow, cranes on the rivers, rocs in the mountains. Calm it with a golden apple, put on a Shamanic Saddle, and tame it from the saddle. Sneak and right-click it to strap on bags, then open the herd book. Everything the mod adds sits in its own creative tab.
 
 ## Requirements
 

@@ -39,8 +39,10 @@ public final class Codex {
 						"Where a mount is born decides its pelt: a polar bear on the snow, a black bear in the forest, a snow leopard on the slopes. The cold grows them a little larger.",
 						"Every mount is built from genes. Its body, head, legs, tail, pelt, size, and what it does when ridden are each passed down on their own.")),
 				new Section("Taming", List.of(
-						"Food does not tame a spirit mount. Craft a Shamanic Saddle; a vanilla saddle does not fit.",
-						"Right-click a wild adult with the saddle. It stays put. Hold jump through four jolts to tame it.",
+						"Wild adults attack. A golden apple makes one stop for two minutes. Food does not tame a spirit mount.",
+						"While it is calm, right-click with a Shamanic Saddle to put it on. A vanilla saddle does not fit.",
+						"Right-click again to mount. For thirty seconds it shows a direction. Press that direction with the movement keys or the arrow keys. The mount steps the other way.",
+						"Fifteen prompts, two seconds each. Four misses are allowed. Getting off fails the try.",
 						"Sneak to step off. On a mount that hides, blinks, or dives, a held sneak keeps you on; tap it to step off.")),
 				new Section("Keeping", List.of(
 						"Sneak and right-click a tame for its tack: the saddle, Saddle Bags, and horse armor. Foals wear none.",
@@ -57,7 +59,7 @@ public final class Codex {
 				new Section("A pair and a foal", List.of(
 						"Any two mounts can breed. Feed a Diamond Apple to one tame adult you own, then the other within ten seconds and eight blocks. One foal. Those two rest for five minutes.",
 						"An operator can feed them during that rest, and a mount an operator readied stays ready until the pair is made.",
-						"The foal is born wild and keeps near the grown mounts. It wears no saddle, bags, or armor. Once grown, tame it with the saddle. Its parents go in this book then.")),
+						"The foal is born wild and keeps near the grown mounts. It wears no saddle, bags, or armor. Once grown, calm it with a golden apple and tame it from the saddle. Its parents go in this book then.")),
 				new Section("Two copies of everything", List.of(
 						"Every gene comes in two copies: one from the dam, one from the sire. Each parent passes one of its two at random.",
 						"Genes that sit together usually travel together: the body with its legs, feet, and gait; the head with build, size, pattern, and pelt; the wings with their span. About one time in eight a neighbour swaps over.")),

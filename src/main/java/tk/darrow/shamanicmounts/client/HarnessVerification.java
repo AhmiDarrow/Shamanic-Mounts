@@ -29,6 +29,8 @@ import net.neoforged.neoforge.client.event.ClientChatReceivedEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
 import tk.darrow.shamanicmounts.book.HerdBook;
+import tk.darrow.shamanicmounts.entity.ShamanicMount;
+import tk.darrow.shamanicmounts.tame.ReinTrial;
 import tk.darrow.shamanicmounts.genome.Founders;
 import tk.darrow.shamanicmounts.genome.Genome;
 import tk.darrow.shamanicmounts.genome.Marks;
@@ -414,6 +416,20 @@ public final class HarnessVerification {
 					return "error no book";
 				}
 				return "ok " + book.harnessReport();
+			}
+			case "cue" -> {
+				if (mc.player == null || !(mc.player.getVehicle() instanceof ShamanicMount mount)) {
+					return "ok none";
+				}
+				ReinTrial.Dir cue = mount.shownCue();
+				String name = switch (cue) {
+					case null -> "none";
+					case LEFT -> "left";
+					case RIGHT -> "right";
+					case FORWARD -> "forward";
+					case BACK -> "back";
+				};
+				return "ok " + name;
 			}
 			case "key" -> {
 				if (parts.length < 3) {

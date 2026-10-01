@@ -45,6 +45,8 @@ public final class MountPayloads {
 				(payload, context) -> context.enqueueWork(() -> MountModeChoice.handle(payload, (ServerPlayer) context.player())));
 		registrar.playToServer(MountKeys.TYPE, MountKeys.STREAM_CODEC,
 				(payload, context) -> context.enqueueWork(() -> MountKeys.handle(payload, (ServerPlayer) context.player())));
+		registrar.playToServer(MountRein.TYPE, MountRein.STREAM_CODEC,
+				(payload, context) -> context.enqueueWork(() -> MountRein.handle(payload, (ServerPlayer) context.player())));
 	}
 
 	public static void sendHerd(ServerPlayer player) {
@@ -180,6 +182,27 @@ public final class MountPayloads {
 		private static void handle(ServerPlayer player) {
 			if (player.getVehicle() instanceof ShamanicMount mount) {
 				mount.used(player);
+			}
+		}
+	}
+
+	/**
+	 * The rider's movement keys, as a mask: left, right, forward, back. Sent when the mask changes.
+	 * Arrow keys and WASD are the same keys. The server scores the rein trial from this.
+	 */
+	public record MountRein(int mask) implements CustomPacketPayload {
+		public static final Type<MountRein> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ShamanicMounts.MOD_ID, "mount_rein"));
+		public static final StreamCodec<RegistryFriendlyByteBuf, MountRein> STREAM_CODEC = StreamCodec.composite(
+				ByteBufCodecs.BYTE, rein -> (byte) rein.mask(), mask -> new MountRein(mask & 255));
+
+		@Override
+		public Type<? extends CustomPacketPayload> type() {
+			return TYPE;
+		}
+
+		private static void handle(MountRein payload, ServerPlayer player) {
+			if (player.getVehicle() instanceof ShamanicMount mount) {
+				mount.reinKeys(player, payload.mask());
 			}
 		}
 	}

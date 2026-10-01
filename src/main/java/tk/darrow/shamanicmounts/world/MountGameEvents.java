@@ -64,6 +64,12 @@ public final class MountGameEvents {
 			}
 		}
 		if (player.getVehicle() instanceof ShamanicMount mount) {
+			// The buck stops short of a block, and a clip that still lands does not smother the rider.
+			if (mount.shownCue() != null && !mount.isTame()
+					&& event.getSource().is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)) {
+				event.setCanceled(true);
+				return;
+			}
 			mount.reveal();
 		}
 	}

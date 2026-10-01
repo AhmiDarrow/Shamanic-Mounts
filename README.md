@@ -4,9 +4,9 @@
 
 # Shamanic Mounts
 
-Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.7**. Ten new rideable lines roam the Overworld, each with something it does under you: walk on water, fly, swim and dive, ram, maul, coil, hide from mobs, blink ahead, or heal the party. Tame one with a braced saddle, then breed any line with any other. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited. Breed far enough and you reach the chimera, a furry dragon with all ten ridden gifts at once.
+Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.8**. Ten new rideable lines roam the Overworld, each with something it does under you: walk on water, fly, swim and dive, ram, maul, coil, hide from mobs, blink ahead, or heal the party. Calm one with a golden apple, then tame it from the saddle, and breed any line with any other. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited. Breed far enough and you reach the chimera, a furry dragon with all ten ridden gifts at once.
 
-[Download from GitHub Releases](https://github.com/AhmiDarrow/Shamanic-Mounts/releases/latest) · [CurseForge](https://www.curseforge.com/minecraft/mc-mods/shamanic-mounts) · [0.1.3 notes](docs/RELEASE_0.1.3.md)
+[Download from GitHub Releases](https://github.com/AhmiDarrow/Shamanic-Mounts/releases/latest) · [CurseForge](https://www.curseforge.com/minecraft/mc-mods/shamanic-mounts) · [0.1.8 notes](docs/RELEASE_0.1.8.md)
 
 <p align="center">
   <img src="docs/public/shamanic-mounts-founders.png" alt="Eightfold, Drum hart, Elk, Crane, Nagual, Barghest, Roc, Shade, Chimera, Bear, and Serpent">
@@ -52,11 +52,11 @@ Everything is a tag, built on the common `c:` biome tags so modded biomes pick t
 
 Every mount needs a **Shamanic Saddle**. A vanilla saddle does not fit. Food does not tame.
 
-The saddle is a gold ingot over leather, a saddle, and leather. Right-click a wild adult with it. The mount stays put. Four jolts: each winds up for three quarters of a second, and you hold jump as it ends. Four successes and it is tame. Miss, dismount, or hit the mount, and you keep the saddle. That mount refuses another try for 10 seconds.
+Wild adults attack. A golden apple makes one stop for two minutes. While it is calm, right-click with the saddle to put it on. The saddle is a gold ingot over leather, a saddle, and leather. Right-click again to mount. For thirty seconds the mount shows a direction. Press that direction with the movement keys or the arrow keys. The mount steps the other way. Fifteen prompts, two seconds each. Four misses are allowed. Getting off fails the try, you keep the saddle, and that mount refuses another try for 10 seconds. A hit does not.
 
 ## Breeding
 
-Any line with any other. The breed item is a Diamond Apple: eight diamonds around an apple, the same shape as a golden apple. Feed one to a tame adult you own, then the other within ten seconds and eight blocks. One foal, one body. The foal is born wild, keeps near the grown mounts, and wears no saddle, bags, or armor until it is grown. Tame it then with the saddle like any wild adult, and its parents go in the herd book. Those two parents rest for five minutes. An operator can feed them during that rest, and a mount an operator readied stays ready until the pair is made. Every gene has two copies, one from each parent, and the herd book tracks both.
+Any line with any other. The breed item is a Diamond Apple: eight diamonds around an apple, the same shape as a golden apple. Feed one to a tame adult you own, then the other within ten seconds and eight blocks. One foal, one body. The foal is born wild, keeps near the grown mounts, and wears no saddle, bags, or armor until it is grown. Once grown, calm it with a golden apple and tame it from the saddle, and its parents go in the herd book. Those two parents rest for five minutes. An operator can feed them during that rest, and a mount an operator readied stays ready until the pair is made. Every gene has two copies, one from each parent, and the herd book tracks both.
 
 - **Body** shows by rank: bear, steed, hart, hound, cat, bird, serpent. The hidden body pulls the neck, head, tail, and girth halfway toward its own shape.
 - **Head, feet, and tail** each show one copy, picked at birth. **Legs** meet in the middle; no legs is recessive.

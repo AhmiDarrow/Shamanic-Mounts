@@ -35,7 +35,7 @@ def main():
     check("the spoiler button starts off", "Spoilers: off" in labels, str(labels))
     _reply, fields = report()
     basics = lines_of(fields)
-    check("the basics page names the saddle and the four jolts", "Shamanic Saddle" in basics and "four jolts" in basics, basics[:180])
+    check("the basics page names the saddle and the rein trial", "Shamanic Saddle" in basics and "golden apple" in basics and "thirty seconds" in basics, basics[:240])
     check("the basics page does not explain the chimera", "chimera" not in basics.lower() and "both copies" not in basics.lower())
     client("shot book_basics")
 

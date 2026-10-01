@@ -35,8 +35,10 @@ final class Heads {
 			float sz = z + 3.2f * i;
 			pen.box(-3f, sy, sz, 6f, 7f, 7f, skin.base());
 			if (i < 3) {
-				pen.box(-1f, sy - 0.5f, sz + 7f, 2f, 7.5f, 1.8f, Mat.MANE);
-				pen.box(3f, sy + 0.5f, sz + 2f, 1.2f, 6.5f, 5.88f, Mat.MANE);
+				// Crest along the top, then the same hair falling off it to the right.
+				pen.box(-1.1f, sy - 0.8f, sz + 6.2f, 2.2f, 8.2f, 2.8f, skin.hair());
+				// Clear of the next neck face (3.2) and of the chest top (the fall used to end on it).
+				pen.box(0.2f, sy - 0.4f, sz + 3.6f, 2.4f, 7.6f, 3.8f, skin.hair());
 			}
 		}
 		return new float[] { y - 6.6f, z + 9.6f };
@@ -241,8 +243,8 @@ final class Heads {
 		pen.pair(-5f, y - 3f, z + 0.5f, 1f, 4f, 5f, skin.base());
 		eyes(pen, 4f, y - 6f, z + 4f, 3f, 2f, skin);
 		ears(pen, -3.2f, y - 2.5f, z + 7f, 2.2f, 2.2f, 4f, skin.base(), skin.dark());
-		pen.box(-1.2f, y - 6.5f, z + 7.2f, 2.4f, 4.5f, 1.6f, Mat.MANE);
-		pen.box(-1f, y - 8.2f, z + 5.5f, 2f, 1.4f, 2.5f, Mat.MANE);
+		pen.box(-1.2f, y - 6.5f, z + 7.2f, 2.4f, 4.5f, 1.6f, skin.hair());
+		pen.box(-1f, y - 8.2f, z + 5.5f, 2f, 1.4f, 2.5f, skin.hair());
 	}
 
 	private static void hart(Pen pen, float y, float z, Skin skin, Phenotype.RackShow rack) {

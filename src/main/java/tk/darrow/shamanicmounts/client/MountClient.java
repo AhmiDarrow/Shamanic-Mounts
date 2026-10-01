@@ -15,12 +15,15 @@ import tk.darrow.shamanicmounts.book.HerdIO;
 import tk.darrow.shamanicmounts.entity.MountMenus;
 import tk.darrow.shamanicmounts.entity.ShamanicMount;
 import tk.darrow.shamanicmounts.net.MountPayloads;
+import tk.darrow.shamanicmounts.tame.ReinTrial;
 
 public final class MountClient {
 	private static boolean useWasDown;
 	private static boolean sneakSent;
 	private static boolean jumpSent;
 	private static boolean keysKnown;
+	private static int reinSent;
+	private static boolean reinKnown;
 
 	/** What the client last told the server about its keys, for the harness. */
 	public static String keysSent() {
@@ -36,6 +39,7 @@ public final class MountClient {
 		modBus.addListener(MountClient::buffers);
 		NeoForge.EVENT_BUS.addListener(MountClient::tick);
 		NeoForge.EVENT_BUS.addListener(MountClient::afterEntities);
+		NeoForge.EVENT_BUS.addListener(ReinGuide::render);
 		MountPayloads.openBook = MountClient::openBook;
 		MountPayloads.warp = MountClient::warp;
 	}
@@ -68,6 +72,7 @@ public final class MountClient {
 		if (minecraft.player == null || !(minecraft.player.getVehicle() instanceof ShamanicMount mount)) {
 			useWasDown = false;
 			keysKnown = false;
+			reinKnown = false;
 			return;
 		}
 		boolean sneak = minecraft.options.keyShift.isDown();
@@ -79,6 +84,24 @@ public final class MountClient {
 			sneakSent = sneak;
 			jumpSent = jump;
 			keysKnown = true;
+		}
+		int rein = 0;
+		if (minecraft.options.keyLeft.isDown()) {
+			rein |= ReinTrial.PRESS_LEFT;
+		}
+		if (minecraft.options.keyRight.isDown()) {
+			rein |= ReinTrial.PRESS_RIGHT;
+		}
+		if (minecraft.options.keyUp.isDown()) {
+			rein |= ReinTrial.PRESS_FORWARD;
+		}
+		if (minecraft.options.keyDown.isDown()) {
+			rein |= ReinTrial.PRESS_BACK;
+		}
+		if (!reinKnown || rein != reinSent) {
+			PacketDistributor.sendToServer(new MountPayloads.MountRein(rein));
+			reinSent = rein;
+			reinKnown = true;
 		}
 		boolean down = minecraft.options.keyUse.isDown();
 		if (down && !useWasDown) {
