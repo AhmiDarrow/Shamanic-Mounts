@@ -51,3 +51,7 @@ Shamanic Mounts 0.1.5 - Wild Herds Stay, CurseForge file **9023646** (uploaded 2
 ## 0.1.6
 
 Shamanic Mounts 0.1.6 - Close at Heel, CurseForge file **9024864** (uploaded 2026-10-01, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.6
+
+## 0.1.7
+
+Shamanic Mounts 0.1.7 - Light Hooves, CurseForge file **9025439** (uploaded 2026-10-01, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.7
