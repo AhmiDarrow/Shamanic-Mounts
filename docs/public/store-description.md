@@ -123,4 +123,4 @@ Find a wild mount in its home biomes: bears in the woods and the snow, cranes on
 
 None needed. Shamanic Mounts is written to sit beside [Chocobos Reborn](https://www.curseforge.com/minecraft/mc-mods/chocobos-reborn) and [Tribal Power](https://www.curseforge.com/minecraft/mc-mods/tribalpower): the chocobos stay the pad-runners, and these are the other mounts. With Tribal Power installed, every line also lives in the March, each in the lands that suit it: Eightfold and Drum harts on the Steppe, Bears and Elk in the Highlands and Snow Fields, Cranes and Serpents in the Reed Fen and Shallows, red Rocs and Barghests in the Ember Wastes, and the rest across Glimmer Ridge and the Crystal Fields. Without it those rules do nothing. It is built on the same Minecraft and NeoForge as [Ninjacat Skies](https://www.curseforge.com/minecraft/modpacks/ninjacat-skies).
 
-Version 0.1.4. Created by Ahmi Darrow. MIT. [Source and documentation](https://github.com/AhmiDarrow/Shamanic-Mounts).
+Version 0.1.5. Created by Ahmi Darrow. MIT. [Source and documentation](https://github.com/AhmiDarrow/Shamanic-Mounts).

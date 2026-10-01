@@ -1396,9 +1396,14 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		return null;
 	}
 
+	/**
+	 * Wild mounts stay where they were born, like other animals. Most are born with the land, out at the
+	 * edge of sight; a mount that despawned once no one stood near would be gone long before a rider got
+	 * there, and the animals that never leave keep the creature cap too full for more to be born later.
+	 */
 	@Override
 	public boolean removeWhenFarAway(double distance) {
-		return !this.isTame();
+		return false;
 	}
 
 	@Override
