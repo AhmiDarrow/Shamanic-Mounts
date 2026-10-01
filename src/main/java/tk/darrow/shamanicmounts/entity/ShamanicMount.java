@@ -78,8 +78,6 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			EntityDataSerializers.COMPOUND_TAG);
 	private static final EntityDataAccessor<Boolean> DATA_SADDLED = SynchedEntityData.defineId(ShamanicMount.class,
 			EntityDataSerializers.BOOLEAN);
-	private static final EntityDataAccessor<Integer> DATA_STAMINA = SynchedEntityData.defineId(ShamanicMount.class,
-			EntityDataSerializers.INT);
 	/** 0 wings folded, 1 gliding, 2 flapping. */
 	private static final EntityDataAccessor<Byte> DATA_WING = SynchedEntityData.defineId(ShamanicMount.class,
 			EntityDataSerializers.BYTE);
@@ -101,8 +99,16 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	private static final EntityDataAccessor<Byte> DATA_MODE = SynchedEntityData.defineId(ShamanicMount.class,
 			EntityDataSerializers.BYTE);
 
-	private Genome genome = Founders.eightfold();
-	private Phenotype phenotype = Expression.express(genome);
+	/**
+	 * What a mount is before its own genome is set: built once and shared, since every spawn attempt and every
+	 * mount loaded from disk constructs one and replaces it straight away. Genomes and phenotypes are never changed.
+	 */
+	private static final Genome DEFAULT_GENOME = Founders.eightfold();
+	private static final Phenotype DEFAULT_PHENOTYPE = Expression.express(DEFAULT_GENOME);
+	private static final CompoundTag DEFAULT_GENOME_TAG = GenomeIO.write(DEFAULT_GENOME);
+
+	private Genome genome = DEFAULT_GENOME;
+	private Phenotype phenotype = DEFAULT_PHENOTYPE;
 	private boolean genomeLocked;
 	private boolean male = true;
 	private final SimpleContainer chest = new SimpleContainer(GiftRules.CHEST_SLOTS);
@@ -118,6 +124,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	private boolean jumpHeld;
 	private boolean hopUsed;
 	private boolean climbSpent;
+	/** The climb bar. Only the server reads it, so it is not synced to clients. */
+	private int stamina = GiftRules.CLIMB_TICKS;
 	private boolean climbing;
 	private int drumCooldown;
 	private int ramCooldown;
@@ -235,9 +243,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	@Override
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
 		super.defineSynchedData(builder);
-		builder.define(DATA_GENOME, GenomeIO.write(Founders.eightfold()));
+		builder.define(DATA_GENOME, DEFAULT_GENOME_TAG);
 		builder.define(DATA_SADDLED, false);
-		builder.define(DATA_STAMINA, GiftRules.CLIMB_TICKS);
 		builder.define(DATA_WING, (byte) 0);
 		builder.define(DATA_CLIMBING, false);
 		builder.define(DATA_MODE, (byte) FollowRules.DEFAULT.ordinal());
@@ -281,6 +288,29 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
 		this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
 		this.targetSelector.addGoal(2, new HurtByTargetGoal(this));
+	}
+
+	/** The owner as last found in this level; see {@link #getOwner()}. */
+	@Nullable
+	private LivingEntity ownerSeen;
+
+	/**
+	 * The owner, if they are in this level. Vanilla finds them by walking the level's player list on every call, and the
+	 * follow goal, the sit and target goals, and the rider checks each ask several times a tick. The player found last
+	 * is handed back while it is still that player and still in this level, which is exactly when the walk would find
+	 * it again; anything else (gone, dead and respawned, another dimension, a new owner) walks the list as before.
+	 */
+	@Override
+	@Nullable
+	public LivingEntity getOwner() {
+		UUID id = this.getOwnerUUID();
+		LivingEntity seen = ownerSeen;
+		if (id != null && seen != null && !seen.isRemoved() && seen.level() == this.level() && id.equals(seen.getUUID())) {
+			return seen;
+		}
+		LivingEntity found = super.getOwner();
+		ownerSeen = found;
+		return found;
 	}
 
 	/** How many players have this mount's screen open. While any do, it stands still for them. */
@@ -339,7 +369,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	}
 
 	public int stamina() {
-		return this.entityData.get(DATA_STAMINA);
+		return stamina;
 	}
 
 	public SimpleContainer chest() {
@@ -715,7 +745,11 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		}
 		boolean hide = GiftRules.sneakHide(phenotype) && riderSneak && revealTicks <= 0;
 		if (hide) {
-			quietNearby(player);
+			// While hidden, no mob near the rider can take up the rider or the mount as a target (see hidesFrom), so
+			// the sweep is needed only when the hide starts and for a mob that walks in already set on them.
+			if (!hidden || this.tickCount % QUIET_EVERY == 0) {
+				quietNearby(player);
+			}
 			if (!hidden) {
 				MountEffects.veilOn(this);
 			}
@@ -733,8 +767,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			AABB box = this.getBoundingBox().inflate(glow);
 			for (Mob mob : this.level().getEntitiesOfClass(Mob.class, box, LivingEntity::isAlive)) {
 				if (mob.getType().getCategory() == net.minecraft.world.entity.MobCategory.MONSTER) {
-					mob.addEffect(new net.minecraft.world.effect.MobEffectInstance(
-							net.minecraft.world.effect.MobEffects.GLOWING, 40, 0, true, false, false));
+					shine(mob);
 				}
 			}
 		}
@@ -749,6 +782,41 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 				tryRam(player);
 			}
 		}
+	}
+
+	/** How long the omen's glow lasts on a monster. The scan runs every ten ticks. */
+	private static final int GLOW_TICKS = 40;
+	/** A glow of the omen's own with more than this left is not renewed: it outlasts the next two scans. */
+	private static final int GLOW_RENEW_AT = 20;
+	/** Ticks between sweeps for mobs set on a hidden rider. The target event covers the ticks between. */
+	private static final int QUIET_EVERY = 4;
+
+	/**
+	 * Lights a monster for the omen. Renewing every scan would fire the effect events and rework the monster's effects
+	 * each time for nothing, so the omen's own glow is topped up only once it is down to {@link #GLOW_RENEW_AT}; it never
+	 * runs out while the monster stays in range. Any other glow (another source's, a stronger or endless one) is met
+	 * exactly as before.
+	 */
+	private static void shine(Mob mob) {
+		net.minecraft.world.effect.MobEffectInstance now = mob.getEffect(net.minecraft.world.effect.MobEffects.GLOWING);
+		if (now != null && now.getAmplifier() == 0 && now.isAmbient() && !now.isVisible() && !now.showIcon()
+				&& !now.isInfiniteDuration() && now.getDuration() > GLOW_RENEW_AT) {
+			return;
+		}
+		mob.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+				net.minecraft.world.effect.MobEffects.GLOWING, GLOW_TICKS, 0, true, false, false));
+	}
+
+	/**
+	 * Whether {@code seeker} must not take up {@code target} because this mount's veil is closed: the target is the
+	 * steering rider or the mount, the hide holds right now, and the seeker is a mob within the reach of the sweep.
+	 */
+	public boolean hidesFrom(LivingEntity seeker, LivingEntity target) {
+		if (!hidden || !riderSneak || revealTicks > 0 || this.level().isClientSide() || !(seeker instanceof Mob)
+				|| !(this.getControllingPassenger() instanceof Player rider) || (target != rider && target != this)) {
+			return false;
+		}
+		return seeker.getBoundingBox().intersects(rider.getBoundingBox().inflate(QUIET_REACH));
 	}
 
 	/** How long the drum's night vision runs. Over ten seconds, or the screen dims and pulses. */
@@ -779,7 +847,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		climbing = climb;
 		if (climb) {
 			int next = stamina - 1;
-			this.entityData.set(DATA_STAMINA, next);
+			this.stamina = next;
 			MountEffects.climb(this);
 			if (next <= 0) {
 				climbSpent = true;
@@ -790,7 +858,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			}
 		} else {
 			if (stamina < GiftRules.CLIMB_TICKS) {
-				this.entityData.set(DATA_STAMINA, stamina + 1);
+				this.stamina = stamina + 1;
 			} else {
 				climbSpent = false;
 			}
@@ -803,8 +871,11 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		}
 	}
 
+	/** How far around a hidden rider mobs lose them. */
+	private static final double QUIET_REACH = 24.0;
+
 	private void quietNearby(Player player) {
-		AABB box = player.getBoundingBox().inflate(24.0);
+		AABB box = player.getBoundingBox().inflate(QUIET_REACH);
 		for (Mob mob : this.level().getEntitiesOfClass(Mob.class, box)) {
 			if (mob.getTarget() == player || mob.getTarget() == this) {
 				mob.setTarget(null);
@@ -1538,7 +1609,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		}
 		this.refuseTicks = tag.getInt("Refuse");
 		this.restTicks = tag.getInt("Rest");
-		this.entityData.set(DATA_STAMINA, tag.contains("Stamina") ? tag.getInt("Stamina") : GiftRules.CLIMB_TICKS);
+		this.stamina = tag.contains("Stamina") ? tag.getInt("Stamina") : GiftRules.CLIMB_TICKS;
 		this.climbSpent = tag.getBoolean("ClimbSpent");
 		this.drumCooldown = tag.getInt("Drum");
 		this.ramCooldown = tag.getInt("Ram");

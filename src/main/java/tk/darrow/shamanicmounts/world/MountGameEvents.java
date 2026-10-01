@@ -3,8 +3,10 @@ package tk.darrow.shamanicmounts.world;
 import java.util.UUID;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
@@ -26,6 +28,23 @@ public final class MountGameEvents {
 		if (event.getEntity() instanceof Creeper && event.getNewAboutToBeSetTarget() instanceof Player player
 				&& player.getPersistentData().getInt("shamanicmounts_skin") > 0) {
 			event.setCanceled(true);
+		}
+	}
+
+	/**
+	 * A shade's hidden rider: a mob near them that goes to take up the rider or the mount ends with no target, the same
+	 * as the per-tick sweep used to leave it one tick later. Last, so it sees the target other handlers settled on.
+	 */
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public static void hidden(LivingChangeTargetEvent event) {
+		if (event.isCanceled() || event.getTargetType() != LivingChangeTargetEvent.LivingTargetType.MOB_TARGET) {
+			return;
+		}
+		LivingEntity target = event.getNewAboutToBeSetTarget();
+		ShamanicMount mount = target instanceof ShamanicMount self ? self
+				: target != null && target.getVehicle() instanceof ShamanicMount ridden ? ridden : null;
+		if (mount != null && mount.hidesFrom(event.getEntity(), target)) {
+			event.setNewAboutToBeSetTarget(null);
 		}
 	}
 

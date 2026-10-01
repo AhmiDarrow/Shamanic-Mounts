@@ -3,7 +3,11 @@ package tk.darrow.shamanicmounts.client;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import org.joml.Matrix4f;
+
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexSorting;
 import com.mojang.math.Axis;
 
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -22,6 +26,12 @@ import tk.darrow.shamanicmounts.genome.Phenotype;
 /** Block cubes, scaled to the same size as the hitbox, with a walk, a sit, and a wing pose. */
 public class MountRenderer extends EntityRenderer<ShamanicMount> {
 	private static final ResourceLocation COAT = ResourceLocation.fromNamespaceAndPath(ShamanicMounts.MOD_ID, "textures/entity/mount.png");
+	/**
+	 * The eye shine. It has a buffer of its own in the level's buffer source (see {@link MountClient}), so asking for it
+	 * does not end the coat batch: every mount's coat goes to the GPU in one draw and every eye in another, instead of
+	 * two draws for each mount with shining eyes.
+	 */
+	static final RenderType EYES = RenderType.eyes(COAT);
 	/** Sit and air ease in over a few ticks so a mount settles instead of snapping. */
 	private final Map<ShamanicMount, MountEase> eased = new WeakHashMap<>();
 	/** The live harness can hold every mount at one stride position: swing and amount. */
@@ -36,6 +46,9 @@ public class MountRenderer extends EntityRenderer<ShamanicMount> {
 
 	@Override
 	public void render(ShamanicMount mount, float yaw, float partialTick, PoseStack pose, MultiBufferSource buffers, int light) {
+		// Faces turned away from the camera are skipped before they are submitted, but only where that changes nothing:
+		// a back-face-culled draw in the world, through a perspective camera at the origin of an unrotated pose space.
+		boolean cull = mount.isAddedToLevel() && cameraAtOrigin(pose.last().pose());
 		pose.pushPose();
 		float body = Mth.rotLerp(partialTick, mount.yBodyRotO, mount.yBodyRot);
 		pose.mulPose(Axis.YP.rotationDegrees(180.0f - body));
@@ -83,11 +96,22 @@ public class MountRenderer extends EntityRenderer<ShamanicMount> {
 		// Every face is wound outward, so a mount in the world skips its back faces on the GPU. A book
 		// portrait is drawn with the depth axis flipped, which reverses the winding, so it keeps both sides.
 		var consumer = buffers.getBuffer(mount.isAddedToLevel() ? RenderType.entityCutout(COAT) : RenderType.entityCutoutNoCull(COAT));
-		java.util.function.Supplier<com.mojang.blaze3d.vertex.VertexConsumer> eyes = glow ? () -> buffers.getBuffer(RenderType.eyes(COAT)) : null;
+		java.util.function.Supplier<com.mojang.blaze3d.vertex.VertexConsumer> eyes = glow ? () -> buffers.getBuffer(EYES) : null;
 		MountMesh.draw(phenotype, mount.saddled(), mount.hasBags(), mount.armorTier(), mount.pelt(), pose, consumer, eyes, light,
-				OverlayTexture.NO_OVERLAY, anim);
+				OverlayTexture.NO_OVERLAY, anim, cull);
 		pose.popPose();
 		super.render(mount, yaw, partialTick, pose, buffers, light);
+	}
+
+	/**
+	 * Whether the pose space is the level's camera space: no rotation or scale yet, only the offset to the entity, and a
+	 * perspective projection that sorts by distance to the origin. The level's entity pass draws like that; a picture
+	 * in a screen, or a pass drawn from another viewpoint, does not.
+	 */
+	private static boolean cameraAtOrigin(Matrix4f m) {
+		return m.m00() == 1f && m.m11() == 1f && m.m22() == 1f && m.m01() == 0f && m.m02() == 0f && m.m10() == 0f
+				&& m.m12() == 0f && m.m20() == 0f && m.m21() == 0f && m.m03() == 0f && m.m13() == 0f && m.m23() == 0f
+				&& m.m33() == 1f && RenderSystem.getVertexSorting() == VertexSorting.DISTANCE_TO_ORIGIN;
 	}
 
 	@Override

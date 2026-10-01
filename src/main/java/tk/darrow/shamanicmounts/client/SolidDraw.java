@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -23,10 +24,17 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
  * Eye faces instead stretch a pixel eye from the cell, sized to the face.
  *
  * <p>The cut plan depends only on the cube layout, not the pose, so a caller can keep the
- * {@link Plan} from one frame and hand it back on the next. A plan is baked: every surviving piece
+ * {@link Plan} from one frame and hand it back on the next. Culling never looks past a part, so each part
+ * is cut on its own and the cut is kept by the part's cubes alone: a layout that changes in one part (a
+ * wing folding, a tail fanning) re-cuts nothing, and mounts built alike share their cuts. A plan is baked: every surviving piece
  * already holds its corners and texture coordinates, so a frame only transforms and submits them.
  * Pieces of one face that line up are merged first, which draws the same surface with fewer quads.
- * Cubes and pose snapshots are pooled, so a frame allocates nothing per cube.
+ * Cubes, pose snapshots, and the pen's transform stack are pooled, so a frame allocates nothing per cube
+ * or per joint.
+ *
+ * <p>In the world a mount is drawn with back faces culled, so a face turned away from the camera is not
+ * submitted at all: the GPU would throw it away anyway. Each part's camera position is worked out once per
+ * frame, and a face is skipped only when the camera is clearly behind its plane.
  */
 final class SolidDraw {
 	private static final float EPS = 0.0004f;
@@ -37,8 +45,9 @@ final class SolidDraw {
 	private static final int[] EYE_4 = { 0, 8, 16, 20 };
 	private static final int[] EYE_SHUT = { 16, 8, 24, 16 };
 
-	/** Render statistics for the live harness: plan rebuilds and quads emitted since the last read. */
+	/** Render statistics for the live harness: parts cut, plans put together from cut parts, and quads emitted. */
 	static long replans;
+	static long assembles;
 	static long quads;
 	/** Set by the live harness; a player's game never counts or times. */
 	static boolean stats;
@@ -57,13 +66,108 @@ final class SolidDraw {
 	private final Vector3f positionScratch = new Vector3f();
 	/** Opaque white: the atlas carries the colour. */
 	private static final int WHITE = 0xFFFFFFFF;
+	/**
+	 * How far behind a face's plane the camera must be, in blocks, before the face is skipped. View bobbing
+	 * moves the true eye up to about a tenth of a block from the camera, so this keeps every face the GPU
+	 * could still show.
+	 */
+	private static final float BEHIND = 0.25f;
+
+	/** The pen's transform stack, pooled. Each level is a model matrix and its normal matrix. */
+	private Matrix4f[] stackModel = new Matrix4f[32];
+	private Matrix3f[] stackNormal = new Matrix3f[32];
+	private int top = -1;
+	private final Quaternionf turn = new Quaternionf();
+
+	/** Per pose snapshot, filled at flush: unit normals of its three axes, and the camera in its own space. */
+	private float[] axisNormals = new float[64 * 9];
+	private float[] eyes = new float[64 * 3];
+	/** Per pose and axis, how many local units make one block across that axis' planes. */
+	private float[] unitsPerBlock = new float[64 * 3];
+	private boolean[] shown = new boolean[256];
+	private final Matrix4f inverse = new Matrix4f();
+
+	/** Start a pen's stack at {@code base}. */
+	void begin(PoseStack.Pose base) {
+		top = 0;
+		ensureStack(0);
+		stackModel[0].set(base.pose());
+		stackNormal[0].set(base.normal());
+	}
+
+	private void ensureStack(int level) {
+		if (level >= stackModel.length) {
+			stackModel = java.util.Arrays.copyOf(stackModel, level * 2);
+			stackNormal = java.util.Arrays.copyOf(stackNormal, level * 2);
+		}
+		if (stackModel[level] == null) {
+			stackModel[level] = new Matrix4f();
+			stackNormal[level] = new Matrix3f();
+		}
+	}
+
+	/** The same as {@link PoseStack#pushPose()}, into a pooled level. */
+	void push() {
+		ensureStack(top + 1);
+		stackModel[top + 1].set(stackModel[top]);
+		stackNormal[top + 1].set(stackNormal[top]);
+		top++;
+	}
+
+	void pop() {
+		top--;
+	}
+
+	/** The same arithmetic as {@link PoseStack#translate(float, float, float)}. */
+	void translate(float x, float y, float z) {
+		stackModel[top].translate(x, y, z);
+	}
+
+	/** The same arithmetic as {@code mulPose(Axis.XP.rotationDegrees(degrees))}, without a new quaternion. */
+	void rotateX(float degrees) {
+		rotate(turn.rotationX(degrees * (float) (Math.PI / 180.0)));
+	}
+
+	void rotateY(float degrees) {
+		rotate(turn.rotationY(degrees * (float) (Math.PI / 180.0)));
+	}
+
+	void rotateZ(float degrees) {
+		rotate(turn.rotationZ(degrees * (float) (Math.PI / 180.0)));
+	}
+
+	private void rotate(Quaternionf quaternion) {
+		stackModel[top].rotate(quaternion);
+		stackNormal[top].rotate(quaternion);
+	}
+
+	/** The same arithmetic as {@link PoseStack#scale(float, float, float)}. */
+	void scale(float x, float y, float z) {
+		stackModel[top].scale(x, y, z);
+		if (Math.abs(x) == Math.abs(y) && Math.abs(y) == Math.abs(z)) {
+			if (x < 0.0F || y < 0.0F || z < 0.0F) {
+				stackNormal[top].scale(Math.signum(x), Math.signum(y), Math.signum(z));
+			}
+		} else {
+			stackNormal[top].scale(1.0F / x, 1.0F / y, 1.0F / z);
+		}
+	}
+
+	/** A cube under the pen's current transform. */
+	void add(int group, float x, float y, float z, float w, float h, float d, Mat coat, int eyeFace, Mat eye) {
+		add(stackModel[top], stackNormal[top], group, x, y, z, w, h, d, coat, eyeFace, eye);
+	}
 
 	/** Coordinates are blocks in Minecraft axes: x right, y up, z toward the tail. */
 	void add(PoseStack pose, int group, float x, float y, float z, float w, float h, float d, Mat coat, int eyeFace, Mat eye) {
+		add(pose.last().pose(), pose.last().normal(), group, x, y, z, w, h, d, coat, eyeFace, eye);
+	}
+
+	private void add(Matrix4f model, Matrix3f normal, int group, float x, float y, float z, float w, float h, float d, Mat coat,
+			int eyeFace, Mat eye) {
 		if (w < EPS || h < EPS || d < EPS) {
 			return;
 		}
-		Matrix4f model = pose.last().pose();
 		if (poses == 0 || !models[poses - 1].equals(model)) {
 			if (poses == models.length) {
 				models = java.util.Arrays.copyOf(models, poses * 2);
@@ -74,7 +178,7 @@ final class SolidDraw {
 				normals[poses] = new Matrix3f();
 			}
 			models[poses].set(model);
-			normals[poses].set(pose.last().normal());
+			normals[poses].set(normal);
 			poses++;
 		}
 		if (count == boxes.length) {
@@ -97,44 +201,123 @@ final class SolidDraw {
 	 * With a {@code glow} supplier the eye faces are drawn again, full bright, for eyes that shine at night.
 	 */
 	Plan flush(VertexConsumer consumer, int light, int overlay, Plan cached, boolean blink, Supplier<VertexConsumer> glow) {
+		Plan[] plans = { cached };
+		flush(consumer, light, overlay, plans, 0, -1, blink, glow, false);
+		return plans[0];
+	}
+
+	/**
+	 * Draw every visible face with the plan kept in {@code plans[slot]}. A layout that alternates with another, like
+	 * a wing that folds and opens, keeps its other plan in {@code plans[spare]} (-1 for none), and the two swap rather
+	 * than being cut again. With {@code cull}, faces turned away from the camera are left out: only for a draw whose
+	 * back faces are culled anyway and whose pose space has the camera at its origin.
+	 */
+	void flush(VertexConsumer consumer, int light, int overlay, Plan[] plans, int slot, int spare, boolean blink,
+			Supplier<VertexConsumer> glow, boolean cull) {
 		long start = stats ? System.nanoTime() : 0L;
 		long sig = signature();
 		if (stats) {
 			signNanos += System.nanoTime() - start;
 		}
-		Plan plan = cached != null && cached.signature == sig ? cached : plan();
-		for (Face face : plan.faces) {
-			emit(face, face.eye && blink ? face.shut : face.uv, consumer, light, overlay);
+		Plan plan = plans[slot];
+		if (plan == null || plan.signature != sig) {
+			Plan other = spare >= 0 ? plans[spare] : null;
+			if (other != null && other.signature == sig) {
+				plans[spare] = plan;
+				plan = other;
+			} else {
+				if (spare >= 0) {
+					plans[spare] = plan;
+				}
+				plan = plan(sig);
+			}
+			plans[slot] = plan;
 		}
-		// The glow buffer is fetched only now: asking the buffer source for it ends the coat buffer.
-		if (glow != null && !blink && plan.hasEyes) {
-			VertexConsumer shine = glow.get();
-			for (Face face : plan.faces) {
-				if (face.eye) {
-					emit(face, face.uv, shine, 0xF000F0, overlay);
+		prepare(cull);
+		Face[] faces = plan.faces;
+		if (shown.length < faces.length) {
+			shown = new boolean[faces.length * 2];
+		}
+		for (int i = 0; i < faces.length; i++) {
+			Face face = faces[i];
+			int pose = boxes[face.box].pose;
+			boolean show = !cull || !behind(face, pose);
+			shown[i] = show;
+			if (show) {
+				emit(face, pose, face.eye && blink ? face.shut : face.uv, consumer, light, overlay);
+			}
+		}
+		// The glow buffer is fetched only now: in a buffer source without its own glow buffer, asking for it ends
+		// the coat buffer.
+		if (glow != null && !blink && plan.eyeFaces.length > 0) {
+			VertexConsumer shine = null;
+			for (int i : plan.eyeFaces) {
+				if (shown[i]) {
+					if (shine == null) {
+						shine = glow.get();
+					}
+					Face face = faces[i];
+					emit(face, boxes[face.box].pose, face.uv, shine, 0xF000F0, overlay);
 				}
 			}
 		}
 		count = 0;
 		poses = 0;
+		top = -1;
 		if (stats) {
 			flushNanos += System.nanoTime() - start;
 		}
-		return plan;
 	}
 
-	/** Transform the face's normal once, then submit its baked corners. */
-	private void emit(Face face, float[] uv, VertexConsumer consumer, int light, int overlay) {
-		Box box = boxes[face.box];
-		Matrix4f model = models[box.pose];
-		Vector3f n = normals[box.pose].transform(normalScratch.set(face.nx, face.ny, face.nz));
-		float length = n.length();
-		if (length > 1.0e-6f) {
-			n.div(length);
+	/** Each pose's unit axis normals, and with culling its camera position and scale, once per frame. */
+	private void prepare(boolean cull) {
+		if (axisNormals.length < poses * 9) {
+			axisNormals = new float[poses * 18];
+			eyes = new float[poses * 6];
+			unitsPerBlock = new float[poses * 6];
 		}
-		float nx = n.x;
-		float ny = n.y;
-		float nz = n.z;
+		Vector3f n = normalScratch;
+		for (int p = 0; p < poses; p++) {
+			Matrix3f normal = normals[p];
+			for (int axis = 0; axis < 3; axis++) {
+				// Exactly what transforming the face's unit normal and normalizing it gives; the opposite face negates it.
+				normal.transform(n.set(axis == 0 ? 1f : 0f, axis == 1 ? 1f : 0f, axis == 2 ? 1f : 0f));
+				float length = n.length();
+				if (length > 1.0e-6f) {
+					n.div(length);
+				}
+				axisNormals[p * 9 + axis * 3] = n.x;
+				axisNormals[p * 9 + axis * 3 + 1] = n.y;
+				axisNormals[p * 9 + axis * 3 + 2] = n.z;
+			}
+			if (cull) {
+				// The camera sits at the origin of pose space; in the part's own space it is the inverse's translation.
+				// A row of the inverse is how fast that local coordinate changes per block of distance.
+				Matrix4f inv = models[p].invertAffine(inverse);
+				eyes[p * 3] = inv.m30();
+				eyes[p * 3 + 1] = inv.m31();
+				eyes[p * 3 + 2] = inv.m32();
+				unitsPerBlock[p * 3] = (float) Math.sqrt(inv.m00() * inv.m00() + inv.m10() * inv.m10() + inv.m20() * inv.m20());
+				unitsPerBlock[p * 3 + 1] = (float) Math.sqrt(inv.m01() * inv.m01() + inv.m11() * inv.m11() + inv.m21() * inv.m21());
+				unitsPerBlock[p * 3 + 2] = (float) Math.sqrt(inv.m02() * inv.m02() + inv.m12() * inv.m12() + inv.m22() * inv.m22());
+			}
+		}
+	}
+
+	/** Whether the camera is clearly behind this face's plane, so the face looks away from it. */
+	private boolean behind(Face face, int pose) {
+		int k = pose * 3 + face.axis;
+		float out = (eyes[k] - face.plane) * face.sign;
+		return out < -BEHIND * unitsPerBlock[k];
+	}
+
+	/** Submit a face's baked corners under its pose, with the pose's normal for that face. */
+	private void emit(Face face, int pose, float[] uv, VertexConsumer consumer, int light, int overlay) {
+		Matrix4f model = models[pose];
+		int k = pose * 9 + face.axis * 3;
+		float nx = axisNormals[k] * face.sign;
+		float ny = axisNormals[k + 1] * face.sign;
+		float nz = axisNormals[k + 2] * face.sign;
 		float[] pos = face.pos;
 		int corners = pos.length / 3;
 		Vector3f at = positionScratch;
@@ -148,33 +331,107 @@ final class SolidDraw {
 		}
 	}
 
-	private Plan plan() {
-		replans++;
-		List<Face> faces = new ArrayList<>(count * 4);
+	/** How many cut parts are kept for reuse. A part is a few hundred bytes to a few kilobytes. */
+	private static final int PART_LIMIT = 4096;
+	/** Cut parts by their cubes, least recently used first. Mounts are drawn on the render thread only. */
+	private static final java.util.LinkedHashMap<PartKey, Part> PARTS = new java.util.LinkedHashMap<>(256, 0.75f, true) {
+		@Override
+		protected boolean removeEldestEntry(java.util.Map.Entry<PartKey, Part> eldest) {
+			return size() > PART_LIMIT;
+		}
+	};
+	private final PartKey probe = new PartKey();
+
+	/**
+	 * This frame's layout as a plan, put together from each part's cut. A part already cut, for this mount or any
+	 * other, is reused; only a part never seen is cut. Faces come out in cube order, as a whole cut would give them.
+	 */
+	private Plan plan(long signature) {
+		assembles++;
+		int groups = 0;
 		for (int i = 0; i < count; i++) {
-			Box box = boxes[i];
-			for (int axis = 0; axis < 3; axis++) {
-				face(faces, box, axis, 1);
-				face(faces, box, axis, -1);
+			groups = Math.max(groups, boxes[i].group + 1);
+		}
+		int[] start = new int[groups + 1];
+		for (int i = 0; i < count; i++) {
+			start[boxes[i].group + 1]++;
+		}
+		for (int g = 0; g < groups; g++) {
+			start[g + 1] += start[g];
+		}
+		int[] fill = start.clone();
+		int[] members = new int[count];
+		int[] local = new int[count];
+		for (int i = 0; i < count; i++) {
+			int g = boxes[i].group;
+			local[i] = fill[g] - start[g];
+			members[fill[g]++] = i;
+		}
+		Part[] parts = new Part[groups];
+		for (int g = 0; g < groups; g++) {
+			if (start[g + 1] > start[g]) {
+				parts[g] = part(members, start[g], start[g + 1]);
 			}
 		}
-		boolean eyes = false;
-		for (Face face : faces) {
-			eyes |= face.eye;
+		List<Face> faces = new ArrayList<>(count * 4);
+		for (int i = 0; i < count; i++) {
+			Part part = parts[boxes[i].group];
+			for (int f = part.first[local[i]]; f < part.first[local[i] + 1]; f++) {
+				faces.add(part.faces[f].at(i));
+			}
 		}
-		return new Plan(signature(), faces.toArray(new Face[0]), eyes);
+		int eyeCount = 0;
+		for (Face face : faces) {
+			eyeCount += face.eye ? 1 : 0;
+		}
+		int[] eyeFaces = new int[eyeCount];
+		for (int i = 0, e = 0; i < faces.size(); i++) {
+			if (faces.get(i).eye) {
+				eyeFaces[e++] = i;
+			}
+		}
+		return new Plan(signature, faces.toArray(new Face[0]), eyeFaces);
 	}
 
-	private void face(List<Face> faces, Box box, int axis, int sign) {
+	/** The cut of the part whose cubes are {@code boxes[members[from..to)]}, from the shared store or cut now. */
+	private Part part(int[] members, int from, int to) {
+		probe.set(boxes, members, from, to);
+		Part part = PARTS.get(probe);
+		if (part == null) {
+			part = cut(members, from, to);
+			PARTS.put(probe.copy(), part);
+		}
+		return part;
+	}
+
+	/** Cut one part. Its faces name their cube by its place in the part. */
+	private Part cut(int[] members, int from, int to) {
+		replans++;
+		int n = to - from;
+		List<Face> faces = new ArrayList<>(n * 4);
+		int[] first = new int[n + 1];
+		for (int l = 0; l < n; l++) {
+			first[l] = faces.size();
+			Box box = boxes[members[from + l]];
+			for (int axis = 0; axis < 3; axis++) {
+				face(faces, box, l, members, from, to, axis, 1);
+				face(faces, box, l, members, from, to, axis, -1);
+			}
+		}
+		first[n] = faces.size();
+		return new Part(faces.toArray(new Face[0]), first);
+	}
+
+	private void face(List<Face> faces, Box box, int local, int[] members, int from, int to, int axis, int sign) {
 		float plane = sign > 0 ? box.max(axis) : box.min(axis);
 		int a = axis == 0 ? 1 : 0;
 		int b = axis == 2 ? 1 : 2;
 		Rect full = new Rect(box.min(a), box.min(b), box.max(a), box.max(b));
 		List<Rect> cuts = new ArrayList<>();
 		float outside = plane + sign * EPS;
-		for (int i = 0; i < count; i++) {
-			Box other = boxes[i];
-			if (other == box || other.group != box.group) {
+		for (int i = from; i < to; i++) {
+			Box other = boxes[members[i]];
+			if (other == box) {
 				continue;
 			}
 			boolean buried = outside > other.min(axis) && outside < other.max(axis);
@@ -224,7 +481,7 @@ final class SolidDraw {
 				}
 			}
 		}
-		faces.add(new Face(box.order, axis == 0 ? sign : 0, axis == 1 ? sign : 0, axis == 2 ? sign : 0, eye, pos, uv, shut));
+		faces.add(new Face(local, axis, sign, plane, eye, pos, uv, shut));
 	}
 
 	/**
@@ -465,12 +722,76 @@ final class SolidDraw {
 	static final class Plan {
 		private final long signature;
 		private final Face[] faces;
-		private final boolean hasEyes;
+		/** Which faces are eyes, for the glow pass. */
+		private final int[] eyeFaces;
 
-		Plan(long signature, Face[] faces, boolean hasEyes) {
+		Plan(long signature, Face[] faces, int[] eyeFaces) {
 			this.signature = signature;
 			this.faces = faces;
-			this.hasEyes = hasEyes;
+			this.eyeFaces = eyeFaces;
+		}
+	}
+
+	/** One part's cut: its faces in cube order, and where each cube's faces start ({@code first[n]} is the end). */
+	private static final class Part {
+		final Face[] faces;
+		final int[] first;
+
+		Part(Face[] faces, int[] first) {
+			this.faces = faces;
+			this.first = first;
+		}
+	}
+
+	/** A part's cubes in order: corners, coat, eye face, and eye. Everything its cut depends on. */
+	private static final class PartKey {
+		private static final int PER_BOX = 9;
+		private int[] data = new int[64 * PER_BOX];
+		private int length;
+		private int hash;
+
+		void set(Box[] boxes, int[] members, int from, int to) {
+			length = (to - from) * PER_BOX;
+			if (data.length < length) {
+				data = new int[length * 2];
+			}
+			int h = 1;
+			int k = 0;
+			for (int i = from; i < to; i++) {
+				Box box = boxes[members[i]];
+				data[k++] = Float.floatToIntBits(box.x0);
+				data[k++] = Float.floatToIntBits(box.y0);
+				data[k++] = Float.floatToIntBits(box.z0);
+				data[k++] = Float.floatToIntBits(box.x1);
+				data[k++] = Float.floatToIntBits(box.y1);
+				data[k++] = Float.floatToIntBits(box.z1);
+				data[k++] = box.coat.ordinal();
+				data[k++] = box.eyeFace;
+				data[k++] = box.eye == null ? -1 : box.eye.ordinal();
+			}
+			for (int i = 0; i < length; i++) {
+				h = 31 * h + data[i];
+			}
+			hash = h;
+		}
+
+		PartKey copy() {
+			PartKey key = new PartKey();
+			key.data = java.util.Arrays.copyOf(data, length);
+			key.length = length;
+			key.hash = hash;
+			return key;
+		}
+
+		@Override
+		public int hashCode() {
+			return hash;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			return other instanceof PartKey key && key.length == length && key.hash == hash
+					&& java.util.Arrays.equals(data, 0, length, key.data, 0, length);
 		}
 	}
 
@@ -517,19 +838,25 @@ final class SolidDraw {
 	/** One face's surviving pieces: baked corners, coat or open-eye coordinates, and the closed lid's. */
 	private static final class Face {
 		final int box;
-		final float nx;
-		final float ny;
-		final float nz;
+		/** The face's axis (0 x, 1 y, 2 z), which way it looks along it (1 or -1), and where its plane lies. */
+		final int axis;
+		final int sign;
+		final float plane;
 		final boolean eye;
 		final float[] pos;
 		final float[] uv;
 		final float[] shut;
 
-		Face(int box, float nx, float ny, float nz, boolean eye, float[] pos, float[] uv, float[] shut) {
+		/** The same face on cube {@code box} of a frame; the baked corners and coordinates are shared. */
+		Face at(int box) {
+			return new Face(box, axis, sign, plane, eye, pos, uv, shut);
+		}
+
+		Face(int box, int axis, int sign, float plane, boolean eye, float[] pos, float[] uv, float[] shut) {
 			this.box = box;
-			this.nx = nx;
-			this.ny = ny;
-			this.nz = nz;
+			this.axis = axis;
+			this.sign = sign;
+			this.plane = plane;
 			this.eye = eye;
 			this.pos = pos;
 			this.uv = uv;

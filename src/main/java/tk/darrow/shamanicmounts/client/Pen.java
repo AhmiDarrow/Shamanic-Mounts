@@ -4,18 +4,19 @@ import java.util.function.Supplier;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 
 /**
  * Draws blender-space cubes for one mount. X is right, Y runs toward the tail, Z is up, and the feet
  * stand on Z = 0. Every joint opens a new rigid part, so face culling never crosses a hinge.
+ *
+ * <p>The joints are kept on the draw buffer's pooled transform stack, which does the same arithmetic as a
+ * {@link PoseStack} without a new matrix pair and quaternion at every joint of every frame.
  */
 final class Pen {
 	static final int EYE_LEFT = 1;
 	static final int EYE_RIGHT = 2;
 	static final int EYE_FRONT = 3;
 
-	final PoseStack pose;
 	final MountPose anim;
 	private final SolidDraw draw;
 	private int group;
@@ -33,11 +34,11 @@ final class Pen {
 		this(pose, anim, new SolidDraw());
 	}
 
-	/** A pen over a shared draw buffer. The buffer is emptied by every flush. */
+	/** A pen over a shared draw buffer, starting at {@code pose}'s current transform. The buffer is emptied by every flush. */
 	Pen(PoseStack pose, MountPose anim, SolidDraw draw) {
-		this.pose = pose;
 		this.anim = anim;
 		this.draw = draw;
+		draw.begin(pose.last());
 	}
 
 	void box(float x, float y, float z, float dx, float dy, float dz, Mat mat) {
@@ -56,16 +57,16 @@ final class Pen {
 
 	private void add(float x, float y, float z, float dx, float dy, float dz, Mat coat, int eyeFace, Mat eye) {
 		float grow = depth * NEST;
-		draw.add(pose, group, x / 16f - grow, z / 16f - grow, y / 16f - grow, dx / 16f + 2 * grow, dz / 16f + 2 * grow,
+		draw.add(group, x / 16f - grow, z / 16f - grow, y / 16f - grow, dx / 16f + 2 * grow, dz / 16f + 2 * grow,
 				dy / 16f + 2 * grow, coat, eyeFace, eye);
 	}
 
 	/** Offset in blender pixels from the current joint, staying in the same rigid part. */
 	void shift(float bx, float by, float bz, Runnable body) {
-		pose.pushPose();
-		pose.translate(bx / 16f, bz / 16f, by / 16f);
+		draw.push();
+		draw.translate(bx / 16f, bz / 16f, by / 16f);
 		body.run();
-		pose.popPose();
+		draw.pop();
 	}
 
 	/** Bend around the current origin. Yaw sweeps back, roll flaps, pitch feathers. */
@@ -73,18 +74,18 @@ final class Pen {
 		int saved = group;
 		group = ++groupSeq;
 		depth++;
-		pose.pushPose();
+		draw.push();
 		if (yawDeg != 0f) {
-			pose.mulPose(Axis.YP.rotationDegrees(yawDeg));
+			draw.rotateY(yawDeg);
 		}
 		if (pitchDeg != 0f) {
-			pose.mulPose(Axis.XP.rotationDegrees(pitchDeg));
+			draw.rotateX(pitchDeg);
 		}
 		if (rollDeg != 0f) {
-			pose.mulPose(Axis.ZP.rotationDegrees(rollDeg));
+			draw.rotateZ(rollDeg);
 		}
 		body.run();
-		pose.popPose();
+		draw.pop();
 		group = saved;
 		depth--;
 	}
@@ -100,20 +101,20 @@ final class Pen {
 		float hx = bx / 16f;
 		float hy = bz / 16f;
 		float hz = by / 16f;
-		pose.pushPose();
-		pose.translate(hx, hy, hz);
+		draw.push();
+		draw.translate(hx, hy, hz);
 		if (yawDeg != 0f) {
-			pose.mulPose(Axis.YP.rotationDegrees(yawDeg));
+			draw.rotateY(yawDeg);
 		}
 		if (pitchDeg != 0f) {
-			pose.mulPose(Axis.XP.rotationDegrees(pitchDeg));
+			draw.rotateX(pitchDeg);
 		}
 		if (rollDeg != 0f) {
-			pose.mulPose(Axis.ZP.rotationDegrees(rollDeg));
+			draw.rotateZ(rollDeg);
 		}
-		pose.translate(-hx, -hy, -hz);
+		draw.translate(-hx, -hy, -hz);
 		body.run();
-		pose.popPose();
+		draw.pop();
 		group = saved;
 		depth--;
 	}
@@ -126,12 +127,12 @@ final class Pen {
 		float hx = bx / 16f;
 		float hy = bz / 16f;
 		float hz = by / 16f;
-		pose.pushPose();
-		pose.translate(hx, hy, hz);
-		pose.scale(sx, sz, sy);
-		pose.translate(-hx, -hy, -hz);
+		draw.push();
+		draw.translate(hx, hy, hz);
+		draw.scale(sx, sz, sy);
+		draw.translate(-hx, -hy, -hz);
 		body.run();
-		pose.popPose();
+		draw.pop();
 		group = saved;
 		depth--;
 	}
@@ -141,15 +142,21 @@ final class Pen {
 		int saved = group;
 		group = ++groupSeq;
 		depth++;
-		pose.pushPose();
-		pose.translate(bx / 16f, bz / 16f, by / 16f);
+		draw.push();
+		draw.translate(bx / 16f, bz / 16f, by / 16f);
 		body.run();
-		pose.popPose();
+		draw.pop();
 		group = saved;
 		depth--;
 	}
 
 	SolidDraw.Plan flush(VertexConsumer consumer, int light, int overlay, SolidDraw.Plan cached, Supplier<VertexConsumer> glow) {
 		return draw.flush(consumer, light, overlay, cached, anim.blink, glow);
+	}
+
+	/** Draw with the plans kept in {@code plans[slot]} and {@code plans[spare]}; see {@link SolidDraw#flush}. */
+	void flush(VertexConsumer consumer, int light, int overlay, SolidDraw.Plan[] plans, int slot, int spare,
+			Supplier<VertexConsumer> glow, boolean cull) {
+		draw.flush(consumer, light, overlay, plans, slot, spare, anim.blink, glow, cull);
 	}
 }

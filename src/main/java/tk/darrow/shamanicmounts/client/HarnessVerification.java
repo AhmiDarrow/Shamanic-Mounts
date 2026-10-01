@@ -541,7 +541,7 @@ public final class HarnessVerification {
 					MountPose anim = new MountPose(0f, 0f, nearest.tickCount, 0f, 0f, 0f, 0, 0f, 0f, 0f, false, nearest.isBaby(),
 							nearest.getId(), false);
 					MountMesh.drawWithPlans(nearest.phenotype(), nearest.saddled(), nearest.hasBags(), nearest.armorTier(), nearest.pelt(),
-							new PoseStack(), sink, null, 0, 0, anim, new SolidDraw.Plan[60]);
+							new PoseStack(), sink, null, 0, 0, anim, MountMesh.newPlans());
 					try {
 						Files.writeString(mc.gameDirectory.toPath().resolve("showcase-dump.txt"), out.toString());
 					} catch (IOException e) {
@@ -582,17 +582,19 @@ public final class HarnessVerification {
 			case "renderstats" -> {
 				// renderstats: mount draws, average microseconds each, plan rebuilds, and quads since the last read.
 				long draws = MountMesh.draws;
-				String out = String.format(java.util.Locale.ROOT, "ok draws=%d us=%.1f flushUs=%.1f signUs=%.1f boxes=%d replans=%d quads=%d", draws,
+				String out = String.format(java.util.Locale.ROOT,
+						"ok draws=%d us=%.1f flushUs=%.1f signUs=%.1f boxes=%d replans=%d assembles=%d quads=%d", draws,
 						draws == 0 ? 0.0 : MountMesh.drawNanos / 1000.0 / draws,
 						draws == 0 ? 0.0 : SolidDraw.flushNanos / 1000.0 / draws,
 						draws == 0 ? 0.0 : SolidDraw.signNanos / 1000.0 / draws,
-						draws == 0 ? 0 : SolidDraw.boxesAdded / draws, SolidDraw.replans, SolidDraw.quads);
+						draws == 0 ? 0 : SolidDraw.boxesAdded / draws, SolidDraw.replans, SolidDraw.assembles, SolidDraw.quads);
 				SolidDraw.flushNanos = 0;
 				SolidDraw.signNanos = 0;
 				SolidDraw.boxesAdded = 0;
 				MountMesh.draws = 0;
 				MountMesh.drawNanos = 0;
 				SolidDraw.replans = 0;
+				SolidDraw.assembles = 0;
 				SolidDraw.quads = 0;
 				return out;
 			}

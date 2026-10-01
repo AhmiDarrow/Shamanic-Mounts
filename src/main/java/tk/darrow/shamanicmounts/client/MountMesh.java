@@ -26,7 +26,13 @@ import tk.darrow.shamanicmounts.ride.GiftRules;
 final class MountMesh {
 	enum Shell { STEED, HART, ELK, CRANE, ROC, NAGUAL, BARGHEST, SHADE, CHIMERA, BEAR, SERPENT }
 
-	/** Cut plans per phenotype, bare and saddled. The layout does not change with the pose. */
+	/** Tack and pelt combinations: saddle, bags, five armor tiers, three pelts. */
+	private static final int SLOTS = 60;
+	/**
+	 * Cut plans per phenotype, one per tack slot, and a second per slot for a layout that alternates with the first:
+	 * a feathered wing is drawn differently folded and spread, so a flier that hops swaps between two plans instead
+	 * of cutting a new one at every take-off and landing. The rest of the layout does not change with the pose.
+	 */
 	private static final Map<Phenotype, SolidDraw.Plan[]> PLANS = new WeakHashMap<>();
 	/** Time spent building mounts' geometry, for the live harness. */
 	static long drawNanos;
@@ -39,12 +45,20 @@ final class MountMesh {
 	private MountMesh() {
 	}
 
-	/** {@code armor} is the horse armor tier: 0 none, 1 leather, 2 iron, 3 gold, 4 diamond. {@code pelt} is 0 to 2. */
+	/** Room for every tack slot's plan and its alternate. */
+	static SolidDraw.Plan[] newPlans() {
+		return new SolidDraw.Plan[SLOTS * 2];
+	}
+
+	/**
+	 * {@code armor} is the horse armor tier: 0 none, 1 leather, 2 iron, 3 gold, 4 diamond. {@code pelt} is 0 to 2.
+	 * {@code cull} leaves out faces turned away from the camera, for a back-face-culled draw in the world.
+	 */
 	static void draw(Phenotype phenotype, boolean saddled, boolean bags, int armor, int pelt, PoseStack pose,
-			VertexConsumer consumer, Supplier<VertexConsumer> glow, int light, int overlay, MountPose anim) {
+			VertexConsumer consumer, Supplier<VertexConsumer> glow, int light, int overlay, MountPose anim, boolean cull) {
 		long start = SolidDraw.stats ? System.nanoTime() : 0L;
 		drawWithPlans(phenotype, saddled, bags, armor, pelt, pose, consumer, glow, light, overlay, anim,
-				PLANS.computeIfAbsent(phenotype, key -> new SolidDraw.Plan[60]));
+				PLANS.computeIfAbsent(phenotype, key -> newPlans()), cull);
 		if (SolidDraw.stats) {
 			drawNanos += System.nanoTime() - start;
 			draws++;
@@ -53,6 +67,13 @@ final class MountMesh {
 
 	static void drawWithPlans(Phenotype phenotype, boolean saddled, boolean bags, int armor, int pelt, PoseStack pose,
 			VertexConsumer consumer, Supplier<VertexConsumer> glow, int light, int overlay, MountPose anim, SolidDraw.Plan[] plans) {
+		drawWithPlans(phenotype, saddled, bags, armor, pelt, pose, consumer, glow, light, overlay, anim, plans, false);
+	}
+
+	/** With a plans array from {@link #newPlans()} each slot keeps an alternate; a shorter array keeps one plan per slot. */
+	static void drawWithPlans(Phenotype phenotype, boolean saddled, boolean bags, int armor, int pelt, PoseStack pose,
+			VertexConsumer consumer, Supplier<VertexConsumer> glow, int light, int overlay, MountPose anim, SolidDraw.Plan[] plans,
+			boolean cull) {
 		Pen pen = new Pen(pose, anim, DRAW);
 		Shell shell = shell(phenotype);
 		Skin skin = Skin.of(shell, pelt, phenotype);
@@ -91,7 +112,7 @@ final class MountMesh {
 		if (anim.sit > 0.001f && !LIE_DROP.containsKey(phenotype)) {
 			LIE_DROP.put(phenotype, lieDrop(drawnPosts(phenotype, holder[0])));
 		}
-		plans[slot] = pen.flush(consumer, light, overlay, plans[slot], anim.glow ? glow : null);
+		pen.flush(consumer, light, overlay, plans, slot, plans.length >= SLOTS * 2 ? slot + SLOTS : -1, anim.glow ? glow : null, cull);
 	}
 
 	/** The same choice the server makes for the seat, so the rider lands on the saddle that is drawn. */

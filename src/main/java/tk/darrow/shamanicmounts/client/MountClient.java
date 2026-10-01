@@ -6,6 +6,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.RegisterRenderBuffersEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -31,7 +33,9 @@ public final class MountClient {
 	public static void install(IEventBus modBus) {
 		modBus.addListener(MountClient::renderers);
 		modBus.addListener(MountClient::screens);
+		modBus.addListener(MountClient::buffers);
 		NeoForge.EVENT_BUS.addListener(MountClient::tick);
+		NeoForge.EVENT_BUS.addListener(MountClient::afterEntities);
 		MountPayloads.openBook = MountClient::openBook;
 		MountPayloads.warp = MountClient::warp;
 	}
@@ -42,6 +46,21 @@ public final class MountClient {
 
 	public static void screens(RegisterMenuScreensEvent event) {
 		event.register(MountMenus.CHEST.get(), MountChestScreen::new);
+	}
+
+	/** The eye shine gets its own buffer, so it is gathered across every mount and drawn once. */
+	public static void buffers(RegisterRenderBuffersEvent event) {
+		event.registerRenderBuffer(MountRenderer.EYES);
+	}
+
+	/**
+	 * The gathered eye shine is drawn as soon as the entities are, where each mount's eyes used to be drawn: before
+	 * block entities, water, and particles, so water in front of a mount still hides its eyes.
+	 */
+	public static void afterEntities(RenderLevelStageEvent event) {
+		if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_ENTITIES) {
+			Minecraft.getInstance().renderBuffers().bufferSource().endBatch(MountRenderer.EYES);
+		}
 	}
 
 	public static void tick(ClientTickEvent.Post event) {

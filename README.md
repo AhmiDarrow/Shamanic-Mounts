@@ -4,7 +4,7 @@
 
 # Shamanic Mounts
 
-Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.6**. Ten new rideable lines roam the Overworld, each with something it does under you: walk on water, fly, swim and dive, ram, maul, coil, hide from mobs, blink ahead, or heal the party. Tame one with a braced saddle, then breed any line with any other. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited. Breed far enough and you reach the chimera, a furry dragon with all ten ridden gifts at once.
+Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.7**. Ten new rideable lines roam the Overworld, each with something it does under you: walk on water, fly, swim and dive, ram, maul, coil, hide from mobs, blink ahead, or heal the party. Tame one with a braced saddle, then breed any line with any other. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited. Breed far enough and you reach the chimera, a furry dragon with all ten ridden gifts at once.
 
 [Download from GitHub Releases](https://github.com/AhmiDarrow/Shamanic-Mounts/releases/latest) · [CurseForge](https://www.curseforge.com/minecraft/mc-mods/shamanic-mounts) · [0.1.3 notes](docs/RELEASE_0.1.3.md)
 

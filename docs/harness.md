@@ -47,6 +47,7 @@ itself. Tribal Power's showcase server uses other ports and is never touched.
   teleport while riding must land the rider back in the saddle, and a ride through a lit nether
   portal must carry the mount across once. Glass boxes at -100 100 -100 in the nether and 200 64 0 in
   the end are the landing pads.
+- `perf`: forty tame mounts of mixed lines in front of the camera: the client stays above 30 fps, the server ticks under 25 ms, and no cut plan is rebuilt while they stand; the draw cost per mount and the quads it submits are printed. Then a hundred wild cranes and rocs, whose wings are opened and folded four times over (as hops do), must cut no part after the first time.
 - `breed`: ten founders with one gift each, a ladder of Diamond Apple matings that walks the gift
   chromosome until both strands carry every gift, then the chimera coin. Every foal must be born wild;
   the ladder hands each one to the player so it can be a parent. Ends with a picture of the
@@ -73,6 +74,6 @@ The client polls `build/harness-client/showcase-command.txt` twice a second and 
 - `pick <n>`: in the herd book, open tame n, line n, or on a tame's page relative n (0 dam, 1 sire, then foals).
 - `bookscroll end|top`: scroll the open book page to its end or back to the top.
 - `bookenter`: press Enter in the open tame's name box.
-- `renderstats`: mount draws since the last read, average microseconds per draw (total, flush, and layout signature), cubes per draw, plan rebuilds, and quads. Plan rebuilds should stay at 0 in steady state.
+- `renderstats`: mount draws since the last read, average microseconds per draw (total, flush, and layout signature), cubes per draw, parts cut (`replans`), plans put together from already cut parts (`assembles`), and quads submitted. Parts cut should stay at 0 in steady state, and also while fliers fold and open their wings: every part's cut is kept and shared by mounts built alike. Quads count only faces turned toward the camera.
 - `dump`: write every quad the nearest mount draws, with its atlas cell, to `showcase-dump.txt`. Use it
   when a face looks wrong: a black patch seen head-on is usually the nose pad, not a hole.

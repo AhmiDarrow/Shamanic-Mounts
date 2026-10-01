@@ -12,9 +12,11 @@ public enum MountMode {
 	/** Roams near where it was left. */
 	WANDER;
 
+	/** Read on every tick by every mount's goals, so the array is not copied each time as {@code values()} would. */
+	private static final MountMode[] ALL = values();
+
 	public static MountMode of(int ordinal) {
-		MountMode[] all = values();
-		return all[Math.floorMod(ordinal, all.length)];
+		return ALL[Math.floorMod(ordinal, ALL.length)];
 	}
 
 	public String key() {
