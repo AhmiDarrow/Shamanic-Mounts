@@ -22,7 +22,7 @@ itself. Tribal Power's showcase server uses other ports and is never touched.
 - `boot`: both sides loaded the mod, the dedicated server pulled no client class, recipes parsed.
 - `items`: names and textures of the saddle, herd book, and diamond apple, the mod's creative tab, and
   their recipes at a real crafting table.
-- `book`: every page of the herd book, the spoiler switch and its saved file, rename, and release.
+- `book`: every page of the herd book, the chimera kept out until its keeper has bred one (`seed chimera` opens it as one who has), rename, and release.
 - `looks`: each of the ten lines, the chimera, and a hart-over-eightfold cross, alone on a pad, from
   the front, the side, a low three-quarter, a close side profile and front view of the face, and two
   held points of the stride. Pictures only; a person judges them.

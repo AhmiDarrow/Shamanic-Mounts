@@ -20,7 +20,6 @@ import tk.darrow.shamanicmounts.book.Codex;
 import tk.darrow.shamanicmounts.book.Genotype;
 import tk.darrow.shamanicmounts.book.HerdBook;
 import tk.darrow.shamanicmounts.book.Reading;
-import tk.darrow.shamanicmounts.book.SpoilerPref;
 import tk.darrow.shamanicmounts.book.TamePage;
 import tk.darrow.shamanicmounts.entity.MountEntities;
 import tk.darrow.shamanicmounts.entity.ShamanicMount;
@@ -32,7 +31,7 @@ import tk.darrow.shamanicmounts.genome.MountSize;
 /**
  * The herd book. Basics; a gallery of the lines, each opening onto its three pelts and founder genes;
  * your tames, each with a portrait, family links, and every gene with both copies; the key to the
- * notation; and, with spoilers on, the breeding chapter. The page scrolls inside its own frame.
+ * notation; and the breeding chapter. The chimera stays out until the reader breeds one. The page scrolls inside its own frame.
  */
 public final class HerdBookScreen extends Screen {
 	private static final int LEFT = 8;
@@ -64,7 +63,6 @@ public final class HerdBookScreen extends Screen {
 
 	private final UUID player;
 	private final HerdBook book;
-	private final SpoilerPref spoilers;
 	private final Map<UUID, ShamanicMount> previews = new HashMap<>();
 	private final Map<String, ShamanicMount> linePreviews = new HashMap<>();
 	private final List<Hit> hits = new ArrayList<>();
@@ -84,15 +82,15 @@ public final class HerdBookScreen extends Screen {
 	/** On a very narrow window Rename moves to the left column with Release. */
 	private boolean renameLeft;
 
-	public HerdBookScreen(UUID player, HerdBook book, SpoilerPref spoilers) {
+	public HerdBookScreen(UUID player, HerdBook book) {
 		super(Component.translatable("item.shamanicmounts.herd_book"));
 		this.player = player;
 		this.book = book;
-		this.spoilers = spoilers;
 	}
 
-	private boolean spoiled() {
-		return spoilers.shown(player);
+	/** The chimera's line and breeding section show once this reader has bred one. */
+	private boolean bredChimera() {
+		return book.hasBredChimera(player);
 	}
 
 	@Nullable
@@ -137,38 +135,25 @@ public final class HerdBookScreen extends Screen {
 	}
 
 	private List<TamePage.Row> rows(Genome genome) {
-		return geneRows.computeIfAbsent(genome, key -> TamePage.genes(key, spoiled()));
+		return geneRows.computeIfAbsent(genome, key -> TamePage.genes(key, true));
 	}
 
 	@Override
 	protected void init() {
 		clearCaches();
-		if (page == Codex.Page.BREEDING && !spoiled()) {
-			page = Codex.Page.BASICS;
-		}
-		// A spoiler line does not stay open once spoilers are off.
-		if (selectedLine != null && !spoiled()) {
-			Codex.Line open = line(selectedLine);
-			if (open == null || open.spoiler()) {
-				selectedLine = null;
-			}
+		if (selectedLine != null && line(selectedLine) == null) {
+			selectedLine = null;
 		}
 		// Keep whatever was typed in the name box across a rebuild.
 		String typed = nameBox != null && selectedEntry() != null ? nameBox.getValue() : null;
 		int y = 28;
-		int chapters = Codex.open(spoiled()).size();
-		for (Codex.Page chapter : Codex.open(spoiled())) {
+		int chapters = Codex.open().size();
+		for (Codex.Page chapter : Codex.open()) {
 			Codex.Page choice = chapter;
 			addRenderableWidget(Button.builder(Component.translatable("book.shamanicmounts." + chapter.name().toLowerCase(java.util.Locale.ROOT)),
 					button -> open(choice)).bounds(LEFT, y, LEFT_W, 20).build());
 			y += 22;
 		}
-		addRenderableWidget(Button.builder(Component.translatable(spoiled()
-				? "book.shamanicmounts.spoilers_on" : "book.shamanicmounts.spoilers_off"), button -> {
-					spoilers.set(player, !spoiled());
-					scroll = 0;
-					rebuildWidgets();
-				}).bounds(LEFT, this.height - 28, LEFT_W, 20).build());
 
 		nameBox = null;
 		boolean detail = (page == Codex.Page.TAMES && selectedEntry() != null)
@@ -311,7 +296,7 @@ public final class HerdBookScreen extends Screen {
 		int width = this.width - TEXT_X - RIGHT - 14;
 		return switch (page) {
 			case BASICS -> sections(graphics, "Basics", Codex.basics(), y, width);
-			case BREEDING -> sections(graphics, "Breeding", Codex.breeding(), y, width);
+			case BREEDING -> sections(graphics, "Breeding", Codex.breeding(bredChimera()), y, width);
 			case KEY -> key(graphics, y, width);
 			case LINES -> selectedLine == null ? gallery(graphics, mouseX, mouseY, y, width)
 					: lineDetail(graphics, mouseX, mouseY, y, width);
@@ -336,11 +321,9 @@ public final class HerdBookScreen extends Screen {
 		for (Genotype.KeyEntry entry : Genotype.bodyKey()) {
 			y = keyEntry(graphics, entry, y, width);
 		}
-		if (spoiled()) {
-			y = subheading(graphics, "Ridden gifts", y + 2);
-			for (Genotype.KeyEntry entry : Genotype.giftKey()) {
-				y = keyEntry(graphics, entry, y, width);
-			}
+		y = subheading(graphics, "Ridden gifts", y + 2);
+		for (Genotype.KeyEntry entry : Genotype.giftKey()) {
+			y = keyEntry(graphics, entry, y, width);
 		}
 		return y;
 	}
@@ -365,29 +348,25 @@ public final class HerdBookScreen extends Screen {
 		y = heading(graphics, "Lines", y);
 		y = paragraph(graphics, List.of("Click a line for its three pelts and its founder's genes."), y, width) + 2;
 		int columns = Math.max(1, (width + 8) / (GALLERY_W + 8));
-		List<Codex.Line> lines = Codex.lines();
-		boolean spoiled = spoiled();
+		List<Codex.Line> lines = Codex.lines(bredChimera());
 		int rowTop = y;
 		for (int start = 0; start < lines.size(); start += columns) {
 			int rowHeight = 0;
 			for (int column = 0; column < columns && start + column < lines.size(); column++) {
 				Codex.Line entry = lines.get(start + column);
-				boolean hidden = entry.spoiler() && !spoiled;
 				int x = TEXT_X + column * (GALLERY_W + 8);
-				boolean hover = !hidden && mouseX >= x && mouseX < x + GALLERY_W && mouseY >= rowTop && mouseY < rowTop + GALLERY_H;
+				boolean hover = mouseX >= x && mouseX < x + GALLERY_W && mouseY >= rowTop && mouseY < rowTop + GALLERY_H;
 				well(graphics, x, rowTop, GALLERY_W, GALLERY_H, hover);
-				if (!hidden) {
-					ShamanicMount preview = linePreview(entry.name(), entry.genome(), -1);
-					if (preview != null) {
-						portrait(graphics, preview, x, rowTop, GALLERY_W, GALLERY_H, -1, -1);
-					}
-					String name = entry.name();
-					hits.add(new Hit(x, rowTop, x + GALLERY_W, rowTop + GALLERY_H, () -> openLine(name)));
+				ShamanicMount preview = linePreview(entry.name(), entry.genome(), -1);
+				if (preview != null) {
+					portrait(graphics, preview, x, rowTop, GALLERY_W, GALLERY_H, -1, -1);
 				}
+				String name = entry.name();
+				hits.add(new Hit(x, rowTop, x + GALLERY_W, rowTop + GALLERY_H, () -> openLine(name)));
 				int textY = rowTop + GALLERY_H + 3;
-				graphics.drawString(this.font, hidden ? "?" : entry.name(), x + 2, textY, GOLD, false);
+				graphics.drawString(this.font, entry.name(), x + 2, textY, GOLD, false);
 				int blurbY = textY + LINE;
-				for (String wrapped : wrap(hidden ? Codex.HIDDEN_LINE : entry.blurb(), GALLERY_W - 2)) {
+				for (String wrapped : wrap(entry.blurb(), GALLERY_W - 2)) {
 					graphics.drawString(this.font, wrapped, x + 2, blurbY, PALE, false);
 					blurbY += 10;
 				}
@@ -406,7 +385,7 @@ public final class HerdBookScreen extends Screen {
 
 	@Nullable
 	private Codex.Line line(String name) {
-		for (Codex.Line entry : Codex.lines()) {
+		for (Codex.Line entry : Codex.lines(bredChimera())) {
 			if (entry.name().equals(name)) {
 				return entry;
 			}
@@ -457,17 +436,20 @@ public final class HerdBookScreen extends Screen {
 			nameW = Math.max(nameW, this.font.width(entry.name()));
 		}
 		nameW = Math.min(nameW + 10, width / 3);
+		int rowH = ROW + LINE;
 		for (HerdBook.Entry entry : tames) {
-			boolean hover = mouseY >= y - 2 && mouseY < y + ROW - 2 && mouseX >= TEXT_X && mouseX < TEXT_X + width;
+			boolean hover = mouseY >= y - 2 && mouseY < y + rowH - 2 && mouseX >= TEXT_X && mouseX < TEXT_X + width;
 			if (hover) {
-				graphics.fill(TEXT_X - 4, y - 2, TEXT_X + width, y + ROW - 2, HOVER);
+				graphics.fill(TEXT_X - 4, y - 2, TEXT_X + width, y + rowH - 2, HOVER);
 			}
 			graphics.drawString(this.font, this.font.plainSubstrByWidth(entry.name(), nameW - 6), TEXT_X, y, GOLD, false);
 			String summary = summary(entry);
 			graphics.drawString(this.font, this.font.plainSubstrByWidth(summary, width - nameW), TEXT_X + nameW, y, PALE, false);
+			String stats = TamePage.stats(entry.health(), entry.speed(), entry.jump(), entry.stamina());
+			graphics.drawString(this.font, this.font.plainSubstrByWidth(stats, width), TEXT_X, y + LINE, PALE, false);
 			UUID id = entry.id();
-			hits.add(new Hit(TEXT_X - 4, y - 2, TEXT_X + width, y + ROW - 2, () -> openTame(id)));
-			y += ROW;
+			hits.add(new Hit(TEXT_X - 4, y - 2, TEXT_X + width, y + rowH - 2, () -> openTame(id)));
+			y += rowH;
 		}
 		return y;
 	}
@@ -507,6 +489,11 @@ public final class HerdBookScreen extends Screen {
 		y += 4;
 		y = family(graphics, entry, mouseX, mouseY, y, textW);
 		y = Math.max(y, top + PORTRAIT_H + 6);
+		for (String line : TamePage.statLines(entry.health(), entry.speed(), entry.jump(), entry.stamina())) {
+			graphics.drawString(this.font, line, TEXT_X, y, INK, false);
+			y += LINE;
+		}
+		y += 2;
 		y = subheading(graphics, "Genes", y);
 		return geneTable(graphics, entry.genome(), mouseX, mouseY, y, width);
 	}
@@ -555,10 +542,10 @@ public final class HerdBookScreen extends Screen {
 
 	/**
 	 * Every gene, grouped, with columns for the notation, what shows, and each parent's copy. The
-	 * note column appears when there is room and spoilers are on. Hovering a row explains the gene.
+	 * note column appears when there is room. Hovering a row explains the gene.
 	 */
 	private int geneTable(GuiGraphics graphics, Genome genome, int mouseX, int mouseY, int y, int width) {
-		boolean showNotes = spoiled();
+		boolean showNotes = true;
 		// Columns share the page's width, so a narrow window keeps every column on the page.
 		int colShown = Math.min(64, width / 4);
 		int room = Math.max(60, width - colShown);
@@ -674,22 +661,20 @@ public final class HerdBookScreen extends Screen {
 		ArrayList<String> out = new ArrayList<>();
 		switch (page) {
 			case BASICS -> Codex.basics().forEach(section -> out.addAll(section.paragraphs()));
-			case BREEDING -> Codex.breeding().forEach(section -> out.addAll(section.paragraphs()));
+			case BREEDING -> Codex.breeding(bredChimera()).forEach(section -> out.addAll(section.paragraphs()));
 			case KEY -> {
 				out.addAll(Codex.keyIntro());
 				for (Genotype.KeyEntry entry : Genotype.bodyKey()) {
 					out.add(entry.symbol() + " " + entry.name() + ": " + entry.letters() + ". " + entry.rule());
 				}
-				if (spoiled()) {
-					for (Genotype.KeyEntry entry : Genotype.giftKey()) {
-						out.add(entry.symbol() + " " + entry.name() + ": " + entry.letters() + ". " + entry.rule());
-					}
+				for (Genotype.KeyEntry entry : Genotype.giftKey()) {
+					out.add(entry.symbol() + " " + entry.name() + ": " + entry.letters() + ". " + entry.rule());
 				}
 			}
 			case LINES -> {
 				if (selectedLine == null) {
-					for (Codex.Line entry : Codex.lines()) {
-						out.add(entry.name() + ": " + (entry.spoiler() && !spoiled() ? Codex.HIDDEN_LINE : entry.blurb()));
+					for (Codex.Line entry : Codex.lines(bredChimera())) {
+						out.add(entry.name() + ": " + entry.blurb());
 					}
 				} else {
 					Codex.Line entry = line(selectedLine);
@@ -709,9 +694,11 @@ public final class HerdBookScreen extends Screen {
 					}
 					for (HerdBook.Entry tame : tames) {
 						out.add(tame.name() + ": " + TamePage.summary(tame.genome(), tame.male()));
+						out.add(TamePage.stats(tame.health(), tame.speed(), tame.jump(), tame.stamina()));
 					}
 				} else {
 					out.add(TamePage.summary(entry.genome(), entry.male()));
+					out.add(TamePage.stats(entry.health(), entry.speed(), entry.jump(), entry.stamina()));
 					out.addAll(TamePage.family(book, entry));
 					out.add("Pelt: " + TamePage.pelt(entry.genome()));
 					out.addAll(geneLines(entry.genome()));
@@ -723,7 +710,7 @@ public final class HerdBookScreen extends Screen {
 
 	private List<String> geneLines(Genome genome) {
 		ArrayList<String> out = new ArrayList<>();
-		boolean showNotes = spoiled();
+		boolean showNotes = true;
 		for (TamePage.Row row : TamePage.genes(genome, showNotes)) {
 			String text = row.symbol() + " " + row.notation() + "  " + row.shown() + "  dam " + row.dam() + " sire " + row.sire();
 			if (showNotes && !row.note().isEmpty()) {
@@ -734,11 +721,11 @@ public final class HerdBookScreen extends Screen {
 		return out;
 	}
 
-	/** One line for the live harness: page, spoilers, tame names, and the lines on the page. */
+	/** One line for the live harness: page, whether the chimera is open, tame names, and the lines on the page. */
 	String harnessReport() {
 		StringBuilder out = new StringBuilder();
 		out.append("page=").append(page.name());
-		out.append("|spoilers=").append(spoiled());
+		out.append("|chimera=").append(bredChimera());
 		out.append("|tames=");
 		boolean first = true;
 		for (HerdBook.Entry entry : book.tames(player)) {
@@ -787,8 +774,8 @@ public final class HerdBookScreen extends Screen {
 			return false;
 		}
 		if (page == Codex.Page.LINES && selectedLine == null) {
-			List<Codex.Line> lines = Codex.lines();
-			if (index >= 0 && index < lines.size() && (!lines.get(index).spoiler() || spoiled())) {
+			List<Codex.Line> lines = Codex.lines(bredChimera());
+			if (index >= 0 && index < lines.size()) {
 				openLine(lines.get(index).name());
 				return true;
 			}

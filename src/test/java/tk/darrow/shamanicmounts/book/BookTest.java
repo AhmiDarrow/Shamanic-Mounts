@@ -1,10 +1,8 @@
 package tk.darrow.shamanicmounts.book;
 
-import java.nio.file.Path;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import tk.darrow.shamanicmounts.genome.Founders;
 import tk.darrow.shamanicmounts.genome.Genome;
@@ -17,27 +15,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BookTest {
 	@Test
-	void spoilersOffLeavesBasicsAndTamesAndRemembersThat(@TempDir Path dir) throws java.io.IOException {
-		assertEquals(java.util.List.of(Codex.Page.BASICS, Codex.Page.LINES, Codex.Page.TAMES, Codex.Page.KEY), Codex.open(false));
-		assertTrue(Codex.open(true).contains(Codex.Page.BREEDING));
+	void theChimeraStaysOutOfTheBookUntilItIsBred() {
+		assertEquals(java.util.List.of(Codex.Page.BASICS, Codex.Page.LINES, Codex.Page.TAMES, Codex.Page.KEY, Codex.Page.BREEDING),
+				Codex.open());
 		String basics = text(Codex.basics()).toLowerCase();
 		assertFalse(basics.contains("chimera"));
-		assertFalse(basics.contains("both copies"));
-		String breeding = text(Codex.breeding()).toLowerCase();
-		assertTrue(breeding.contains("chimera"));
-		assertTrue(breeding.contains("both copies"));
+		assertFalse(basics.contains("spoiler"));
+		String unbred = text(Codex.breeding(false)).toLowerCase();
+		assertTrue(unbred.contains("both copies"));
+		assertFalse(unbred.contains("chimera"), unbred);
+		assertTrue(text(Codex.breeding(true)).toLowerCase().contains("chimera"));
+		assertEquals(10, Codex.lines(false).size());
+		assertTrue(Codex.lines(false).stream().noneMatch(line -> line.name().equals("Chimera")));
+		assertEquals(11, Codex.lines(true).size());
 
-		Path file = dir.resolve("spoilers.txt");
-		UUID player = UUID.randomUUID();
+		UUID keeper = UUID.randomUUID();
 		UUID other = UUID.randomUUID();
-		SpoilerPref pref = new SpoilerPref(file);
-		assertFalse(pref.shown(player));
-		pref.set(player, false);
-		pref.set(other, true);
-		SpoilerPref again = new SpoilerPref(file);
-		assertFalse(again.shown(player));
-		assertTrue(again.shown(other));
-		assertTrue(java.nio.file.Files.readString(file).contains(player + " false"));
+		HerdBook world = new HerdBook();
+		world.keep(keeper, "Brook", true, Founders.eightfold(), null, null);
+		assertFalse(world.hasBredChimera(keeper));
+		assertTrue(world.bredChimera(keeper));
+		assertFalse(world.bredChimera(keeper));
+		assertTrue(world.hasBredChimera(keeper));
+		assertFalse(world.hasBredChimera(other));
+		assertTrue(HerdIO.forPlayer(world, keeper).hasBredChimera(keeper));
+		assertFalse(HerdIO.forPlayer(world, other).hasBredChimera(other));
+		// A chimera already in the book from before this was recorded opens it too.
+		world.keep(other, "Wyrm", false, Founders.eightfold().asChimera(), null, null);
+		assertTrue(world.hasBredChimera(other));
 	}
 
 	@Test

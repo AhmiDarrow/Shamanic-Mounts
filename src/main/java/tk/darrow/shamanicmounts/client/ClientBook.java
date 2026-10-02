@@ -5,14 +5,13 @@ import java.util.UUID;
 import net.minecraft.client.Minecraft;
 
 import tk.darrow.shamanicmounts.book.HerdBook;
-import tk.darrow.shamanicmounts.book.SpoilerPref;
 
 public final class ClientBook {
 	private ClientBook() {
 	}
 
 	public static void open(UUID player, HerdBook book) {
-		Minecraft.getInstance().setScreen(new HerdBookScreen(player, book, SpoilerPref.local()));
+		Minecraft.getInstance().setScreen(new HerdBookScreen(player, book));
 	}
 
 	/** Rename is 0, release is 1. The screen already updated the copy the player is looking at. */

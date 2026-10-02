@@ -9,21 +9,55 @@ import java.util.Map;
 import java.util.UUID;
 
 import tk.darrow.shamanicmounts.genome.Genome;
+import tk.darrow.shamanicmounts.ride.MountStats;
 
 /**
  * The mounts one keeper can open in the book, including animals whose chunk is not loaded.
  * Parent ids are the family tree.
  */
 public final class HerdBook {
-	/** One mount. {@code pelt} is which of its line's three coats it wears, 0 to 2. */
+	/** One mount. {@code pelt} is which of its line's three coats it wears, 0 to 2. Stats are 1 to 100. */
 	public record Entry(UUID id, UUID owner, String name, boolean male, boolean tame, Genome genome, UUID dam,
-			UUID sire, int pelt) {
+			UUID sire, int pelt, int health, int speed, int jump, int stamina) {
 		public Entry(UUID id, UUID owner, String name, boolean male, boolean tame, Genome genome, UUID dam, UUID sire) {
 			this(id, owner, name, male, tame, genome, dam, sire, 0);
+		}
+
+		public Entry(UUID id, UUID owner, String name, boolean male, boolean tame, Genome genome, UUID dam, UUID sire,
+				int pelt) {
+			this(id, owner, name, male, tame, genome, dam, sire, pelt, MountStats.MISSING, MountStats.MISSING,
+					MountStats.MISSING, MountStats.MISSING);
 		}
 	}
 
 	private final Map<UUID, Entry> byId = new LinkedHashMap<>();
+	/** Keepers who have bred a chimera. Only they see it in the book. */
+	private final java.util.Set<UUID> chimeraBreeders = new java.util.LinkedHashSet<>();
+
+	/** @return true when this keeper is new to the list */
+	public boolean bredChimera(UUID keeper) {
+		return keeper != null && chimeraBreeders.add(keeper);
+	}
+
+	/** Bred one, or already keeps one: a chimera tamed before this was recorded counts. */
+	public boolean hasBredChimera(UUID keeper) {
+		if (keeper == null) {
+			return false;
+		}
+		if (chimeraBreeders.contains(keeper)) {
+			return true;
+		}
+		for (Entry entry : tames(keeper)) {
+			if (entry.genome().chimera) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public java.util.Set<UUID> chimeraBreeders() {
+		return java.util.Set.copyOf(chimeraBreeders);
+	}
 
 	public Entry record(String name, boolean male, Genome genome, UUID dam, UUID sire) {
 		return keep(null, name, male, genome, dam, sire);
@@ -40,6 +74,12 @@ public final class HerdBook {
 
 	/** The entity's own id, so the book and the animal stay the same mount. */
 	public Entry adopt(UUID id, UUID owner, String name, boolean male, Genome genome, UUID dam, UUID sire, int pelt) {
+		return adopt(id, owner, name, male, genome, dam, sire, pelt, MountStats.MISSING, MountStats.MISSING,
+				MountStats.MISSING, MountStats.MISSING);
+	}
+
+	public Entry adopt(UUID id, UUID owner, String name, boolean male, Genome genome, UUID dam, UUID sire, int pelt,
+			int health, int speed, int jump, int stamina) {
 		String clean = name == null ? "" : name.strip();
 		if (clean.isEmpty()) {
 			clean = "Tame";
@@ -47,7 +87,8 @@ public final class HerdBook {
 		if (clean.length() > 24) {
 			clean = clean.substring(0, 24).strip();
 		}
-		Entry entry = new Entry(id, owner, clean, male, true, genome, dam, sire, pelt);
+		Entry entry = new Entry(id, owner, clean, male, true, genome, dam, sire, pelt, MountStats.clamp(health),
+				MountStats.clamp(speed), MountStats.clamp(jump), MountStats.clamp(stamina));
 		byId.put(id, entry);
 		return entry;
 	}
@@ -97,7 +138,7 @@ public final class HerdBook {
 			return false;
 		}
 		byId.put(id, new Entry(entry.id(), entry.owner(), clean, entry.male(), true, entry.genome(), entry.dam(),
-				entry.sire(), entry.pelt()));
+				entry.sire(), entry.pelt(), entry.health(), entry.speed(), entry.jump(), entry.stamina()));
 		return true;
 	}
 
@@ -110,7 +151,18 @@ public final class HerdBook {
 			return false;
 		}
 		byId.put(id, new Entry(entry.id(), entry.owner(), entry.name(), entry.male(), false, entry.genome(),
-				entry.dam(), entry.sire(), entry.pelt()));
+				entry.dam(), entry.sire(), entry.pelt(), entry.health(), entry.speed(), entry.jump(), entry.stamina()));
+		return true;
+	}
+
+	/** Move a tame to a new owner. Parents, children, and the pedigree stay. */
+	public boolean give(UUID id, UUID newOwner) {
+		Entry entry = byId.get(id);
+		if (entry == null || newOwner == null) {
+			return false;
+		}
+		byId.put(id, new Entry(entry.id(), newOwner, entry.name(), entry.male(), true, entry.genome(), entry.dam(),
+				entry.sire(), entry.pelt(), entry.health(), entry.speed(), entry.jump(), entry.stamina()));
 		return true;
 	}
 

@@ -67,6 +67,9 @@ import tk.darrow.shamanicmounts.ride.BreedingRules;
 import tk.darrow.shamanicmounts.ride.FollowRules;
 import tk.darrow.shamanicmounts.ride.GiftRules;
 import tk.darrow.shamanicmounts.ride.MountNames;
+import tk.darrow.shamanicmounts.ride.MountStats;
+import tk.darrow.shamanicmounts.trade.MountPosts;
+import tk.darrow.shamanicmounts.world.MountCall;
 import tk.darrow.shamanicmounts.tack.SaddleRules;
 import tk.darrow.shamanicmounts.tame.ReinTrial;
 
@@ -107,6 +110,18 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	/** The rein prompt: 0 none, 1 left, 2 right, 3 forward, 4 back. Both sides move from this. */
 	private static final EntityDataAccessor<Byte> DATA_CUE = SynchedEntityData.defineId(ShamanicMount.class,
 			EntityDataSerializers.BYTE);
+	/** Bred body stats, 1 to 100. The default is the unsaved middle, a constant, not an instance field. */
+	private static final EntityDataAccessor<Integer> DATA_STAT_HEALTH = SynchedEntityData.defineId(ShamanicMount.class,
+			EntityDataSerializers.INT);
+	private static final EntityDataAccessor<Integer> DATA_STAT_SPEED = SynchedEntityData.defineId(ShamanicMount.class,
+			EntityDataSerializers.INT);
+	private static final EntityDataAccessor<Integer> DATA_STAT_JUMP = SynchedEntityData.defineId(ShamanicMount.class,
+			EntityDataSerializers.INT);
+	private static final EntityDataAccessor<Integer> DATA_STAT_STAMINA = SynchedEntityData.defineId(ShamanicMount.class,
+			EntityDataSerializers.INT);
+	/** Gallop is on for this tick. The server decides; the rider's client reads it in travel. */
+	private static final EntityDataAccessor<Boolean> DATA_GALLOP = SynchedEntityData.defineId(ShamanicMount.class,
+			EntityDataSerializers.BOOLEAN);
 
 	/**
 	 * What a mount is before its own genome is set: built once and shared, since every spawn attempt and every
@@ -172,6 +187,17 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	private int calmTicks;
 	/** Direction keys the rider is holding, as a {@link ReinTrial} mask. */
 	private int reinMask;
+	/** Set once a wild roll, a foal, or a load has written the four bred stats. */
+	private boolean statsRolled;
+	/** True after attributes have been applied, so a later apply does not heal a wound. */
+	private boolean bodyApplied;
+	/** Current gallop stamina. Not the bred stat. The bred stat is the capacity. */
+	private int gallopStamina = MountStats.capacityTicks(MountStats.MISSING);
+	private int gallopRegen;
+	/** Empty bar: the bonus stays off until stamina regens to 20% of capacity. */
+	private boolean gallopLocked;
+	/** Gallop is the sprint key, reported with sneak and jump. */
+	private boolean riderSprint;
 	/** The prompt last seen, and the tick it changed, so the buck starts with the new direction. */
 	private byte cueCodeSeen;
 	private int cueSeenTick;
@@ -267,6 +293,11 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		builder.define(DATA_ARMOR, (byte) 0);
 		builder.define(DATA_CALM, false);
 		builder.define(DATA_CUE, (byte) 0);
+		builder.define(DATA_STAT_HEALTH, MountStats.MISSING);
+		builder.define(DATA_STAT_SPEED, MountStats.MISSING);
+		builder.define(DATA_STAT_JUMP, MountStats.MISSING);
+		builder.define(DATA_STAT_STAMINA, MountStats.MISSING);
+		builder.define(DATA_GALLOP, false);
 	}
 
 	@Override
@@ -551,24 +582,65 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		if (!this.level().isClientSide()) {
 			this.entityData.set(DATA_GENOME, GenomeIO.write(genome));
 		}
-		applyHealth();
+		if (this.bodyApplied) {
+			// Build and size set the body's health, so a new genome moves it.
+			applyBody(false);
+		}
 		this.refreshDimensions();
 	}
 
-	private void applyHealth() {
-		// Build sets the base; size within the line moves it a little, an XL about a seventh more.
-		double health = Math.round(switch (phenotype.scale) {
+	/** Build sets the base; size within the line moves it a little, an XL about a seventh more. */
+	private double bodyHealth() {
+		return Math.round(switch (phenotype.scale) {
 			case SLIGHT -> 22.0;
 			case NORMAL -> 26.0;
 			case LARGE -> 32.0;
 			case GREATER -> 40.0;
 		} * phenotype.sizeFactor);
-		var attribute = this.getAttribute(Attributes.MAX_HEALTH);
-		if (attribute != null && attribute.getBaseValue() != health) {
-			float ratio = this.getMaxHealth() <= 0 ? 1.0f : this.getHealth() / this.getMaxHealth();
-			attribute.setBaseValue(health);
-			this.setHealth(Math.max(1.0f, (float) health * ratio));
+	}
+
+	public MountStats bodyStats() {
+		return new MountStats(this.entityData.get(DATA_STAT_HEALTH), this.entityData.get(DATA_STAT_SPEED),
+				this.entityData.get(DATA_STAT_JUMP), this.entityData.get(DATA_STAT_STAMINA));
+	}
+
+	/** The one place bred stats are written and pushed onto attributes. */
+	public void assignStats(MountStats stats, boolean fillGallop) {
+		this.statsRolled = true;
+		this.entityData.set(DATA_STAT_HEALTH, stats.health());
+		this.entityData.set(DATA_STAT_SPEED, stats.speed());
+		this.entityData.set(DATA_STAT_JUMP, stats.jump());
+		this.entityData.set(DATA_STAT_STAMINA, stats.stamina());
+		if (fillGallop) {
+			this.gallopStamina = MountStats.capacityTicks(stats.stamina());
+			this.gallopLocked = false;
+			this.gallopRegen = 0;
 		}
+		applyBody(!this.bodyApplied);
+	}
+
+	/**
+	 * Health and speed, once. A full bar or the first apply snaps to the new max.
+	 * A wounded mount keeps its health unless it is above the new max.
+	 */
+	private void applyBody(boolean firstApply) {
+		double newMax = MountStats.maxHealth(bodyHealth(), this.entityData.get(DATA_STAT_HEALTH));
+		float oldMax = this.getMaxHealth();
+		float oldHealth = this.getHealth();
+		var health = this.getAttribute(Attributes.MAX_HEALTH);
+		if (health != null) {
+			health.setBaseValue(newMax);
+		}
+		if (firstApply || oldHealth >= oldMax - 0.05f) {
+			this.setHealth((float) newMax);
+		} else if (oldHealth > newMax) {
+			this.setHealth((float) newMax);
+		}
+		var speed = this.getAttribute(Attributes.MOVEMENT_SPEED);
+		if (speed != null) {
+			speed.setBaseValue(MountStats.moveSpeed(this.entityData.get(DATA_STAT_SPEED)));
+		}
+		this.bodyApplied = true;
 	}
 
 	@Override
@@ -613,11 +685,17 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			setGenome(tk.darrow.shamanicmounts.world.MountBiomes.wild(line.founder(), line, biome, this.random), false);
 			this.male = this.random.nextBoolean();
 		}
+		if (!this.statsRolled) {
+			assignStats(MountStats.wildRoll(new java.util.Random(this.random.nextLong())), true);
+		}
 		return super.finalizeSpawn(level, difficulty, reason, data);
 	}
 
 	@Override
 	public void tick() {
+		if (!this.level().isClientSide()) {
+			tickGallop();
+		}
 		super.tick();
 		if (this.level().isClientSide()) {
 			this.wingOpenO = this.wingOpen;
@@ -782,16 +860,57 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		return riderSneak;
 	}
 
-	/** The rider's keys, from the client, on both sides. A fresh jump press also allows one more hop. */
-	public void riderKeys(Player player, boolean sneak, boolean jump) {
+	/** The rider's keys, from the client, on both sides. A fresh jump press also allows one more hop. Gallop is the sprint key. */
+	public void riderKeys(Player player, boolean sneak, boolean jump, boolean sprint) {
 		if (player != this.getControllingPassenger()) {
 			return;
 		}
 		riderSneak = sneak;
+		riderSprint = sprint;
 		if (jump && !jumpHeld) {
 			hopUsed = false;
 		}
 		jumpHeld = jump;
+	}
+
+	/** A rein trial is still running, so this mount cannot be traded or galloped. */
+	public boolean inReinTrial() {
+		return this.trial != null && !this.trial.finished();
+	}
+
+	/**
+	 * Gallop is the sprint key. Drain only while sprinting, not in a rein trial, and not on an empty bar.
+	 * Regen is one point per two ticks. At empty the bonus stays off until 20% is back.
+	 */
+	private void tickGallop() {
+		boolean trial = this.trial != null && !this.trial.finished();
+		int staminaStat = this.entityData.get(DATA_STAT_STAMINA);
+		int capacity = MountStats.capacityTicks(staminaStat);
+		if (this.gallopStamina > capacity) {
+			this.gallopStamina = capacity;
+		}
+		if (this.gallopLocked && this.gallopStamina >= MountStats.gallopFloor(staminaStat)) {
+			this.gallopLocked = false;
+		}
+		boolean ridden = this.getControllingPassenger() instanceof Player;
+		boolean gallop = ridden && this.riderSprint && !trial && this.gallopStamina > 0 && !this.gallopLocked;
+		if (gallop) {
+			this.gallopStamina--;
+			this.gallopRegen = 0;
+			if (this.gallopStamina <= 0) {
+				this.gallopStamina = 0;
+				this.gallopLocked = true;
+			}
+		} else if (!trial && this.gallopStamina < capacity) {
+			this.gallopRegen++;
+			if (this.gallopRegen >= 2) {
+				this.gallopRegen = 0;
+				this.gallopStamina++;
+			}
+		}
+		if (this.entityData.get(DATA_GALLOP) != gallop) {
+			this.entityData.set(DATA_GALLOP, gallop);
+		}
 	}
 
 	private void tickRiding() {
@@ -804,6 +923,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			scentShown = false;
 			sneakHeld = 0;
 			riderSneak = false;
+			riderSprint = false;
 			jumpHeld = false;
 			reinMask = 0;
 			return;
@@ -1385,6 +1505,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			return;
 		}
 		foal.setGenome(child, true);
+		foal.assignStats(MountStats.child(this.bodyStats(), other.bodyStats(), new java.util.Random(this.random.nextLong())), true);
 		foal.male = this.random.nextBoolean();
 		foal.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), 0.0f);
 		foal.setAge(-24000);
@@ -1394,6 +1515,13 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		foal.sire = sireMount.getUUID();
 		foal.setPersistenceRequired();
 		server.addFreshEntity(foal);
+		if (child.chimera) {
+			// The chimera joins the herd book for whoever bred it.
+			MountHerdData herd = MountHerdData.get(server);
+			herd.bredChimera(player.getUUID());
+			herd.bredChimera(damMount.getOwnerUUID());
+			herd.bredChimera(sireMount.getOwnerUUID());
+		}
 		this.hearts();
 		other.hearts();
 		foal.hearts();
@@ -1408,9 +1536,21 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		if (this.isBaby()) {
 			name = name + " " + (herd.count(player.getUUID()) + 1);
 		}
-		herd.adopt(this.getUUID(), player.getUUID(), name, male, genome, parentDam, parentSire, pelt());
+		MountStats stats = bodyStats();
+		herd.adopt(this.getUUID(), player.getUUID(), name, male, genome, parentDam, parentSire, pelt(), stats.health(),
+				stats.speed(), stats.jump(), stats.stamina());
 		this.setCustomName(Component.literal(name));
 		this.setCustomNameVisible(true);
+		noteWhere();
+	}
+
+	/** Where the flute last heard this tame. The herd data lives with the overworld. */
+	private void noteWhere() {
+		if (!this.isTame() || this.getOwnerUUID() == null || !(this.level() instanceof ServerLevel server)) {
+			return;
+		}
+		MountHerdData.get(server).note(this.getUUID(), server.dimension().location().toString(), this.getX(), this.getY(),
+				this.getZ());
 	}
 
 	private void hearts() {
@@ -1418,6 +1558,26 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			server.sendParticles(ParticleTypes.HEART, this.getX(), this.getY() + this.getBbHeight(), this.getZ(), 7,
 					0.4, 0.4, 0.4, 0.0);
 		}
+	}
+
+	/** Hand this tame to another player. The pedigree stays. The new owner is not sat. */
+	public void transferTo(ServerPlayer to) {
+		this.setOwnerUUID(to.getUUID());
+		this.setTame(true, false);
+		this.setOrderedToSit(false);
+		this.setMode(MountMode.FOLLOW);
+		if (!(this.level() instanceof ServerLevel server)) {
+			return;
+		}
+		MountHerdData herd = MountHerdData.get(server);
+		if (herd.give(this.getUUID(), to.getUUID())) {
+			return;
+		}
+		String name = this.getCustomName() == null ? MountNames.of(phenotype, this.isBaby())
+				: this.getCustomName().getString();
+		MountStats stats = bodyStats();
+		herd.adopt(this.getUUID(), to.getUUID(), name, male, genome, dam, sire, pelt(), stats.health(), stats.speed(),
+				stats.jump(), stats.stamina());
 	}
 
 	public void releaseIntoWorld(Player player) {
@@ -1586,7 +1746,9 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 				forward *= 0.25f;
 			}
 			air(player, forward);
-			this.setSpeed((float) this.getAttributeValue(Attributes.MOVEMENT_SPEED));
+			double walked = this.getAttributeValue(Attributes.MOVEMENT_SPEED);
+			float speed = this.entityData.get(DATA_GALLOP) ? (float) MountStats.gallopSpeed(walked) : (float) walked;
+			this.setSpeed(speed);
 			if (GiftRules.coil(phenotype) && this.isInWater()) {
 				Vec3 look = this.getLookAngle();
 				double rise = jumpHeld ? 0.12 : (riderSneak ? -0.08 : look.y * 0.08);
@@ -1644,7 +1806,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			return;
 		}
 		if (jumpHeld && this.onGround() && !hopUsed && forward > 0.0f) {
-			this.setDeltaMovement(this.getDeltaMovement().add(0.0, 0.55, 0.0));
+			this.setDeltaMovement(this.getDeltaMovement().add(0.0,
+					MountStats.jumpImpulse(this.entityData.get(DATA_STAT_JUMP)), 0.0));
 			hopUsed = true;
 		}
 		if (phenotype.gifts.contains(tk.darrow.shamanicmounts.genome.Marks.Gift.DREAM) && this.isVehicle()) {
@@ -1677,6 +1840,9 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		if (!this.level().isClientSide() && passenger instanceof Player rider) {
 			lastRider = rider.getUUID();
 			lastRiderTick = this.level().getGameTime();
+			if (rider instanceof ServerPlayer server && MountPosts.dismounted(server, this.getUUID())) {
+				server.displayClientMessage(Component.translatable("shamanicmounts.trade.cancelled"), true);
+			}
 		}
 		// Stepping off leaves the order as it was: a following mount keeps following.
 		if (this.trial != null && !this.trial.finished()) {
@@ -1747,6 +1913,14 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	}
 
 	@Override
+	public void onAddedToLevel() {
+		super.onAddedToLevel();
+		if (!this.level().isClientSide()) {
+			MountCall.added(this);
+		}
+	}
+
+	@Override
 	public void addAdditionalSaveData(CompoundTag tag) {
 		super.addAdditionalSaveData(tag);
 		tag.put("Genome", GenomeIO.write(genome));
@@ -1800,6 +1974,13 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		if (sire != null) {
 			tag.putUUID("Sire", sire);
 		}
+		tag.putInt("StatHealth", this.entityData.get(DATA_STAT_HEALTH));
+		tag.putInt("StatSpeed", this.entityData.get(DATA_STAT_SPEED));
+		tag.putInt("StatJump", this.entityData.get(DATA_STAT_JUMP));
+		tag.putInt("StatStamina", this.entityData.get(DATA_STAT_STAMINA));
+		tag.putInt("Gallop", this.gallopStamina);
+		tag.putBoolean("GallopLocked", this.gallopLocked);
+		noteWhere();
 	}
 
 	@Override
@@ -1859,6 +2040,20 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		}
 		this.dam = tag.hasUUID("Dam") ? tag.getUUID("Dam") : null;
 		this.sire = tag.hasUUID("Sire") ? tag.getUUID("Sire") : null;
+		boolean hadStats = tag.contains("StatHealth");
+		MountStats loaded = new MountStats(
+				MountStats.read(hadStats, tag.getInt("StatHealth")),
+				MountStats.read(tag.contains("StatSpeed"), tag.getInt("StatSpeed")),
+				MountStats.read(tag.contains("StatJump"), tag.getInt("StatJump")),
+				MountStats.read(tag.contains("StatStamina"), tag.getInt("StatStamina")));
+		boolean fillGallop = !tag.contains("Gallop");
+		this.bodyApplied = true;
+		assignStats(loaded, fillGallop);
+		if (!fillGallop) {
+			int capacity = MountStats.capacityTicks(loaded.stamina());
+			this.gallopStamina = Math.max(0, Math.min(capacity, tag.getInt("Gallop")));
+			this.gallopLocked = tag.getBoolean("GallopLocked") || this.gallopStamina <= 0;
+		}
 		if (awayTicks > 0) {
 			this.setInvisible(true);
 			this.noPhysics = true;

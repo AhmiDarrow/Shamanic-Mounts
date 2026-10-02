@@ -5,31 +5,25 @@ import java.util.List;
 import tk.darrow.shamanicmounts.genome.Founders;
 import tk.darrow.shamanicmounts.genome.Genome;
 
-/** What the herd book says. Spoilers add the breeding chapter and the gift half of the key. */
+/** What the herd book says. Everything is open except the chimera, which waits until the reader breeds one. */
 public final class Codex {
 	public enum Page {
 		BASICS, LINES, TAMES, KEY, BREEDING
 	}
 
 	/** One founder line for the gallery: its name, its genome, and one line on what it does. */
-	public record Line(String name, Genome genome, String blurb, boolean spoiler) {
+	public record Line(String name, Genome genome, String blurb, boolean untilBred) {
 	}
 
 	/** One chapter section: a heading, then its paragraphs. */
 	public record Section(String heading, List<String> paragraphs) {
 	}
 
-	/** What a spoiler-hidden line says in the gallery. */
-	public static final String HIDDEN_LINE = "The eleventh form. Turn spoilers on to read it.";
-
 	private Codex() {
 	}
 
-	public static List<Page> open(boolean spoilers) {
-		if (spoilers) {
-			return List.of(Page.BASICS, Page.LINES, Page.TAMES, Page.KEY, Page.BREEDING);
-		}
-		return List.of(Page.BASICS, Page.LINES, Page.TAMES, Page.KEY);
+	public static List<Page> open() {
+		return List.of(Page.BASICS, Page.LINES, Page.TAMES, Page.KEY, Page.BREEDING);
 	}
 
 	public static List<Section> basics() {
@@ -37,7 +31,8 @@ public final class Codex {
 				new Section("The herd", List.of(
 						"Ten lines of spirit mount roam the Overworld, one at a time, each in its own biomes: bears in the woods and the snow, cranes on the rivers, rocs in the mountains. Each stands at least as tall as a horse, and the serpent as long as two.",
 						"Where a mount is born decides its pelt: a polar bear on the snow, a black bear in the forest, a snow leopard on the slopes. The cold grows them a little larger.",
-						"Every mount is built from genes. Its body, head, legs, tail, pelt, size, and what it does when ridden are each passed down on their own.")),
+						"Every mount is built from genes. Its body, head, legs, tail, pelt, size, and what it does when ridden are each passed down on their own.",
+						"Health, speed, jump, and stamina each run from 1 to 100. A foal takes after the stronger parent in health, speed, jump, and stamina, and can come out a little higher.")),
 				new Section("Taming", List.of(
 						"Wild adults attack. A golden apple makes one stop for two minutes. Food does not tame a spirit mount.",
 						"While it is calm, right-click with a Shamanic Saddle to put it on. A vanilla saddle does not fit.",
@@ -51,7 +46,13 @@ public final class Codex {
 						"Your tames are listed here, loaded or not. Open one for its genes and family, to rename it, or to release it.")),
 				new Section("This book", List.of(
 						"Lines shows every founder and its three pelts. Key explains how genes are written.",
-						"Spoilers add the breeding chapter and the gift genes. That switch is saved on this computer for you.")));
+						"Breeding explains how a pair makes a foal and how each gene passes down.")));
+	}
+
+	/** The breeding chapter; its chimera section only for a reader who has bred one. */
+	public static List<Section> breeding(boolean bredChimera) {
+		List<Section> all = breeding();
+		return bredChimera ? all : all.stream().filter(section -> !section.heading().equals("The chimera")).toList();
 	}
 
 	public static List<Section> breeding() {
@@ -81,11 +82,16 @@ public final class Codex {
 	}
 
 	/**
-	 * The ten founders and the chimera. The chimera's line waits for spoilers. Built once: the genomes
-	 * never change, and the book caches each line's gene rows by its genome.
+	 * The ten founders and the chimera. Built once: the genomes never change, and the book caches each
+	 * line's gene rows by its genome.
 	 */
 	public static List<Line> lines() {
 		return LinesHolder.LINES;
+	}
+
+	/** The lines one reader can see: the chimera is not listed until they have bred one. */
+	public static List<Line> lines(boolean bredChimera) {
+		return bredChimera ? lines() : lines().stream().filter(line -> !line.untilBred()).toList();
 	}
 
 	private static final class LinesHolder {

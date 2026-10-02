@@ -224,7 +224,7 @@ public final class Genotype {
 			Locus.RACK, Locus.SCALE, Locus.SIZE, Locus.PELT, Locus.COAT, Locus.PHASE, Locus.WINGS, Locus.WINGSPAN,
 			Locus.GAIT, Locus.REALM, Locus.SENSE, Locus.BOND, Locus.WARD, Locus.TRAIL);
 
-	/** The key for the gift loci, which the breeding chapter's spoiler unlocks. */
+	/** The key for the gift loci. */
 	public static List<KeyEntry> giftKey() {
 		ArrayList<KeyEntry> entries = new ArrayList<>();
 		for (Locus locus : Locus.values()) {

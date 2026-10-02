@@ -5,6 +5,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import org.slf4j.Logger;
 
+import tk.darrow.shamanicmounts.block.MountBlocks;
 import tk.darrow.shamanicmounts.entity.MountEntities;
 import tk.darrow.shamanicmounts.entity.MountMenus;
 import tk.darrow.shamanicmounts.item.MountItems;
@@ -16,6 +17,7 @@ public final class ShamanicMounts {
 	public static final Logger LOGGER = LogUtils.getLogger();
 
 	public ShamanicMounts(IEventBus modBus) {
+		MountBlocks.BLOCKS.register(modBus);
 		MountItems.ITEMS.register(modBus);
 		MountItems.TABS.register(modBus);
 		MountEntities.ENTITIES.register(modBus);

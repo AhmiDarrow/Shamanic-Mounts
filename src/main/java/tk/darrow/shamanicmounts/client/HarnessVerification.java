@@ -379,6 +379,10 @@ public final class HarnessVerification {
 						Strand.wild(Marks.Torso.CAT, Marks.Head.CAT),
 						true, true, true);
 				book.keep(owner, "Ash", false, carriedSkin, brook.id(), null);
+				// "seed chimera" opens it as a keeper who has bred one.
+				if (parts.length > 1 && parts[1].equals("chimera")) {
+					book.bredChimera(owner);
+				}
 				ClientBook.open(owner, book);
 				return "ok seeded";
 			}

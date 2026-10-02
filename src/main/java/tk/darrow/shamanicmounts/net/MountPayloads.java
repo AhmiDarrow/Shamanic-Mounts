@@ -22,7 +22,8 @@ import tk.darrow.shamanicmounts.entity.ShamanicMount;
 /** Herd book sync, rename, release, and the ridden use key. */
 public final class MountPayloads {
 	/** Set by the client. The server leaves this as a no-op so it never loads a client class. */
-	public static Consumer<ListTag> openBook = entries -> {
+	/** Set by the client: open the book from the herd packet (entries "E", bred-a-chimera "C"). */
+	public static Consumer<CompoundTag> openBook = data -> {
 	};
 	/** Set by the client: move the ridden mount, whose motion the rider's client owns. */
 	public static Consumer<double[]> warp = at -> {
@@ -34,7 +35,7 @@ public final class MountPayloads {
 	public static void register(RegisterPayloadHandlersEvent event) {
 		PayloadRegistrar registrar = event.registrar("1");
 		registrar.playToClient(HerdSync.TYPE, HerdSync.STREAM_CODEC,
-				(payload, context) -> context.enqueueWork(() -> openBook.accept(payload.data().getList("E", Tag.TAG_COMPOUND))));
+				(payload, context) -> context.enqueueWork(() -> openBook.accept(payload.data())));
 		registrar.playToServer(HerdEdit.TYPE, HerdEdit.STREAM_CODEC,
 				(payload, context) -> context.enqueueWork(() -> HerdEdit.handle(payload, (ServerPlayer) context.player())));
 		registrar.playToServer(MountUse.TYPE, MountUse.STREAM_CODEC,
@@ -51,7 +52,9 @@ public final class MountPayloads {
 
 	public static void sendHerd(ServerPlayer player) {
 		CompoundTag tag = new CompoundTag();
-		tag.put("E", MountHerdData.get(player.serverLevel()).writePlayer(player.getUUID()));
+		MountHerdData herd = MountHerdData.get(player.serverLevel());
+		tag.put("E", herd.writePlayer(player.getUUID()));
+		tag.putBoolean("C", herd.hasBredChimera(player.getUUID()));
 		PacketDistributor.sendToPlayer(player, new HerdSync(tag));
 	}
 
@@ -149,13 +152,15 @@ public final class MountPayloads {
 	}
 
 	/**
-	 * The rider's sneak and jump keys, sent whenever either changes. Vanilla clears sneak every tick a
+	 * The rider's sneak, jump, and sprint keys, sent whenever one changes. Vanilla clears sneak every tick a
 	 * rider holds it and only reports jump when it is released, so the mount reads the keys from here.
+	 * Gallop is the sprint key.
 	 */
-	public record MountKeys(boolean sneak, boolean jump) implements CustomPacketPayload {
+	public record MountKeys(boolean sneak, boolean jump, boolean sprint) implements CustomPacketPayload {
 		public static final Type<MountKeys> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ShamanicMounts.MOD_ID, "mount_keys"));
 		public static final StreamCodec<RegistryFriendlyByteBuf, MountKeys> STREAM_CODEC = StreamCodec.composite(
-				ByteBufCodecs.BOOL, MountKeys::sneak, ByteBufCodecs.BOOL, MountKeys::jump, MountKeys::new);
+				ByteBufCodecs.BOOL, MountKeys::sneak, ByteBufCodecs.BOOL, MountKeys::jump, ByteBufCodecs.BOOL, MountKeys::sprint,
+				MountKeys::new);
 
 		@Override
 		public Type<? extends CustomPacketPayload> type() {
@@ -164,7 +169,7 @@ public final class MountPayloads {
 
 		private static void handle(MountKeys payload, ServerPlayer player) {
 			if (player.getVehicle() instanceof ShamanicMount mount) {
-				mount.riderKeys(player, payload.sneak(), payload.jump());
+				mount.riderKeys(player, payload.sneak(), payload.jump(), payload.sprint());
 			}
 		}
 	}

@@ -42,12 +42,12 @@ public final class TamePage {
 	private TamePage() {
 	}
 
-	public static List<Row> genes(Genome genome, boolean spoilers) {
+	public static List<Row> genes(Genome genome, boolean notes) {
 		ArrayList<Row> rows = new ArrayList<>();
 		for (Reading.Line line : Reading.of(genome)) {
 			String note = line.note() == Reading.Note.PLAIN ? "" : noteWord(line.note());
 			rows.add(new Row(line.group(), Genotype.name(line.locus()), Genotype.symbol(line.locus()),
-					Genotype.notation(line), line.word(), line.damWord(), line.sireWord(), spoilers ? note : "",
+					Genotype.notation(line), line.word(), line.damWord(), line.sireWord(), notes ? note : "",
 					Genotype.rule(line.locus())));
 		}
 		return rows;
@@ -104,6 +104,16 @@ public final class TamePage {
 				? " (carries " + phenotype.carriedTorso.code() + ")" : "";
 		return body(genome) + " body" + carried + ", " + pelt(genome) + ", size " + phenotype.size.name() + ", "
 				+ (male ? "male" : "female");
+	}
+
+	/** The four bred numbers, 1 to 100. Basics, not gifts. */
+	public static String stats(int health, int speed, int jump, int stamina) {
+		return "Health " + health + ", Speed " + speed + ", Jump " + jump + ", Stamina " + stamina;
+	}
+
+	/** The same four numbers, one line each, for the open page. */
+	public static List<String> statLines(int health, int speed, int jump, int stamina) {
+		return List.of("Health " + health, "Speed " + speed, "Jump " + jump, "Stamina " + stamina);
 	}
 
 	/** The wing line, or an empty string for a mount without wings. */

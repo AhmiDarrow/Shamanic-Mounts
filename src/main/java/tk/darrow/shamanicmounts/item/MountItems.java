@@ -3,6 +3,7 @@ package tk.darrow.shamanicmounts.item;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
@@ -12,6 +13,7 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import tk.darrow.shamanicmounts.ShamanicMounts;
+import tk.darrow.shamanicmounts.block.MountBlocks;
 import tk.darrow.shamanicmounts.ride.BreedingRules;
 import tk.darrow.shamanicmounts.tack.SaddleRules;
 
@@ -29,6 +31,11 @@ public final class MountItems {
 
 	public static final DeferredItem<Item> HERD_BOOK = ITEMS.register("herd_book",
 			() -> new HerdBookItem(new Item.Properties().stacksTo(1)));
+
+	public static final DeferredItem<Item> MOUNT_FLUTE = ITEMS.register("mount_flute",
+			() -> new MountFluteItem(new Item.Properties().stacksTo(1)));
+
+	public static final DeferredItem<BlockItem> MOUNT_TRADING_POST = ITEMS.registerSimpleBlockItem(MountBlocks.MOUNT_TRADING_POST);
 
 	/** Eight diamonds around an apple. Feed one to each tame adult you want to breed. */
 	public static final DeferredItem<Item> DIAMOND_APPLE = ITEMS.register(BreedingRules.ITEM_ID,
@@ -50,7 +57,7 @@ public final class MountItems {
 		return ITEMS.register(name, () -> new FounderEggItem(genome, base, spots, new Item.Properties().stacksTo(64)));
 	}
 
-	/** The mod's own creative tab: the tack, the book, the apple, and the ten eggs. */
+	/** The mod's own creative tab: the tack, the book, the flute, the post, the apple, and the ten eggs. */
 	public static final java.util.function.Supplier<CreativeModeTab> TAB = TABS.register("shamanicmounts",
 			() -> CreativeModeTab.builder()
 					.title(Component.translatable("itemGroup.shamanicmounts"))
@@ -59,6 +66,8 @@ public final class MountItems {
 						output.accept(SHAMANIC_SADDLE.get());
 						output.accept(SADDLE_BAGS.get());
 						output.accept(HERD_BOOK.get());
+						output.accept(MOUNT_FLUTE.get());
+						output.accept(MOUNT_TRADING_POST.get());
 						output.accept(DIAMOND_APPLE.get());
 						output.accept(EGG_EIGHTFOLD.get());
 						output.accept(EGG_DRUM_HART.get());
@@ -81,6 +90,7 @@ public final class MountItems {
 			event.accept(SHAMANIC_SADDLE);
 			event.accept(SADDLE_BAGS);
 			event.accept(HERD_BOOK);
+			event.accept(MOUNT_FLUTE);
 		}
 		if (event.getTabKey() == CreativeModeTabs.FOOD_AND_DRINKS) {
 			event.accept(DIAMOND_APPLE);

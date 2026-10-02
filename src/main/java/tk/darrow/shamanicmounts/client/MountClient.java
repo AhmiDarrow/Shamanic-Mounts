@@ -1,7 +1,6 @@
 package tk.darrow.shamanicmounts.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.nbt.ListTag;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
@@ -11,6 +10,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import tk.darrow.shamanicmounts.book.HerdBook;
 import tk.darrow.shamanicmounts.book.HerdIO;
 import tk.darrow.shamanicmounts.entity.MountMenus;
 import tk.darrow.shamanicmounts.entity.ShamanicMount;
@@ -21,13 +21,14 @@ public final class MountClient {
 	private static boolean useWasDown;
 	private static boolean sneakSent;
 	private static boolean jumpSent;
+	private static boolean sprintSent;
 	private static boolean keysKnown;
 	private static int reinSent;
 	private static boolean reinKnown;
 
 	/** What the client last told the server about its keys, for the harness. */
 	public static String keysSent() {
-		return (keysKnown ? "known" : "unknown") + " sneak=" + sneakSent + " jump=" + jumpSent;
+		return (keysKnown ? "known" : "unknown") + " sneak=" + sneakSent + " jump=" + jumpSent + " sprint=" + sprintSent;
 	}
 
 	private MountClient() {
@@ -73,16 +74,20 @@ public final class MountClient {
 			useWasDown = false;
 			keysKnown = false;
 			reinKnown = false;
+			sprintSent = false;
 			return;
 		}
 		boolean sneak = minecraft.options.keyShift.isDown();
 		boolean jump = minecraft.options.keyJump.isDown();
-		if (!keysKnown || sneak != sneakSent || jump != jumpSent) {
+		// Gallop is the sprint key.
+		boolean sprint = minecraft.options.keySprint.isDown();
+		if (!keysKnown || sneak != sneakSent || jump != jumpSent || sprint != sprintSent) {
 			// The local copy moves the mount, so it hears the keys first; the server keeps the rules.
-			mount.riderKeys(minecraft.player, sneak, jump);
-			PacketDistributor.sendToServer(new MountPayloads.MountKeys(sneak, jump));
+			mount.riderKeys(minecraft.player, sneak, jump, sprint);
+			PacketDistributor.sendToServer(new MountPayloads.MountKeys(sneak, jump, sprint));
 			sneakSent = sneak;
 			jumpSent = jump;
+			sprintSent = sprint;
 			keysKnown = true;
 		}
 		int rein = 0;
@@ -118,11 +123,15 @@ public final class MountClient {
 		}
 	}
 
-	private static void openBook(ListTag entries) {
+	private static void openBook(net.minecraft.nbt.CompoundTag data) {
 		Minecraft minecraft = Minecraft.getInstance();
 		if (minecraft.player == null) {
 			return;
 		}
-		ClientBook.open(minecraft.player.getUUID(), HerdIO.read(entries));
+		HerdBook book = HerdIO.read(data.getList("E", net.minecraft.nbt.Tag.TAG_COMPOUND));
+		if (data.getBoolean("C")) {
+			book.bredChimera(minecraft.player.getUUID());
+		}
+		ClientBook.open(minecraft.player.getUUID(), book);
 	}
 }

@@ -1,13 +1,11 @@
-"""Herd book pages, the local spoiler file, rename, and release.
+"""Herd book pages, the chimera kept back until it is bred, rename, and release.
 
 The item itself opens an empty herd until a mount exists in the world. `seed` opens a book that already
 holds Brook and Ash so the tame page can be driven on this client.
 """
 import time
 
-from harness_lib import CLIENT, PLAYER, buttons, check, client, player_uuid, press_button, report, run
-
-PREF = CLIENT / "config" / "shamanicmounts" / "spoilers.txt"
+from harness_lib import PLAYER, buttons, check, client, press_button, report, run
 
 
 def lines_of(fields):
@@ -15,9 +13,6 @@ def lines_of(fields):
 
 
 def main():
-    if PREF.is_file():
-        PREF.unlink()
-    uuid = player_uuid()
     run(f"clear {PLAYER}")
     run(f"item replace entity {PLAYER} hotbar.0 with shamanicmounts:herd_book 1")
     client("hotbar 0")
@@ -31,20 +26,21 @@ def main():
 
     _reply, widgets = buttons()
     labels = [text for _index, kind, text in widgets if kind == "Button"]
-    check("spoilers off shows Basics, Lines, Tames, and Key only", labels[:4] == ["Basics", "Lines", "Tames", "Key"] and "Breeding" not in labels, str(labels))
-    check("the spoiler button starts off", "Spoilers: off" in labels, str(labels))
+    check("the chapters are Basics, Lines, Tames, Key, and Breeding", labels[:5] == ["Basics", "Lines", "Tames", "Key", "Breeding"], str(labels))
+    check("there is no spoiler switch", not any(label.startswith("Spoilers") for label in labels), str(labels))
     _reply, fields = report()
     basics = lines_of(fields)
     check("the basics page names the saddle and the rein trial", "Shamanic Saddle" in basics and "golden apple" in basics and "thirty seconds" in basics, basics[:240])
-    check("the basics page does not explain the chimera", "chimera" not in basics.lower() and "both copies" not in basics.lower())
+    check("the basics page does not mention the chimera", "chimera" not in basics.lower() and "spoiler" not in basics.lower(), basics[-200:])
     client("shot book_basics")
 
     press_button("Lines")
     _reply, fields = report()
     lines_page = lines_of(fields)
-    check("the lines page names every founder and the chimera", fields.get("page") == "LINES" and "Eightfold" in lines_page
-          and "Chimera" in lines_page and "Barghest" in lines_page, lines_page[:120])
-    check("the chimera's line is hidden while spoilers are off", "The eleventh form." in lines_page, lines_page[-80:])
+    check("the lines page names every founder", fields.get("page") == "LINES" and "Eightfold" in lines_page
+          and "Barghest" in lines_page and "Serpent" in lines_page, lines_page[:120])
+    check("the chimera is not listed before one is bred", "Chimera" not in lines_page and "eleventh" not in lines_page
+          and fields.get("chimera") == "false", lines_page[-120:])
     client("shot book_lines")
     picked = client("pick 0")
     _reply, fields = report()
@@ -58,7 +54,7 @@ def main():
     press_button("Back")
     _reply, fields = report()
     check("Back returns to the gallery", fields.get("line") == "" and fields.get("page") == "LINES", fields.get("line", ""))
-    check("the chimera cannot be opened with spoilers off", client("pick 10").startswith("error"))
+    check("there is no eleventh line to open", client("pick 10").startswith("error"))
 
     press_button("Key")
     _reply, fields = report()
@@ -67,7 +63,7 @@ def main():
           and "Lg legs:" in key_page and "E eight" in key_page, key_page[:120])
     check("the key lists size, pelt, and body dominance", "Sz size: XS xs" in key_page and "Pt pelt: A first" in key_page
           and "U > S > H > D > C > B > N" in key_page, key_page[:400])
-    check("the key keeps the gifts for spoilers", "Ro road" not in key_page)
+    check("the key lists the gifts", "Ro road" in key_page, key_page[-100:])
     client("shot book_key")
 
     press_button("Tames")
@@ -78,22 +74,12 @@ def main():
         lines_of(fields)[:120],
     )
 
-    press_button("Spoilers: off")
-    time.sleep(0.2)
-    _reply, widgets = buttons()
-    labels = [text for _index, kind, text in widgets if kind == "Button"]
-    check("spoilers on adds the Breeding chapter", "Breeding" in labels and "Spoilers: on" in labels, str(labels))
-    saved = PREF.read_text(encoding="utf-8") if PREF.is_file() else ""
-    check("spoiler on is saved for this player", f"{uuid} true" in saved, saved.strip())
-    press_button("Key")
-    _reply, fields = report()
-    check("with spoilers on the key lists the gifts", "Ro road" in lines_of(fields), lines_of(fields)[-100:])
     press_button("Breeding")
     _reply, fields = report()
     breeding = lines_of(fields)
     check(
-        "the breeding page explains both copies and the chimera",
-        fields.get("page") == "BREEDING" and "both copies" in breeding and "chimera" in breeding.lower(),
+        "the breeding page explains both copies and keeps the chimera back",
+        fields.get("page") == "BREEDING" and "both copies" in breeding and "chimera" not in breeding.lower(),
         breeding[:200],
     )
     check(
@@ -102,13 +88,22 @@ def main():
         breeding[:240],
     )
     client("shot book_breeding")
+    client("close")
 
-    press_button("Spoilers: on")
-    time.sleep(0.2)
-    saved = PREF.read_text(encoding="utf-8") if PREF.is_file() else ""
-    _reply, widgets = buttons()
-    labels = [text for _index, kind, text in widgets if kind == "Button"]
-    check("spoiler off is saved, and Breeding hides again", f"{uuid} false" in saved and "Breeding" not in labels, saved.strip() + " " + str(labels))
+    seeded = client("seed chimera")
+    time.sleep(0.3)
+    check("a herd whose keeper bred a chimera opens", seeded.startswith("ok"), seeded)
+    press_button("Lines")
+    _reply, fields = report()
+    lines_page = lines_of(fields)
+    check("once bred, the chimera is listed", "Chimera: All ten ridden gifts" in lines_page and fields.get("chimera") == "true",
+          lines_page[-160:])
+    picked = client("pick 10")
+    check("once bred, the chimera's line opens", picked.startswith("ok") and "line=Chimera" in picked, picked[:160])
+    client("shot book_chimera")
+    press_button("Breeding")
+    _reply, fields = report()
+    check("once bred, the breeding page explains the chimera", "chimera" in lines_of(fields).lower(), lines_of(fields)[-200:])
     client("close")
 
     seeded = client("seed")
@@ -121,15 +116,10 @@ def main():
     check("clicking Ash opens that tame", picked.startswith("ok") and "selected=Ash" in picked, picked[:200])
     _reply, fields = report()
     hidden = lines_of(fields)
-    check("with spoilers off the carried skin reads Sk s- none with no note", "Sk s-  none" in hidden and "carried" not in hidden, hidden[:240])
+    check("the carried skin reads Sk s- none and says carried", "Sk s-  none" in hidden and "carried" in hidden, hidden[:240])
     check("the family line names the dam and the coat", "Dam: Brook" in hidden and "Pelt: " in hidden, hidden[:120])
     check("the tame page sums up the body, pelt, size, and sex", "Shade body, Dusk, size M, female" in hidden, hidden[:120])
 
-    press_button("Spoilers: off")
-    time.sleep(0.2)
-    _reply, fields = report()
-    shown = lines_of(fields)
-    check("with spoilers on the carried skin says carried", "carried" in shown and fields.get("spoilers") == "true", shown[:240])
     client("shot book_tame")
     client("bookscroll end")
     time.sleep(0.2)

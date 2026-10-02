@@ -4,9 +4,9 @@
 
 # Shamanic Mounts
 
-Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.8**. Ten new rideable lines roam the Overworld, each with something it does under you: walk on water, fly, swim and dive, ram, maul, coil, hide from mobs, blink ahead, or heal the party. Calm one with a golden apple, then tame it from the saddle, and breed any line with any other. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited. Breed far enough and you reach the chimera, a furry dragon with all ten ridden gifts at once.
+Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.9**. Ten new rideable lines roam the Overworld, each with something it does under you: walk on water, fly, swim and dive, ram, maul, coil, hide from mobs, blink ahead, or heal the party. Calm one with a golden apple, then tame it from the saddle, and breed any line with any other. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited. Breed far enough and you reach the chimera, a furry dragon with all ten ridden gifts at once.
 
-[Download from GitHub Releases](https://github.com/AhmiDarrow/Shamanic-Mounts/releases/latest) · [CurseForge](https://www.curseforge.com/minecraft/mc-mods/shamanic-mounts) · [0.1.8 notes](docs/RELEASE_0.1.8.md)
+[Download from GitHub Releases](https://github.com/AhmiDarrow/Shamanic-Mounts/releases/latest) · [CurseForge](https://www.curseforge.com/minecraft/mc-mods/shamanic-mounts) · [0.1.9 notes](docs/RELEASE_0.1.9.md)
 
 <p align="center">
   <img src="docs/public/shamanic-mounts-founders.png" alt="Eightfold, Drum hart, Elk, Crane, Nagual, Barghest, Roc, Shade, Chimera, Bear, and Serpent">
@@ -54,6 +54,10 @@ Every mount needs a **Shamanic Saddle**. A vanilla saddle does not fit. Food doe
 
 Wild adults attack. A golden apple makes one stop for two minutes. While it is calm, right-click with the saddle to put it on. The saddle is a gold ingot over leather, a saddle, and leather. Right-click again to mount. For thirty seconds the mount shows a direction. Press that direction with the movement keys or the arrow keys. The mount steps the other way. Fifteen prompts, two seconds each. Four misses are allowed. Getting off fails the try, you keep the saddle, and that mount refuses another try for 10 seconds. A hit does not.
 
+The **Mount Flute**, a gold ingot over a stick over leather, calls up to eight of your tame mounts to your side from any distance and any dimension, and they arrive on follow. Mounts in a rein trial, on a leash, or carrying another rider stay put. The **Mount Trading Post**: ride a tame up and use it to offer that mount; another rider who uses a post on their own mount swaps with you. Sneak as you use it to offer a gift that a player on foot can take. The herd book entry and pedigree go with the mount.
+
+**Bred stats.** Health, Speed, Jump and Stamina run from 1 to 100 and show in the herd book. Wild mounts roll 28 to 48; a foal takes mostly after the stronger parent and now and then comes out a step higher. Hold sprint while riding to gallop for as long as stamina lasts, 2 to 12 seconds.
+
 ## Breeding
 
 Any line with any other. The breed item is a Diamond Apple: eight diamonds around an apple, the same shape as a golden apple. Feed one to a tame adult you own, then the other within ten seconds and eight blocks. One foal, one body. The foal is born wild, keeps near the grown mounts, and wears no saddle, bags, or armor until it is grown. Once grown, calm it with a golden apple and tame it from the saddle, and its parents go in the herd book. Those two parents rest for five minutes. An operator can feed them during that rest, and a mount an operator readied stays ready until the pair is made. Every gene has two copies, one from each parent, and the herd book tracks both.
@@ -69,7 +73,7 @@ Linked genes travel together: the body with legs, feet, and gait; the head with 
 
 When both parents already have every ridden gift, the foal is an even chance of that normal cross, or the **chimera**: a furry dragon with scale plates, the eleventh form, carrying all ten gifts. Hiding, gliding, and guarding are not gifts (they come from the ghost phase, full wings, and the guard ward), so the chimera has them only if the bred body genes underneath do.
 
-The herd book keeps every gene, the parents, and the children, including mounts that are not loaded. Rename a tame or release it from the tames page. The breeding chapter hides behind a spoiler switch saved on your computer.
+The herd book keeps every gene, the parents, and the children, including mounts that are not loaded. Rename a tame or release it from the tames page. Every chapter is open; the chimera joins the book once you breed one.
 
 ## Requirements
 

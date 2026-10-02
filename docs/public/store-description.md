@@ -81,6 +81,9 @@ Sneak and right-click a tame mount, or press your inventory key while riding, fo
 - **Follow** is where every new tame starts. It keeps up with you, keeps following when you step off, and teleports to safe ground beside you when you get far ahead.
 - **Stay** lies down where you left it, and again wherever you step off it. **Wander** roams nearby.
 - **Across dimensions.** Go through a portal, use a command, head home from the End, or take another mod's teleport, and your following mounts within 24 blocks come too, up to eight, set down on solid ground beside you. Ride one through and you arrive in the saddle. Staying, wandering and leashed mounts stay where they are.
+- **Mount Flute.** A gold ingot over a stick over leather, calls up to eight of your tame mounts to your side from any distance and any dimension, and they arrive on follow. Mounts in a rein trial, on a leash, or carrying another rider stay put.
+- **Mount Trading Post**: ride a tame up and use it to offer that mount; another rider who uses a post on their own mount swaps with you. Sneak as you use it to offer a gift that a player on foot can take. The herd book entry and pedigree go with the mount.
+- **Bred stats.** Health, Speed, Jump and Stamina run from 1 to 100 and show in the herd book. Wild mounts roll 28 to 48; a foal takes mostly after the stronger parent and now and then comes out a step higher. Hold sprint while riding to gallop for as long as stamina lasts, 2 to 12 seconds.
 
 ## Breeding and the chimera
 
@@ -106,7 +109,7 @@ Genes that sit together usually travel together: the body with its legs, feet an
 
 ## The herd book
 
-A readable book of the mounts you own, loaded or not. Each tame's page has its portrait, a summary of its body, pelt, size and sex, links to its dam, sire and foals, and every gene grouped by body, size, coat, wings, nature and gifts, with the dam's and sire's copies side by side. Genes are written in breeder's notation, a capital for the copy that shows and lowercase for the one it hides, and hovering a gene explains how it passes down. The Lines page opens each founder onto its three pelts and its genes, and the Key page lists every gene with its rule. Rename a tame or release it from its page. The breeding chapter hides behind a spoiler switch that stays the way you left it.
+A readable book of the mounts you own, loaded or not. Each tame's page has its portrait, a summary of its body, pelt, size and sex, links to its dam, sire and foals, and every gene grouped by body, size, coat, wings, nature and gifts, with the dam's and sire's copies side by side. Genes are written in breeder's notation, a capital for the copy that shows and lowercase for the one it hides, and hovering a gene explains how it passes down. The Lines page opens each founder onto its three pelts and its genes, and the Key page lists every gene with its rule. Rename a tame or release it from its page. Every chapter is open; the chimera joins the book once you breed one.
 
 ## Start your ride
 

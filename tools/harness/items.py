@@ -59,6 +59,20 @@ def png_facts(path):
         rows.append(row)
         prev = row
     transparent = opaque = near_black = 0
+    clear = set()
+    for y, row in enumerate(rows):
+        for x in range(width):
+            if color in (4, 6) and row[x * bpp + bpp - 1] == 0:
+                clear.add((x, y))
+    # A clear pixel the outside cannot reach is a hole: held items are extruded, so it shows as see-through.
+    outside = [(x, y) for (x, y) in clear if x in (0, width - 1) or y in (0, height - 1)]
+    reached = set(outside)
+    while outside:
+        x, y = outside.pop()
+        for step in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            if step in clear and step not in reached:
+                reached.add(step)
+                outside.append(step)
     for row in rows:
         for x in range(0, stride, bpp):
             pixel = row[x : x + bpp]
@@ -76,6 +90,7 @@ def png_facts(path):
         "transparent": transparent,
         "opaque": opaque,
         "near_black": near_black,
+        "holes": len(clear) - len(reached),
     }
 
 
@@ -100,8 +115,20 @@ def main():
     check("the herd book's name is Herd Book", book_name == "ok Herd Book", book_name)
     client("shot held_book")
     check("the player is holding one of each", inventory_count("shamanicmounts:shamanic_saddle") == 1 and inventory_count("shamanicmounts:herd_book") == 1)
+    run(f"item replace entity {PLAYER} hotbar.2 with shamanicmounts:mount_flute 1")
+    run(f"item replace entity {PLAYER} hotbar.3 with shamanicmounts:mount_trading_post 1")
+    client("hotbar 2")
+    time.sleep(0.3)
+    flute_name = client("name")
+    check("the flute's name is Mount Flute", flute_name == "ok Mount Flute", flute_name)
+    client("shot held_flute")
+    client("hotbar 3")
+    time.sleep(0.3)
+    post_name = client("name")
+    check("the post's name is Mount Trading Post", post_name == "ok Mount Trading Post", post_name)
+    client("shot held_post")
 
-    for name in ("shamanic_saddle.png", "saddle_bags.png", "herd_book.png", "diamond_apple.png"):
+    for name in ("shamanic_saddle.png", "saddle_bags.png", "herd_book.png", "diamond_apple.png", "mount_flute.png"):
         path = ROOT / "src/main/resources/assets/shamanicmounts/textures/item" / name
         facts = png_facts(path)
         check(
@@ -112,13 +139,18 @@ def main():
             and facts.get("near_black", 0) < facts.get("opaque", 1),
             str(facts),
         )
+    # The apple's two pinholes sit between its stem and leaf, outside the fruit; the book and flute had
+    # see-through gaps across their faces.
+    for name in ("shamanic_saddle.png", "saddle_bags.png", "herd_book.png", "mount_flute.png"):
+        facts = png_facts(ROOT / "src/main/resources/assets/shamanicmounts/textures/item" / name)
+        check(f"{name} has no see-through hole inside it", facts.get("holes") == 0, str(facts))
 
     tab = client("creative")
     time.sleep(0.4)
     check(
         "the Shamanic Mounts creative tab lists the saddle, the book, the apple, and ten eggs",
         tab.startswith("ok Shamanic Mounts") and tab.count("egg_") == 10 and "shamanic_saddle" in tab and "herd_book" in tab
-        and "diamond_apple" in tab and "saddle_bags" in tab,
+        and "diamond_apple" in tab and "saddle_bags" in tab and "mount_flute" in tab and "mount_trading_post" in tab,
         tab[:160],
     )
     client("shot creative_tab")
