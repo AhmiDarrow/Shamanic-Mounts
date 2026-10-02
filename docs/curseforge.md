@@ -59,3 +59,7 @@ Shamanic Mounts 0.1.7 - Light Hooves, CurseForge file **9025439** (uploaded 2026
 ## 0.1.8
 
 Shamanic Mounts 0.1.8 - Breaking a Bronco, CurseForge file **9029022** (uploaded 2026-10-01, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.8
+
+## 0.1.9
+
+Shamanic Mounts 0.1.9 - Flute and Post, CurseForge file **9034426** (uploaded 2026-10-01, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.9
