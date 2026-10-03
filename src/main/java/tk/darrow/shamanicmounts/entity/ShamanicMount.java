@@ -122,6 +122,9 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	/** Gallop is on for this tick. The server decides; the rider's client reads it in travel. */
 	private static final EntityDataAccessor<Boolean> DATA_GALLOP = SynchedEntityData.defineId(ShamanicMount.class,
 			EntityDataSerializers.BOOLEAN);
+	/** How far a foal has grown, 0 to GROWTH_STEPS. The server decides; the client's age is not synced. */
+	private static final EntityDataAccessor<Integer> DATA_GROWTH = SynchedEntityData.defineId(ShamanicMount.class,
+			EntityDataSerializers.INT);
 
 	/**
 	 * What a mount is before its own genome is set: built once and shared, since every spawn attempt and every
@@ -298,6 +301,22 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		builder.define(DATA_STAT_JUMP, MountStats.MISSING);
 		builder.define(DATA_STAT_STAMINA, MountStats.MISSING);
 		builder.define(DATA_GALLOP, false);
+		builder.define(DATA_GROWTH, BreedingRules.GROWTH_STEPS);
+	}
+
+	/** Every age change passes here, ticking up included, so the growth step follows it on the server. */
+	@Override
+	public void setAge(int age) {
+		super.setAge(age);
+		if (!this.level().isClientSide()) {
+			this.entityData.set(DATA_GROWTH, BreedingRules.growthStep(age));
+		}
+	}
+
+	/** A foal is born small and grows to its full size in steps. */
+	@Override
+	public float getAgeScale() {
+		return BreedingRules.growthScale(this.entityData.get(DATA_GROWTH));
 	}
 
 	@Override
@@ -670,6 +689,9 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			}
 			this.refreshDimensions();
 		}
+		if (DATA_GROWTH.equals(key)) {
+			this.refreshDimensions();
+		}
 	}
 
 	/**
@@ -686,7 +708,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 
 	@Override
 	protected EntityDimensions getDefaultDimensions(Pose pose) {
-		return EntityDimensions.scalable(MountSize.width(phenotype), MountSize.height(phenotype));
+		float grown = this.getAgeScale();
+		return EntityDimensions.scalable(MountSize.width(phenotype) * grown, MountSize.height(phenotype) * grown);
 	}
 
 	@Override
@@ -1522,7 +1545,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		foal.assignStats(MountStats.child(this.bodyStats(), other.bodyStats(), new java.util.Random(this.random.nextLong())), true);
 		foal.male = this.random.nextBoolean();
 		foal.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), 0.0f);
-		foal.setAge(-24000);
+		foal.setAge(BreedingRules.FOAL_AGE);
 		// A foal is born wild. Once grown it takes the saddle trial like any mount, and its lineage
 		// goes into the herd book when it is tamed.
 		foal.dam = damMount.getUUID();

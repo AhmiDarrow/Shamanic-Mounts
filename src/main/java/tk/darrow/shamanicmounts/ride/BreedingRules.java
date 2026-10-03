@@ -13,6 +13,12 @@ public final class BreedingRules {
 	/** Rest after a foal. Five minutes. */
 	public static final int REST_TICKS = 6000;
 	public static final double REACH = 8.0;
+	/** A foal's age at birth: it grows up over twenty minutes. */
+	public static final int FOAL_AGE = -24000;
+	/** A newborn foal's size, as a share of its grown size. */
+	public static final float FOAL_SIZE = 0.3f;
+	/** The foal grows a step a minute, so the hitbox does not change every tick. */
+	public static final int GROWTH_STEPS = 20;
 
 	private BreedingRules() {
 	}
@@ -24,6 +30,21 @@ public final class BreedingRules {
 	public static boolean canFeed(boolean tame, boolean baby, boolean owner, int restTicks, boolean breedItem,
 			boolean ignoresTimers) {
 		return tame && !baby && owner && breedItem && (ignoresTimers || restTicks <= 0);
+	}
+
+	/** The growth step for an age: 0 for a newborn, {@link #GROWTH_STEPS} once grown. */
+	public static int growthStep(int age) {
+		if (age >= 0) {
+			return GROWTH_STEPS;
+		}
+		long left = Math.min(-(long) age, -FOAL_AGE);
+		return GROWTH_STEPS - (int) ((left * GROWTH_STEPS - FOAL_AGE - 1) / -FOAL_AGE);
+	}
+
+	/** Size as a share of the grown mount: {@link #FOAL_SIZE} at birth, even steps up to whole. */
+	public static float growthScale(int step) {
+		int clamped = Math.max(0, Math.min(GROWTH_STEPS, step));
+		return FOAL_SIZE + (1.0f - FOAL_SIZE) * clamped / GROWTH_STEPS;
 	}
 
 	public static boolean canPair(UUID offerOwner, UUID otherOwner, double distanceSq) {

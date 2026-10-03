@@ -78,4 +78,25 @@ class MountWorldRulesTest {
 
 		assertEquals(1.5f, GiftRules.halvedExhaustion(1.0f, 2.0f));
 	}
+
+	@Test
+	void foalsAreBornSmallAndGrowOverTwentyMinutes() {
+		assertEquals(-24000, BreedingRules.FOAL_AGE);
+		assertEquals(0, BreedingRules.growthStep(BreedingRules.FOAL_AGE));
+		assertEquals(0, BreedingRules.growthStep(-48000));
+		assertEquals(BreedingRules.GROWTH_STEPS / 2, BreedingRules.growthStep(-12000));
+		assertEquals(BreedingRules.GROWTH_STEPS - 1, BreedingRules.growthStep(-1));
+		assertEquals(BreedingRules.GROWTH_STEPS, BreedingRules.growthStep(0));
+		assertEquals(BreedingRules.GROWTH_STEPS, BreedingRules.growthStep(6000));
+
+		assertEquals(BreedingRules.FOAL_SIZE, BreedingRules.growthScale(0), 1e-6f);
+		assertEquals(1.0f, BreedingRules.growthScale(BreedingRules.GROWTH_STEPS), 1e-6f);
+		assertEquals(0.65f, BreedingRules.growthScale(BreedingRules.GROWTH_STEPS / 2), 1e-6f);
+		float last = 0.0f;
+		for (int age = BreedingRules.FOAL_AGE; age <= 0; age += 100) {
+			float size = BreedingRules.growthScale(BreedingRules.growthStep(age));
+			assertTrue(size >= last, "a foal never shrinks");
+			last = size;
+		}
+	}
 }

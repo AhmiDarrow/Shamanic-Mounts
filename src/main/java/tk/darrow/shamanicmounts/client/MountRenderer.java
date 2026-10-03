@@ -44,6 +44,12 @@ public class MountRenderer extends EntityRenderer<ShamanicMount> {
 		this.shadowRadius = 0.8f;
 	}
 
+	/** A foal's shadow is as small as the foal. */
+	@Override
+	protected float getShadowRadius(ShamanicMount mount) {
+		return this.shadowRadius * mount.getAgeScale();
+	}
+
 	@Override
 	public void render(ShamanicMount mount, float yaw, float partialTick, PoseStack pose, MultiBufferSource buffers, int light) {
 		// Faces turned away from the camera are skipped before they are submitted, but only where that changes nothing:
@@ -52,7 +58,7 @@ public class MountRenderer extends EntityRenderer<ShamanicMount> {
 		pose.pushPose();
 		float body = Mth.rotLerp(partialTick, mount.yBodyRotO, mount.yBodyRot);
 		pose.mulPose(Axis.YP.rotationDegrees(180.0f - body));
-		float scale = mount.phenotype().uniformScale * mount.getScale();
+		float scale = mount.phenotype().uniformScale * mount.getScale() * mount.getAgeScale();
 		pose.scale(scale, scale, scale);
 		float swing = 0.0f;
 		float amount = 0.0f;

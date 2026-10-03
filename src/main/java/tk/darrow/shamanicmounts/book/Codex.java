@@ -60,7 +60,7 @@ public final class Codex {
 				new Section("A pair and a foal", List.of(
 						"Any two mounts can breed. Feed a Diamond Apple to one tame adult you own, then the other within ten seconds and eight blocks. One foal. Those two rest for five minutes.",
 						"An operator can feed them during that rest, and a mount an operator readied stays ready until the pair is made.",
-						"The foal is born wild and keeps near the grown mounts. It wears no saddle, bags, or armor. Once grown, calm it with a golden apple and tame it from the saddle. Its parents go in this book then.")),
+						"The foal is born wild and small, and grows up over twenty minutes. It keeps near the grown mounts. It wears no saddle, bags, or armor. Once grown, calm it with a golden apple and tame it from the saddle. Its parents go in this book then.")),
 				new Section("Two copies of everything", List.of(
 						"Every gene comes in two copies: one from the dam, one from the sire. Each parent passes one of its two at random.",
 						"Genes that sit together usually travel together: the body with its legs, feet, and gait; the head with build, size, pattern, and pelt; the wings with their span. About one time in eight a neighbour swaps over.")),
