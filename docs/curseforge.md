@@ -71,3 +71,7 @@ Shamanic Mounts 0.1.10 - One Herd, CurseForge file **9049935** (uploaded 2026-10
 ## 0.1.11
 
 Shamanic Mounts 0.1.11 - Small Foals, CurseForge file **9050339** (uploaded 2026-10-03, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.11
+
+## 0.1.12
+
+Shamanic Mounts 0.1.12 - Flute Songs, CurseForge file **9051936** (uploaded 2026-10-03, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.12
