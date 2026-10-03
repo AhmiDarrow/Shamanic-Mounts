@@ -20,7 +20,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.TicketType;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
@@ -227,8 +226,6 @@ public final class MountCall {
 			}
 			return false;
 		}
-		player.serverLevel().playSound(null, player.getX(), player.getY(), player.getZ(),
-				SoundEvents.NOTE_BLOCK_FLUTE.value(), player.getSoundSource(), 1.0F, 1.0F);
 		for (Component name : rooms) {
 			bar(player, "shamanicmounts.flute.room", name);
 		}

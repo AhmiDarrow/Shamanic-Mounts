@@ -10,6 +10,7 @@ import tk.darrow.shamanicmounts.entity.MountEntities;
 import tk.darrow.shamanicmounts.entity.MountMenus;
 import tk.darrow.shamanicmounts.item.MountItems;
 import tk.darrow.shamanicmounts.net.MountPayloads;
+import tk.darrow.shamanicmounts.sound.MountSounds;
 
 @Mod(ShamanicMounts.MOD_ID)
 public final class ShamanicMounts {
@@ -22,6 +23,7 @@ public final class ShamanicMounts {
 		MountItems.TABS.register(modBus);
 		MountEntities.ENTITIES.register(modBus);
 		MountMenus.MENUS.register(modBus);
+		MountSounds.SOUNDS.register(modBus);
 		modBus.addListener(MountItems::creative);
 		modBus.addListener(MountEntities::attributes);
 		modBus.addListener(MountEntities::placements);

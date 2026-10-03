@@ -1,0 +1,26 @@
+{
+  "item.flute.call_1": {
+    "sounds": [
+      "shamanicmounts:item/flute/call_1"
+    ],
+    "subtitle": "shamanicmounts.subtitle.flute"
+  },
+  "item.flute.call_2": {
+    "sounds": [
+      "shamanicmounts:item/flute/call_2"
+    ],
+    "subtitle": "shamanicmounts.subtitle.flute"
+  },
+  "item.flute.call_3": {
+    "sounds": [
+      "shamanicmounts:item/flute/call_3"
+    ],
+    "subtitle": "shamanicmounts.subtitle.flute"
+  },
+  "item.flute.call_4": {
+    "sounds": [
+      "shamanicmounts:item/flute/call_4"
+    ],
+    "subtitle": "shamanicmounts.subtitle.flute"
+  }
+}
