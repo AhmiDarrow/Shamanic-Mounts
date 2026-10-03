@@ -31,6 +31,11 @@ public final class SaddleRules {
 		return !tame && !baby && calmTicks <= 0 && !inTrial;
 	}
 
+	/** Two tame mounts are one herd: neither bites, mauls, rams, nor coils the other, nor takes it up as a target. */
+	public static boolean herdmates(boolean tame, boolean otherTame) {
+		return tame && otherTame;
+	}
+
 	/** A golden apple, on a wild adult, while a trial is not already running. */
 	public static boolean canCalm(boolean wildAdult, boolean goldenApple, boolean inTrial) {
 		return wildAdult && goldenApple && !inTrial;

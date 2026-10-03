@@ -27,6 +27,12 @@ class TackTest {
 		assertFalse(SaddleRules.hostile(false, false, 1, false));
 		assertFalse(SaddleRules.hostile(false, false, 0, true));
 
+		// Tame mounts never fight each other; a wild one is still fair game either way.
+		assertTrue(SaddleRules.herdmates(true, true));
+		assertFalse(SaddleRules.herdmates(true, false));
+		assertFalse(SaddleRules.herdmates(false, true));
+		assertFalse(SaddleRules.herdmates(false, false));
+
 		assertTrue(SaddleRules.canCalm(true, true, false));
 		assertFalse(SaddleRules.canCalm(false, true, false));
 		assertFalse(SaddleRules.canCalm(true, false, false));

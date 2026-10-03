@@ -4,9 +4,9 @@
 
 # Shamanic Mounts
 
-Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.9**. Ten new rideable lines roam the Overworld, each with something it does under you: walk on water, fly, swim and dive, ram, maul, coil, hide from mobs, blink ahead, or heal the party. Calm one with a golden apple, then tame it from the saddle, and breed any line with any other. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited. Breed far enough and you reach the chimera, a furry dragon with all ten ridden gifts at once.
+Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.10**. Ten new rideable lines roam the Overworld, each with something it does under you: walk on water, fly, swim and dive, ram, maul, coil, hide from mobs, blink ahead, or heal the party. Calm one with a golden apple, then tame it from the saddle, and breed any line with any other. The foal is one animal: the body, the feet, the wings, the tail, and the ridden abilities it inherited. Breed far enough and you reach the chimera, a furry dragon with all ten ridden gifts at once.
 
-[Download from GitHub Releases](https://github.com/AhmiDarrow/Shamanic-Mounts/releases/latest) · [CurseForge](https://www.curseforge.com/minecraft/mc-mods/shamanic-mounts) · [0.1.9 notes](docs/RELEASE_0.1.9.md)
+[Download from GitHub Releases](https://github.com/AhmiDarrow/Shamanic-Mounts/releases/latest) · [CurseForge](https://www.curseforge.com/minecraft/mc-mods/shamanic-mounts) · [0.1.10 notes](docs/RELEASE_0.1.10.md)
 
 <p align="center">
   <img src="docs/public/shamanic-mounts-founders.png" alt="Eightfold, Drum hart, Elk, Crane, Nagual, Barghest, Roc, Shade, Chimera, Bear, and Serpent">
@@ -25,7 +25,7 @@ Spirit mounts for **Minecraft 1.21.1 / NeoForge 21.1.249**. Version **0.1.9**. T
 - **Serpent.** No legs: an anaconda's body with a frilled snake's head. It swims fast and dives; hold jump to rise, hold sneak to sink, tap sneak to step off. Attack coils the nearest foe in front, holding and poisoning it for 3 seconds, 5 second cooldown. Both copies: you breathe under water while riding. River, jungle, and bone pelts.
 - **Shade.** Hold sneak and mobs stop targeting you and the cat, until you hit something or break a block. Sneak and use blinks 6 blocks forward into open air, 3 second cooldown. Hide and blink each need both copies. Under light level 7, Speed I. On a mount that hides or blinks, a held sneak keeps you in the saddle; tap sneak to step off.
 
-A mount that inherited more than one of the drum, the send-away, and the blink uses them in that order. The attack control coils if it has the coil, mauls if it has the might, and rams otherwise. Sneak and use blinks first, so the others stay reachable.
+A mount that inherited more than one of the drum, the send-away, and the blink uses them in that order. The attack control coils if it has the coil, mauls if it has the might, and rams otherwise. Sneak and use blinks first, so the others stay reachable. Tame mounts are one herd: the ram, maul, and coil pass over them, and they never fight each other.
 
 Everyone stands at least as tall as a horse. Every line comes in three pelts and five sizes, each its own gene.
 

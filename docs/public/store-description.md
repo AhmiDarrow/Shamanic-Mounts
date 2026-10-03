@@ -13,7 +13,7 @@ Vanilla gives you the horse, the donkey and the camel. Shamanic Mounts puts ten 
 - **Cross water and climb without jumping.** The Eightfold walks on water and steps up full blocks, so a lake or a hillside is no longer a detour.
 - **Fly.** The Roc climbs on held jump for about eight seconds, then glides on broad condor wings while the bar refills. The Crane glides and carries a second rider.
 - **Swim and dive.** The Serpent has no legs; it swims fast and takes you under water, and a pure-bred one lets you breathe down there.
-- **Fight from the saddle.** The Elk rams, the Bear mauls everything in front of it, the Serpent coils and poisons, and a Barghest lights up every hostile mob within 32 blocks through walls while you ride.
+- **Fight from the saddle.** The Elk rams, the Bear mauls everything in front of it, the Serpent coils and poisons, and a Barghest lights up every hostile mob within 32 blocks through walls while you ride. Your tame mounts are one herd: those attacks pass over them, and tames never fight each other.
 - **Slip past danger.** Hold sneak on a Shade and mobs lose track of you; sneak and use to blink six blocks ahead. The Nagual vanishes for 30 seconds and leaves you with Speed II and Jump Boost II.
 - **Heal your party.** The Drum hart's drum gives Regeneration II to you and every player within eight blocks.
 

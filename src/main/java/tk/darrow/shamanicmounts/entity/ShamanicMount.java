@@ -359,7 +359,21 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		if (target instanceof Player && !this.isTame() && !this.huntsPlayers()) {
 			target = null;
 		}
+		if (this.herdmate(target)) {
+			target = null;
+		}
 		super.setTarget(target);
+	}
+
+	/** Another tame mount, when this one is tame too: never a target, never hurt by this one. */
+	public boolean herdmate(@Nullable Entity other) {
+		return other != this && other instanceof ShamanicMount mount
+				&& SaddleRules.herdmates(this.isTame(), mount.isTame());
+	}
+
+	@Override
+	public boolean canAttack(LivingEntity target) {
+		return !this.herdmate(target) && super.canAttack(target);
 	}
 
 	/** Direction keys from the rider's client. Scoring stays here. */
@@ -1250,7 +1264,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		LivingEntity nearest = null;
 		double best = Double.MAX_VALUE;
 		for (LivingEntity living : this.level().getEntitiesOfClass(LivingEntity.class, box,
-				other -> other != this && other != player && other.isAlive())) {
+				other -> other != this && other != player && other.isAlive() && !herdmate(other))) {
 			double d = living.distanceToSqr(this);
 			if (d < best) {
 				best = d;
@@ -1281,7 +1295,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		Vec3 look = this.getLookAngle();
 		AABB box = this.getBoundingBox().expandTowards(look.scale(2.4)).inflate(0.8);
 		java.util.List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, box,
-				living -> living != this && living != player && living.isAlive());
+				living -> living != this && living != player && living.isAlive() && !herdmate(living));
 		for (LivingEntity target : targets) {
 			target.hurt(this.damageSources().mobAttack(this), GiftRules.MAUL_DAMAGE);
 			target.knockback(1.0, -look.x, -look.z);
@@ -1301,7 +1315,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		this.setDeltaMovement(look.x * 0.9, 0.15, look.z * 0.9);
 		AABB box = this.getBoundingBox().expandTowards(look.scale(2.0)).inflate(0.5);
 		java.util.List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, box,
-				living -> living != this && living != player && living.isAlive());
+				living -> living != this && living != player && living.isAlive() && !herdmate(living));
 		for (LivingEntity target : targets) {
 			target.hurt(this.damageSources().mobAttack(this), 3.0f);
 			target.knockback(1.4, -look.x, -look.z);
@@ -1852,6 +1866,10 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 
 	@Override
 	public boolean hurt(DamageSource source, float amount) {
+		// A herdmate's maul, ram, coil, or bite lands on nothing, so neither one turns on the other.
+		if (this.herdmate(source.getEntity())) {
+			return false;
+		}
 		if (this.isVehicle() && GiftRules.sneakHide(phenotype)) {
 			reveal();
 		}
