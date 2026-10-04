@@ -19,25 +19,28 @@ class MountCallTest {
 	private static final double FAR = 20.0 * 20.0;
 
 	@Test
-	void followStayAndWanderAreEligible() {
+	void onlyAFollowingMountIsCalled() {
 		UUID owner = UUID.randomUUID();
 		Sight follow = seen(owner, MountMode.FOLLOW);
 		Sight stay = seen(owner, MountMode.STAY);
 		Sight wander = seen(owner, MountMode.WANDER);
 		assertEquals(Reason.CALL, MountCall.judge(follow, owner));
-		assertEquals(Reason.CALL, MountCall.judge(stay, owner));
-		assertEquals(Reason.CALL, MountCall.judge(wander, owner));
+		assertEquals(Reason.PARKED, MountCall.judge(stay, owner), "a mount left on Stay stays");
+		assertEquals(Reason.PARKED, MountCall.judge(wander, owner), "a mount left on Wander stays");
 		Choice choice = MountCall.choose(owner, List.of(follow, stay, wander));
-		assertEquals(List.of(follow.id(), stay.id(), wander.id()), choice.call());
+		assertEquals(List.of(follow.id()), choice.call());
+		assertTrue(choice.parked(), "the parked mounts are reported");
 		assertFalse(choice.capped());
+		Choice none = MountCall.choose(owner, List.of(stay, wander));
+		assertTrue(none.call().isEmpty() && none.parked(), "nothing following: no call, and it says why");
 	}
 
 	@Test
 	void reinTrialLeashOtherRiderWrongOwnerAndReleasedAreRejected() {
 		UUID owner = UUID.randomUUID();
 		Sight trial = copy(seen(owner, MountMode.FOLLOW), true, false, false, false, false, true, true, 0.0, true, false, true, false);
-		Sight leash = copy(seen(owner, MountMode.STAY), false, true, false, false, false, true, true, 0.0, true, false, true, false);
-		Sight busy = copy(seen(owner, MountMode.WANDER), false, false, true, false, false, true, true, 0.0, true, false, true, false);
+		Sight leash = copy(seen(owner, MountMode.FOLLOW), false, true, false, false, false, true, true, 0.0, true, false, true, false);
+		Sight busy = copy(seen(owner, MountMode.FOLLOW), false, false, true, false, false, true, true, 0.0, true, false, true, false);
 		Sight dead = copy(seen(owner, MountMode.FOLLOW), false, false, false, true, false, true, true, 0.0, true, false, true, false);
 		Sight stranger = copy(seen(UUID.randomUUID(), MountMode.FOLLOW), false, false, false, false, false, true, true, FAR, true, false, true, false);
 		Sight released = copy(seen(owner, MountMode.FOLLOW), false, false, false, false, false, true, true, FAR, true, false, false, false);
@@ -54,10 +57,12 @@ class MountCallTest {
 	}
 
 	@Test
-	void anAwayMountIsEligible() {
+	void anAwayMountComesOnlyOnFollow() {
 		UUID owner = UUID.randomUUID();
-		Sight away = copy(seen(owner, MountMode.STAY), false, false, false, false, true, true, true, 0.0, true, false, true, false);
-		assertEquals(Reason.CALL, MountCall.judge(away, owner), "an away mount still comes");
+		Sight away = copy(seen(owner, MountMode.FOLLOW), false, false, false, false, true, true, true, 0.0, true, false, true, false);
+		Sight parked = copy(seen(owner, MountMode.STAY), false, false, false, false, true, true, true, 0.0, true, false, true, false);
+		assertEquals(Reason.CALL, MountCall.judge(away, owner), "an away mount on Follow still comes");
+		assertEquals(Reason.PARKED, MountCall.judge(parked, owner), "an away mount on Stay does not");
 	}
 
 	@Test
@@ -96,8 +101,8 @@ class MountCallTest {
 	@Test
 	void farSameDimensionAndOtherDimensionAreCalled() {
 		UUID owner = UUID.randomUUID();
-		Sight far = copy(seen(owner, MountMode.WANDER), false, false, false, false, false, true, true, FAR, true, false, true, false);
-		Sight other = copy(seen(owner, MountMode.STAY), false, false, false, false, false, true, false, 0.0, true, false, true, false);
+		Sight far = copy(seen(owner, MountMode.FOLLOW), false, false, false, false, false, true, true, FAR, true, false, true, false);
+		Sight other = copy(seen(owner, MountMode.FOLLOW), false, false, false, false, false, true, false, 0.0, true, false, true, false);
 		assertEquals(Reason.CALL, MountCall.judge(far, owner), "a far mount in this dimension is called");
 		assertEquals(Reason.CALL, MountCall.judge(other, owner), "another dimension is called");
 		Choice choice = MountCall.choose(owner, List.of(far, other));
@@ -123,7 +128,7 @@ class MountCallTest {
 	@Test
 	void anUnloadedMountWithWhereaboutsIsCalled() {
 		UUID owner = UUID.randomUUID();
-		Sight known = copy(seen(owner, MountMode.STAY), false, false, false, false, false, false, false, 0.0, true, false, true, false);
+		Sight known = copy(seen(owner, MountMode.FOLLOW), false, false, false, false, false, false, false, 0.0, true, false, true, false);
 		assertEquals(Reason.CALL, MountCall.judge(known, owner), "a remembered chunk can be loaded");
 	}
 
@@ -132,7 +137,7 @@ class MountCallTest {
 		UUID owner = UUID.randomUUID();
 		Sight ridden = copy(seen(owner, MountMode.FOLLOW), false, false, true, false, false, true, false, FAR, true, true, true, false);
 		assertEquals(Reason.HERE, MountCall.judge(ridden, owner), "the mount under you stays");
-		Choice choice = MountCall.choose(owner, List.of(ridden, seen(owner, MountMode.WANDER)));
+		Choice choice = MountCall.choose(owner, List.of(ridden, seen(owner, MountMode.FOLLOW)));
 		assertEquals(1, choice.call().size(), "the others still come");
 		assertFalse(choice.call().contains(ridden.id()), "you are not dismounted");
 		assertTrue(choice.here(), "that mount is already with you");
@@ -146,7 +151,7 @@ class MountCallTest {
 		herd.add(copy(seen(owner, MountMode.FOLLOW), false, true, false, false, false, true, true, 0.0, true, false, true, false));
 		herd.add(copy(seen(UUID.randomUUID(), MountMode.FOLLOW), false, false, false, false, false, true, true, FAR, true, false, true, false));
 		for (int i = 0; i < 9; i++) {
-			herd.add(seen(owner, MountMode.WANDER));
+			herd.add(seen(owner, MountMode.FOLLOW));
 		}
 		Choice choice = MountCall.choose(owner, herd);
 		assertEquals(8, choice.call().size(), "rejects leave room under the cap");

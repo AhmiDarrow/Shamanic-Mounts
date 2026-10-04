@@ -584,6 +584,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		this.entityData.set(DATA_MODE, (byte) mode.ordinal());
 		if (!this.level().isClientSide()) {
 			this.setOrderedToSit(mode == MountMode.STAY);
+			// The flute reads the order from the herd data, so a parked mount is not loaded just to be left.
+			noteWhere();
 		}
 	}
 
@@ -1587,7 +1589,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			return;
 		}
 		MountHerdData.get(server).note(this.getUUID(), server.dimension().location().toString(), this.getX(), this.getY(),
-				this.getZ());
+				this.getZ(), this.mode());
 	}
 
 	private void hearts() {

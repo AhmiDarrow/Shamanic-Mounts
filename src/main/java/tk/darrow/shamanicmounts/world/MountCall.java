@@ -39,8 +39,8 @@ import tk.darrow.shamanicmounts.entity.ShamanicMount;
 import tk.darrow.shamanicmounts.trade.MountPosts;
 
 /**
- * One blow of the mount flute. Tame mounts the player owns come from any dimension, including a chunk
- * that is not loaded, and are set to follow so a stay mount does not walk home.
+ * One blow of the mount flute. Tame mounts the player owns that are on Follow come from any dimension,
+ * including a chunk that is not loaded. A mount left on Stay or Wander was put there on purpose and stays.
  */
 @EventBusSubscriber(modid = ShamanicMounts.MOD_ID)
 public final class MountCall {
@@ -51,7 +51,7 @@ public final class MountCall {
 	public static final int COOLDOWN = 60;
 
 	public enum Reason {
-		CALL, HERE, TRIAL, BUSY, LOST, SKIP
+		CALL, HERE, TRIAL, BUSY, LOST, PARKED, SKIP
 	}
 
 	/**
@@ -63,7 +63,8 @@ public final class MountCall {
 			boolean known, boolean riddenByCaller, boolean baby) {
 	}
 
-	public record Choice(List<UUID> call, boolean capped, boolean here, boolean trial, boolean busy, boolean lost) {
+	public record Choice(List<UUID> call, boolean capped, boolean here, boolean trial, boolean busy, boolean lost,
+			boolean parked) {
 	}
 
 	private enum Outcome {
@@ -105,6 +106,9 @@ public final class MountCall {
 		if (sight.dead()) {
 			return Reason.SKIP;
 		}
+		if (sight.mode() != MountMode.FOLLOW) {
+			return Reason.PARKED;
+		}
 		if (sight.trial()) {
 			return Reason.TRIAL;
 		}
@@ -137,6 +141,7 @@ public final class MountCall {
 		boolean trial = false;
 		boolean busy = false;
 		boolean lost = false;
+		boolean parked = false;
 		if (herdOrder != null) {
 			for (Sight sight : herdOrder) {
 				switch (judge(sight, player)) {
@@ -151,12 +156,13 @@ public final class MountCall {
 					case TRIAL -> trial = true;
 					case BUSY -> busy = true;
 					case LOST -> lost = true;
+					case PARKED -> parked = true;
 					case SKIP -> {
 					}
 				}
 			}
 		}
-		return new Choice(List.copyOf(call), capped, here, trial, busy, lost);
+		return new Choice(List.copyOf(call), capped, here, trial, busy, lost, parked);
 	}
 
 	/** @return true when at least one mount was brought or a chunk load was filed */
@@ -221,6 +227,8 @@ public final class MountCall {
 				}
 			} else if (here) {
 				bar(player, "shamanicmounts.flute.here");
+			} else if (choice.parked()) {
+				bar(player, "shamanicmounts.flute.parked");
 			} else {
 				bar(player, "shamanicmounts.flute.none");
 			}
@@ -325,8 +333,12 @@ public final class MountCall {
 		ShamanicMount mount = ShamanicMount.loaded(server, entry.id());
 		boolean known = herd.where(entry.id()) != null;
 		if (mount == null) {
-			// The book does not store the order. Follow, stay, and wander are all called.
-			return new Sight(entry.id(), entry.owner(), entry.tame(), MountMode.FOLLOW, false, false, false, false, false,
+			// The herd data keeps the order the mount last had; an older save without it is treated as Follow and
+			// judged again once its chunk is in.
+			MountHerdData.Where at = herd.where(entry.id());
+			MountMode mode = at == null || at.mode() < 0 || at.mode() >= MountMode.values().length
+					? MountMode.FOLLOW : MountMode.values()[at.mode()];
+			return new Sight(entry.id(), entry.owner(), entry.tame(), mode, false, false, false, false, false,
 					false, false, Double.POSITIVE_INFINITY, known, false, false);
 		}
 		return live(player, mount, known);

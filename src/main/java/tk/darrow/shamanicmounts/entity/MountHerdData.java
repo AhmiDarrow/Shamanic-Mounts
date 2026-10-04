@@ -26,9 +26,14 @@ public final class MountHerdData extends SavedData {
 	/** Server-only. Not part of a herd-book entry, and not sent on the herd packet. */
 	private final Map<UUID, Where> places = new LinkedHashMap<>();
 
-	/** Last place a tame was saved, so a flute can load that chunk. */
-	public record Where(String dim, double x, double y, double z) {
+	/**
+	 * Last place a tame was saved, so a flute can load that chunk, and its order then ({@link MountMode} ordinal;
+	 * {@link #UNKNOWN_MODE} for places saved before the order was kept), so a flute can leave a parked mount unloaded.
+	 */
+	public record Where(String dim, double x, double y, double z, int mode) {
 	}
+
+	public static final int UNKNOWN_MODE = -1;
 
 	public static MountHerdData get(ServerLevel level) {
 		return level.getServer().overworld().getDataStorage().computeIfAbsent(FACTORY, NAME);
@@ -54,7 +59,8 @@ public final class MountHerdData extends SavedData {
 				if (dim.isEmpty()) {
 					continue;
 				}
-				data.places.put(one.getUUID("Id"), new Where(dim, one.getDouble("X"), one.getDouble("Y"), one.getDouble("Z")));
+				data.places.put(one.getUUID("Id"), new Where(dim, one.getDouble("X"), one.getDouble("Y"), one.getDouble("Z"),
+						one.contains("Mode") ? one.getInt("Mode") : UNKNOWN_MODE));
 			}
 		}
 		return data;
@@ -77,6 +83,7 @@ public final class MountHerdData extends SavedData {
 			one.putDouble("X", at.x());
 			one.putDouble("Y", at.y());
 			one.putDouble("Z", at.z());
+			one.putInt("Mode", at.mode());
 			places.add(one);
 		}
 		tag.put("Where", places);
@@ -84,11 +91,11 @@ public final class MountHerdData extends SavedData {
 	}
 
 	/** Remember where this tame is. Dirty only when the recorded place changes. */
-	public void note(UUID id, String dim, double x, double y, double z) {
+	public void note(UUID id, String dim, double x, double y, double z, MountMode mode) {
 		if (id == null || dim == null || dim.isEmpty()) {
 			return;
 		}
-		Where next = new Where(dim, x, y, z);
+		Where next = new Where(dim, x, y, z, mode == null ? UNKNOWN_MODE : mode.ordinal());
 		if (next.equals(places.get(id))) {
 			return;
 		}
