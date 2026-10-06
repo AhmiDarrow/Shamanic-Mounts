@@ -41,6 +41,7 @@ public final class MountClient {
 		NeoForge.EVENT_BUS.addListener(MountClient::tick);
 		NeoForge.EVENT_BUS.addListener(MountClient::afterEntities);
 		NeoForge.EVENT_BUS.addListener(ReinGuide::render);
+		NeoForge.EVENT_BUS.addListener(ItemHints::tooltip);
 		MountPayloads.openBook = MountClient::openBook;
 		MountPayloads.warp = MountClient::warp;
 	}
