@@ -79,3 +79,7 @@ Shamanic Mounts 0.1.12 - Flute Songs, CurseForge file **9051936** (uploaded 2026
 ## 0.1.13
 
 Shamanic Mounts 0.1.13 - Only Followers, CurseForge file **9053028** (uploaded 2026-10-03, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.13
+
+## 0.1.14
+
+Shamanic Mounts 0.1.14 - Every Item Explains Itself, CurseForge file **9082169** (uploaded 2026-10-06, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.14
