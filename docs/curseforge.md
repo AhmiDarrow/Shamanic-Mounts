@@ -83,3 +83,7 @@ Shamanic Mounts 0.1.13 - Only Followers, CurseForge file **9053028** (uploaded 2
 ## 0.1.14
 
 Shamanic Mounts 0.1.14 - Every Item Explains Itself, CurseForge file **9082169** (uploaded 2026-10-06, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.14
+
+## 0.1.15
+
+Shamanic Mounts 0.1.15 - Said Once, CurseForge file **9091546** (uploaded 2026-10-07, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.15
