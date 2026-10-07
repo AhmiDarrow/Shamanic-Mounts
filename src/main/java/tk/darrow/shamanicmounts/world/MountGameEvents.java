@@ -84,7 +84,10 @@ public final class MountGameEvents {
 				|| !(event.getEntityMounting() instanceof Player player)) {
 			return;
 		}
+		// A rider already removed, or standing in another level (a teleport or dimension change that stepped them
+		// off first), is not holding on: refusing that dismount would leave the mount with a ghost in the saddle.
 		if (mount.sneakKeepsOn(player) && (player.isShiftKeyDown() || mount.riderSneak()) && player.isAlive()
+				&& !player.isRemoved() && player.level() == mount.level()
 				&& mount.isAlive() && !mount.isRemoved() && !player.isSpectator()) {
 			event.setCanceled(true);
 		}

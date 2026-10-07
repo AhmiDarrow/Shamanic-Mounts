@@ -151,6 +151,8 @@ public final class MountHerdData extends SavedData {
 	public boolean release(UUID player, UUID id) {
 		boolean ok = book.release(player, id);
 		if (ok) {
+			// The flute only looks up tames, so a released or dead mount's last place is never read again.
+			places.remove(id);
 			setDirty();
 		}
 		return ok;

@@ -67,6 +67,12 @@ public class MountChestMenu extends AbstractContainerMenu {
 					public boolean isActive() {
 						return hasBags();
 					}
+
+					/** A hidden slot still takes a click the client should not have sent; the server refuses it too. */
+					@Override
+					public boolean mayPlace(ItemStack stack) {
+						return hasBags() && super.mayPlace(stack);
+					}
 				});
 			}
 		}

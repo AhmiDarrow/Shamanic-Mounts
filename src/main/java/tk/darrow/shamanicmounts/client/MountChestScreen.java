@@ -29,6 +29,8 @@ public class MountChestScreen extends AbstractContainerScreen<MountChestMenu> {
 	private static final int SLOT_LIGHT = 0xFFFFFFFF;
 	private static final int SLOT_FACE = 0xFF8B8B8B;
 	private static final int WELL = 0xFF4A4A4A;
+	/** Ghost marks for the empty tack slots: saddle, bags, and barding. */
+	private static final int[] GHOSTS = { 0x55603010, 0x55405030, 0x55404858 };
 
 	private Button follow;
 	private Button stay;
@@ -96,12 +98,10 @@ public class MountChestScreen extends AbstractContainerScreen<MountChestMenu> {
 				slotFrame(graphics, x + slot.x, y + slot.y);
 			}
 		}
-		// Ghost marks in the empty tack slots: saddle, bags, and barding.
-		int[] ghosts = { 0x55603010, 0x55405030, 0x55404858 };
 		for (int index = 0; index < 3; index++) {
 			Slot slot = this.menu.slots.get(index);
 			if (!slot.hasItem()) {
-				graphics.fill(x + slot.x + 4, y + slot.y + 5, x + slot.x + 12, y + slot.y + 11, ghosts[index]);
+				graphics.fill(x + slot.x + 4, y + slot.y + 5, x + slot.x + 12, y + slot.y + 11, GHOSTS[index]);
 			}
 		}
 		ShamanicMount mount = this.menu.mount();

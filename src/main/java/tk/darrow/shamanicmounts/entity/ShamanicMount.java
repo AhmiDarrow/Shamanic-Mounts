@@ -167,6 +167,8 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 	private UUID lastRider;
 	private long lastRiderTick = -1;
 	private boolean trialTookSaddle;
+	/** A paid saddle the save caught mid rein-trial: handed back on the first tick, as a failed try would. */
+	private ItemStack pendingTrialSaddle = ItemStack.EMPTY;
 	private boolean herdChecked;
 	private UUID dam;
 	private UUID sire;
@@ -745,6 +747,10 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		if (refuseTicks > 0) {
 			refuseTicks--;
 		}
+		if (!pendingTrialSaddle.isEmpty()) {
+			this.spawnAtLocation(pendingTrialSaddle);
+			pendingTrialSaddle = ItemStack.EMPTY;
+		}
 		if (calmTicks > 0 && --calmTicks == 0) {
 			this.entityData.set(DATA_CALM, false);
 		}
@@ -793,9 +799,7 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		tickAway();
 		tickRiding();
 		tickLanding();
-		if (!this.level().isClientSide()) {
-			syncWing();
-		}
+		syncWing();
 		if (GiftRules.guard(phenotype) && this.isOrderedToSit() && this.getTarget() != null) {
 			this.setOrderedToSit(false);
 		} else if (mode() == MountMode.STAY && !this.isOrderedToSit() && this.getTarget() == null && !this.isVehicle()) {
@@ -1941,6 +1945,10 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		if (this.trial != null && !this.trialTookSaddle) {
 			tack.removeItemNoUpdate(MountChestMenu.SADDLE_SLOT);
 		}
+		if (!pendingTrialSaddle.isEmpty()) {
+			this.spawnAtLocation(pendingTrialSaddle);
+			pendingTrialSaddle = ItemStack.EMPTY;
+		}
 		Containers.dropContents(this.level(), this, this.chest);
 		Containers.dropContents(this.level(), this, this.tack);
 		this.chest.clearContent();
@@ -2002,9 +2010,12 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 		net.minecraft.nbt.ListTag tackList = new net.minecraft.nbt.ListTag();
 		for (int slot = 0; slot < this.tack.getContainerSize(); slot++) {
 			ItemStack piece = this.tack.getItem(slot);
-			// The saddle of a rein trial is handed back if the try fails, so it is not also saved on the mount.
-			boolean trialSaddle = slot == MountChestMenu.SADDLE_SLOT && this.trial != null;
-			if (!piece.isEmpty() && !trialSaddle) {
+			// The saddle of a rein trial is saved with a flag: the trial cannot resume without its rider, so on load
+			// the mount hands the saddle back as a failed try would, instead of keeping it wild-saddled or losing it.
+			if (slot == MountChestMenu.SADDLE_SLOT && this.trial != null && !piece.isEmpty()) {
+				tag.putBoolean("TrialPending", true);
+			}
+			if (!piece.isEmpty()) {
 				CompoundTag one = new CompoundTag();
 				one.putByte("Slot", (byte) slot);
 				tackList.add(piece.save(this.registryAccess(), one));
@@ -2076,6 +2087,14 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 					this.tack.setItem(slot, ItemStack.parse(this.registryAccess(), one).orElse(ItemStack.EMPTY));
 				}
 			}
+		}
+		if (tag.getBoolean("TrialPending")) {
+			// Saved mid-trial: no rider is seated to finish it, so the try fails. A paid saddle is dropped on the
+			// first tick, once the mount stands in its level; a creative one simply goes.
+			ItemStack worn = this.tack.removeItemNoUpdate(MountChestMenu.SADDLE_SLOT);
+			this.pendingTrialSaddle = this.trialTookSaddle && !worn.isEmpty() ? worn : ItemStack.EMPTY;
+			this.setSaddled(false);
+			this.refuseTicks = ReinTrial.REFUSE_TICKS;
 		}
 		syncTack();
 		if (this.tack.getItem(MountChestMenu.SADDLE_SLOT).isEmpty()) {
