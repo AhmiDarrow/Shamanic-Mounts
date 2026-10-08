@@ -87,3 +87,7 @@ Shamanic Mounts 0.1.14 - Every Item Explains Itself, CurseForge file **9082169**
 ## 0.1.15
 
 Shamanic Mounts 0.1.15 - Said Once, CurseForge file **9091546** (uploaded 2026-10-07, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.15
+
+## 0.1.16
+
+Shamanic Mounts 0.1.16 - A Meal for the Herd, CurseForge file **9096218** (uploaded 2026-10-08, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.16
