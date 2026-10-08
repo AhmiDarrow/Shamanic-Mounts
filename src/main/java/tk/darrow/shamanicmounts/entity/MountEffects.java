@@ -291,6 +291,15 @@ final class MountEffects {
 		ring(level, ParticleTypes.HAPPY_VILLAGER, mount, mount.getBbWidth() * 0.6, 0.5, 8);
 	}
 
+	/** A meal taken: a few hearts over the back. */
+	static void fed(ShamanicMount mount) {
+		ServerLevel level = server(mount);
+		if (level == null) {
+			return;
+		}
+		ring(level, ParticleTypes.HEART, mount, mount.getBbWidth() * 0.4, mount.getBbHeight() * 0.8, 5);
+	}
+
 	/** The trial held: a quiet ring under the hearts. */
 	static void tamed(ShamanicMount mount) {
 		ServerLevel level = server(mount);

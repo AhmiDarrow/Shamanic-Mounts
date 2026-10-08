@@ -1402,6 +1402,19 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			}
 			return InteractionResult.sidedSuccess(this.level().isClientSide());
 		}
+		float meal = tk.darrow.shamanicmounts.tack.FeedRules.mealHeal(this.isTame(), meat(stack), this.getHealth(),
+				this.getMaxHealth(), nutrition(stack));
+		if (meal > 0.0f) {
+			if (!this.level().isClientSide()) {
+				this.heal(meal);
+				if (!player.getAbilities().instabuild) {
+					stack.shrink(1);
+				}
+				this.playSound(SoundEvents.HORSE_EAT, 0.7f, 0.9f);
+				MountEffects.fed(this);
+			}
+			return InteractionResult.sidedSuccess(this.level().isClientSide());
+		}
 		if (this.isTame() && this.isOwnedBy(player) && player.isShiftKeyDown()) {
 			openCustomInventoryScreen(player);
 			return InteractionResult.sidedSuccess(this.level().isClientSide());
@@ -1414,6 +1427,21 @@ public class ShamanicMount extends TamableAnimal implements PlayerRideableJumpin
 			return InteractionResult.sidedSuccess(this.level().isClientSide());
 		}
 		return super.mobInteract(player, hand);
+	}
+
+	/** Any meat, vanilla or tagged by another mod, raw or cooked. Rotten flesh is not a meal. */
+	private static boolean meat(ItemStack stack) {
+		if (stack.isEmpty() || stack.is(Items.ROTTEN_FLESH)) {
+			return false;
+		}
+		return stack.is(net.minecraft.tags.ItemTags.MEAT)
+				|| stack.is(net.neoforged.neoforge.common.Tags.Items.FOODS_RAW_MEAT)
+				|| stack.is(net.neoforged.neoforge.common.Tags.Items.FOODS_COOKED_MEAT);
+	}
+
+	private static int nutrition(ItemStack stack) {
+		var food = stack.get(net.minecraft.core.component.DataComponents.FOOD);
+		return food == null ? 0 : food.nutrition();
 	}
 
 	private boolean trialShown() {

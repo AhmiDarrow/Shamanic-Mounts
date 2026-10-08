@@ -41,6 +41,7 @@ public final class Codex {
 						"Sneak to step off. On a mount that hides, blinks, or dives, a held sneak keeps you on; tap it to step off.")),
 				new Section("Keeping", List.of(
 						"Sneak and right-click a tame for its tack: the saddle, Saddle Bags, and horse armor. Foals wear none.",
+						"A hurt tame eats any meat from your hand, raw or cooked, and mends by what the cut is worth. Not rotten flesh. A sound one leaves it and you climb on.",
 						"A new tame follows you, and keeps following when you step off. On that screen, tell it to stay and it lies down wherever you leave it, or to wander nearby.",
 						"A following mount near you goes with you into another dimension: by portal, by command, or home from the End. Ride one through and you arrive in the saddle.",
 						"Your tames are listed here, loaded or not. Open one for its genes and family, to rename it, or to release it.")),
