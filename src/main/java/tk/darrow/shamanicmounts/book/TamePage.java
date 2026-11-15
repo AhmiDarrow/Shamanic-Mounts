@@ -6,8 +6,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+import net.minecraft.network.chat.Component;
+
 import tk.darrow.shamanicmounts.genome.Expression;
 import tk.darrow.shamanicmounts.genome.Genome;
+import tk.darrow.shamanicmounts.genome.Locus;
 import tk.darrow.shamanicmounts.genome.MountSize;
 import tk.darrow.shamanicmounts.genome.Phenotype;
 
@@ -18,7 +21,7 @@ public final class TamePage {
 	 * the note on how they combine, and the rule for how the gene passes down.
 	 */
 	public record Row(Reading.Group group, String locus, String symbol, String notation, String shown, String dam,
-			String sire, String note, String rule) {
+			String sire, String note, String rule, Locus gene) {
 	}
 
 	/** One relative: how it is related, its name, and its id so the book can open it. */
@@ -48,7 +51,7 @@ public final class TamePage {
 			String note = line.note() == Reading.Note.PLAIN ? "" : noteWord(line.note());
 			rows.add(new Row(line.group(), Genotype.name(line.locus()), Genotype.symbol(line.locus()),
 					Genotype.notation(line), line.word(), line.damWord(), line.sireWord(), notes ? note : "",
-					Genotype.rule(line.locus())));
+					Genotype.rule(line.locus()), line.locus()));
 		}
 		return rows;
 	}
@@ -97,6 +100,31 @@ public final class TamePage {
 		};
 	}
 
+	/** The same summary as a translatable line. Size stays the class code (M, XL). */
+	public static Component summaryText(Genome genome, boolean male) {
+		Phenotype phenotype = Expression.express(genome);
+		Component bodyName = Component.translatable(lineNameKey(body(genome)));
+		Component coat = Component.translatable(peltKey(pelt(genome)));
+		String size = phenotype.size.name();
+		Component sex = Component.translatable(male ? "book.shamanicmounts.sex.male" : "book.shamanicmounts.sex.female");
+		boolean carries = phenotype.torso != phenotype.carriedTorso && !genome.chimera;
+		if (carries) {
+			Component carried = Component.translatable(Copy.wordKey(phenotype.carriedTorso.code()));
+			return Component.translatable("book.shamanicmounts.summary.carries", bodyName, carried, coat, size, sex);
+		}
+		return Component.translatable("book.shamanicmounts.summary", bodyName, coat, size, sex);
+	}
+
+	/** Lang key for a founder body name such as {@code Eightfold} or {@code Drum hart}. */
+	public static String lineNameKey(String englishBody) {
+		return "book.shamanicmounts.line." + englishBody.toLowerCase(Locale.ROOT).replace(' ', '_') + ".name";
+	}
+
+	/** Lang key for a title-case pelt name. */
+	public static String peltKey(String englishPelt) {
+		return "book.shamanicmounts.pelt." + englishPelt.toLowerCase(Locale.ROOT).replace(' ', '_');
+	}
+
 	/** One line for a tame: the body it shows, its pelt, its size, and its sex. */
 	public static String summary(Genome genome, boolean male) {
 		Phenotype phenotype = Expression.express(genome);
@@ -106,14 +134,36 @@ public final class TamePage {
 				+ (male ? "male" : "female");
 	}
 
+	public static Component statsText(int health, int speed, int jump, int stamina) {
+		return Component.translatable("book.shamanicmounts.stats", health, speed, jump, stamina);
+	}
+
 	/** The four bred numbers, 1 to 100. Basics, not gifts. */
 	public static String stats(int health, int speed, int jump, int stamina) {
 		return "Health " + health + ", Speed " + speed + ", Jump " + jump + ", Stamina " + stamina;
 	}
 
+	public static List<Component> statLineText(int health, int speed, int jump, int stamina) {
+		return List.of(
+				Component.translatable("book.shamanicmounts.stat.health", health),
+				Component.translatable("book.shamanicmounts.stat.speed", speed),
+				Component.translatable("book.shamanicmounts.stat.jump", jump),
+				Component.translatable("book.shamanicmounts.stat.stamina", stamina));
+	}
+
 	/** The same four numbers, one line each, for the open page. */
 	public static List<String> statLines(int health, int speed, int jump, int stamina) {
 		return List.of("Health " + health, "Speed " + speed, "Jump " + jump, "Stamina " + stamina);
+	}
+
+	/** The wing line as a translatable component, or empty when the mount has no wings. */
+	public static Component wingsText(Genome genome) {
+		Phenotype phenotype = Expression.express(genome);
+		if (phenotype.wings == Phenotype.WingShow.NONE && !phenotype.chimera) {
+			return Component.empty();
+		}
+		return Component.translatable("book.shamanicmounts.wings",
+				String.format(Locale.ROOT, "%.1f", phenotype.wingScale));
 	}
 
 	/** The wing line, or an empty string for a mount without wings. */

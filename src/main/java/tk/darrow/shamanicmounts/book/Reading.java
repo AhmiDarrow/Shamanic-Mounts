@@ -47,6 +47,11 @@ public final class Reading {
 		Group(String title) {
 			this.title = title;
 		}
+
+		/** Lang key for the group title. The English {@link #title} stays for anything that reads it directly. */
+		public String titleKey() {
+			return "book.shamanicmounts.group." + name().toLowerCase(Locale.ROOT);
+		}
 	}
 
 	/**

@@ -82,7 +82,8 @@ public final class HerdBook {
 			int health, int speed, int jump, int stamina) {
 		String clean = name == null ? "" : name.strip();
 		if (clean.isEmpty()) {
-			clean = "Tame";
+			String fallback = Copy.en("book.shamanicmounts.default_name");
+			clean = fallback.startsWith("book.shamanicmounts.") ? "Tame" : fallback;
 		}
 		if (clean.length() > 24) {
 			clean = clean.substring(0, 24).strip();

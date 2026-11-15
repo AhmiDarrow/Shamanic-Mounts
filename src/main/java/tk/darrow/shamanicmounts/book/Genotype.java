@@ -86,28 +86,6 @@ public final class Genotype {
 			Map.entry(Locus.WARD, List.of("none", "longevity", "guard")),
 			Map.entry(Locus.TRAIL, List.of("none", "star", "shadow", "frost")));
 
-	/** How each gene passes down and shows, in one line. The key prints it and a tame's page shows it on hover. */
-	private static final Map<Locus, String> RULES = Map.ofEntries(
-			Map.entry(Locus.TORSO, "Dominant: U > S > H > D > C > B > N. The hidden body pulls the neck, head, tail, and girth toward its own."),
-			Map.entry(Locus.HEAD, "One copy shows, picked at birth. The other is carried."),
-			Map.entry(Locus.LEGS, "Mixed counts meet in the middle: eight with four shows the spare pair, two with four a hitched pair. None is recessive."),
-			Map.entry(Locus.FOOT, "One copy shows, picked at birth. The head has no say."),
-			Map.entry(Locus.RACK, "The bigger rack shows. Over none it comes in one step smaller. Two crowns make the elk's heavy rack."),
-			Map.entry(Locus.GAIT, "Sea shows over land. Cinder needs two copies. Sea with cinder shows mist."),
-			Map.entry(Locus.WINGS, "Two full or two astral show whole. Full with astral shows both. Full over vestigial shows full. Any other mix shows pinions."),
-			Map.entry(Locus.WINGSPAN, "The two copies average: small x0.6, mid x1.0, large x1.6, great x2.2, vast x3.0."),
-			Map.entry(Locus.TAIL, "One copy shows, picked at birth. A tail over none comes in as a stub."),
-			Map.entry(Locus.SCALE, "The line's frame. Giant shows from one copy and is greater with two. Slight needs two."),
-			Map.entry(Locus.SIZE, "Size within the line. The copies average: XS x0.86, S x0.93, M x1.0, L x1.07, XL x1.14."),
-			Map.entry(Locus.COAT, "Bone covers every pattern. Solid over rosette shows solid. Other mixes show both."),
-			Map.entry(Locus.PELT, "Dominant: A > B > C. The names follow the body that shows."),
-			Map.entry(Locus.REALM, "Every realm other than hearth shows, and two different realms show together."),
-			Map.entry(Locus.PHASE, "Veil shows from one copy. Ghost needs two. Veil with ghost shows the deep veil."),
-			Map.entry(Locus.SENSE, "Eye shows over scent. Scent needs two copies."),
-			Map.entry(Locus.BOND, "Drum shows from one copy. The nagual's bond needs two."),
-			Map.entry(Locus.WARD, "Every ward shows from one copy, and two different wards show together."),
-			Map.entry(Locus.TRAIL, "Every trail shows from one copy, and two different trails show together."));
-
 	private Genotype() {
 	}
 
@@ -115,25 +93,36 @@ public final class Genotype {
 		return SYMBOLS.get(locus);
 	}
 
+	public static String nameKey(Locus locus) {
+		return "book.shamanicmounts.locus." + NAMES.get(locus);
+	}
+
 	public static String name(Locus locus) {
-		return NAMES.get(locus);
+		String value = Copy.en(nameKey(locus));
+		return value.startsWith("book.shamanicmounts.") ? NAMES.get(locus) : value;
+	}
+
+	/** Lang key for how this gene passes down. */
+	public static String ruleKey(Locus locus) {
+		if (isGift(locus)) {
+			Marks.Gift gift = giftAt(locus);
+			if (gift == Marks.Gift.DREAM) {
+				return "book.shamanicmounts.rule.dream";
+			}
+			return gift != null && gift.recessive() ? "book.shamanicmounts.rule.recessive"
+					: "book.shamanicmounts.rule.dominant_gift";
+		}
+		return "book.shamanicmounts.rule." + locus.name().toLowerCase(Locale.ROOT);
 	}
 
 	public static boolean isGift(Locus locus) {
 		return !LETTERS.containsKey(locus);
 	}
 
-	/** How a gene passes down, in one line. */
+	/** How a gene passes down, in one English line. The screen translates {@link #ruleKey}. */
 	public static String rule(Locus locus) {
-		if (isGift(locus)) {
-			Marks.Gift gift = giftAt(locus);
-			if (gift == Marks.Gift.DREAM) {
-				return "One copy flies by night. Two copies fly day and night, without hunger.";
-			}
-			return gift != null && gift.recessive() ? "Shows only with two copies. One copy is carried."
-					: "Shows from one copy.";
-		}
-		return RULES.getOrDefault(locus, "");
+		String value = Copy.en(ruleKey(locus));
+		return value.startsWith("book.shamanicmounts.") ? "" : value;
 	}
 
 	private static Marks.Gift giftAt(Locus locus) {
@@ -195,18 +184,46 @@ public final class Genotype {
 	}
 
 	/** The key for the body loci, in the order a tame's page prints them. */
+	/** Body loci in the order the key and a tame's page print them. */
+	public static List<Locus> bodyLoci() {
+		return KEY_ORDER;
+	}
+
+	/** Gift loci, in enum order. */
+	public static List<Locus> giftLoci() {
+		ArrayList<Locus> loci = new ArrayList<>();
+		for (Locus locus : Locus.values()) {
+			if (isGift(locus)) {
+				loci.add(locus);
+			}
+		}
+		return loci;
+	}
+
+	/**
+	 * Every letter of a body gene with the word {@code word} supplies. The English key passes
+	 * {@link Copy#enWord} so the harness still reads {@code N none  T two}.
+	 */
+	public static String bodyLetters(Locus locus, java.util.function.Function<String, String> word) {
+		StringBuilder letters = new StringBuilder();
+		List<String> order = ORDER.get(locus);
+		if (order == null) {
+			return "";
+		}
+		for (String code : order) {
+			if (letters.length() > 0) {
+				letters.append("  ");
+			}
+			String token = locus == Locus.PELT ? peltWord(code) : code;
+			letters.append(letter(locus, code)).append(' ').append(word.apply(token));
+		}
+		return letters.toString();
+	}
+
 	public static List<KeyEntry> bodyKey() {
 		ArrayList<KeyEntry> entries = new ArrayList<>();
 		for (Locus locus : KEY_ORDER) {
-			StringBuilder letters = new StringBuilder();
-			for (String code : ORDER.get(locus)) {
-				if (letters.length() > 0) {
-					letters.append("  ");
-				}
-				String word = locus == Locus.PELT ? peltWord(code) : code;
-				letters.append(letter(locus, code)).append(' ').append(word);
-			}
-			entries.add(new KeyEntry(symbol(locus), name(locus), letters.toString(), rule(locus)));
+			entries.add(new KeyEntry(symbol(locus), name(locus), bodyLetters(locus, Copy::enWord), rule(locus)));
 		}
 		return entries;
 	}
