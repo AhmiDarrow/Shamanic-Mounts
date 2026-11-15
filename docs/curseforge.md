@@ -91,3 +91,7 @@ Shamanic Mounts 0.1.15 - Said Once, CurseForge file **9091546** (uploaded 2026-1
 ## 0.1.16
 
 Shamanic Mounts 0.1.16 - A Meal for the Herd, CurseForge file **9096218** (uploaded 2026-10-08, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.1.16
+
+## 0.2.0
+
+Shamanic Mounts 0.2.0 - In Your Tongue, CurseForge file **9636119** (uploaded 2026-11-15, release). GitHub release: https://github.com/AhmiDarrow/Shamanic-Mounts/releases/tag/v0.2.0
